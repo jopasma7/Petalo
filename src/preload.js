@@ -8,12 +8,23 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     getEventos: () => ipcRenderer.invoke('get-eventos'),
     getPedidos: () => ipcRenderer.invoke('get-pedidos'),
     getEstadisticas: () => ipcRenderer.invoke('get-estadisticas'),
+    getCategorias: () => ipcRenderer.invoke('get-categorias'),
     
     // Métodos de creación
     crearProducto: (producto) => ipcRenderer.invoke('crear-producto', producto),
     crearCliente: (cliente) => ipcRenderer.invoke('crear-cliente', cliente),
     crearEvento: (evento) => ipcRenderer.invoke('crear-evento', evento),
     crearPedido: (pedido) => ipcRenderer.invoke('crear-pedido', pedido),
+    
+    // Métodos de actualización
+    actualizarProducto: (id, producto) => ipcRenderer.invoke('actualizar-producto', id, producto),
+    actualizarCliente: (id, cliente) => ipcRenderer.invoke('actualizar-cliente', id, cliente),
+    actualizarEvento: (id, evento) => ipcRenderer.invoke('actualizar-evento', id, evento),
+    
+    // Métodos de eliminación
+    eliminarProducto: (id) => ipcRenderer.invoke('eliminar-producto', id),
+    eliminarCliente: (id) => ipcRenderer.invoke('eliminar-cliente', id),
+    eliminarEvento: (id) => ipcRenderer.invoke('eliminar-evento', id),
     
     // Eventos del menú
     onMenuAction: (callback) => {
@@ -27,10 +38,11 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: 'EUR'
-        }).format(amount);
+        }).format(amount || 0);
     },
     
     formatDate: (date) => {
+        if (!date) return 'N/A';
         return new Intl.DateTimeFormat('es-ES', {
             year: 'numeric',
             month: '2-digit',
@@ -39,6 +51,7 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     },
     
     formatDateTime: (date) => {
+        if (!date) return 'N/A';
         return new Intl.DateTimeFormat('es-ES', {
             year: 'numeric',
             month: '2-digit',

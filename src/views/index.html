@@ -8,40 +8,147 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="app-header">
-            <h1>🌸 Gestión de Floristería</h1>
-            <div class="header-actions">
-                <button id="btn-nuevo-pedido" class="btn btn-primary">
-                    📋 Nuevo Pedido
+        <!-- Floating Action Button -->
+        <div class="fab-container">
+            <button class="fab main-fab" id="main-fab">
+                <span class="fab-icon">➕</span>
+            </button>
+            <div class="fab-menu" id="fab-menu">
+                <button class="fab fab-secondary" data-action="nuevo-producto" title="Nuevo Producto">
+                    🌺
                 </button>
-                <button id="btn-buscar" class="btn btn-secondary">
-                    🔍 Buscar
+                <button class="fab fab-secondary" data-action="nuevo-cliente" title="Nuevo Cliente">
+                    👥
+                </button>
+                <button class="fab fab-secondary" data-action="nuevo-evento" title="Nuevo Evento">
+                    🎉
+                </button>
+                <button class="fab fab-secondary" data-action="nuevo-pedido" title="Nuevo Pedido">
+                    📋
                 </button>
             </div>
-        </header>
+        </div>
 
-        <main class="app-main">
-            <div class="sidebar">
-                <nav class="nav-menu">
-                    <h3>📊 Navegación</h3>
-                    <ul>
-                        <li><a href="#" data-section="dashboard" class="nav-link active">🏠 Dashboard</a></li>
-                        <li><a href="#" data-section="productos" class="nav-link">🌺 Productos</a></li>
-                        <li><a href="#" data-section="clientes" class="nav-link">👥 Clientes</a></li>
-                        <li><a href="#" data-section="eventos" class="nav-link">🎉 Eventos</a></li>
-                        <li><a href="#" data-section="pedidos" class="nav-link">📋 Pedidos</a></li>
-                        <li><a href="#" data-section="inventario" class="nav-link">📦 Inventario</a></li>
-                        <li><a href="#" data-section="reportes" class="nav-link">📈 Reportes</a></li>
-                        <li><a href="#" data-section="configuracion" class="nav-link">⚙️ Configuración</a></li>
-                    </ul>
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="logo-container">
+                    <div class="logo-icon">🌸</div>
+                    <div class="logo-text">
+                        <span class="brand-name">Floristería</span>
+                        <span class="brand-subtitle">Manager Pro</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-center">
+                <div class="search-global">
+                    <input type="text" placeholder="Buscar en toda la aplicación..." class="global-search-input">
+                    <button class="search-btn">🔍</button>
+                </div>
+            </div>
+            
+            <div class="nav-right">
+                <div class="nav-actions">
+                    <button class="nav-action-btn" title="Notificaciones">
+                        <span class="icon">🔔</span>
+                        <span class="badge">3</span>
+                    </button>
+                    <button class="nav-action-btn" title="Configuración">
+                        <span class="icon">⚙️</span>
+                    </button>
+                    <div class="user-menu">
+                        <img src="https://via.placeholder.com/32x32/4f46e5/white?text=U" alt="Usuario" class="user-avatar">
+                        <span class="user-name">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar Navigation -->
+        <aside class="modern-sidebar">
+            <div class="sidebar-content">
+                <div class="nav-sections">
+                    <div class="nav-section">
+                        <h3 class="section-title">Principal</h3>
+                        <nav class="nav-links">
+                            <a href="#" class="nav-link active" data-section="dashboard">
+                                <span class="nav-icon">📊</span>
+                                <span class="nav-text">Dashboard</span>
+                                <span class="nav-indicator"></span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3 class="section-title">Gestión</h3>
+                        <nav class="nav-links">
+                            <a href="#" class="nav-link" data-section="productos">
+                                <span class="nav-icon">🌺</span>
+                                <span class="nav-text">Productos</span>
+                                <span class="nav-badge">24</span>
+                            </a>
+                            <a href="#" class="nav-link" data-section="clientes">
+                                <span class="nav-icon">👥</span>
+                                <span class="nav-text">Clientes</span>
+                                <span class="nav-badge">12</span>
+                            </a>
+                            <a href="#" class="nav-link" data-section="eventos">
+                                <span class="nav-icon">🎉</span>
+                                <span class="nav-text">Eventos</span>
+                                <span class="nav-badge">5</span>
+                            </a>
+                            <a href="#" class="nav-link" data-section="pedidos">
+                                <span class="nav-icon">📋</span>
+                                <span class="nav-text">Pedidos</span>
+                                <span class="nav-badge new">3</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <div class="nav-section">
+                        <h3 class="section-title">Análisis</h3>
+                        <nav class="nav-links">
+                            <a href="#" class="nav-link" data-section="inventario">
+                                <span class="nav-icon">📦</span>
+                                <span class="nav-text">Inventario</span>
+                            </a>
+                            <a href="#" class="nav-link" data-section="reportes">
+                                <span class="nav-icon">📈</span>
+                                <span class="nav-text">Reportes</span>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <div class="quick-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Ventas Hoy</span>
+                            <span class="stat-value">€1,250</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Stock Bajo</span>
+                            <span class="stat-value warning">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="modern-main-content">
+            <!-- Dynamic Breadcrumbs -->
+            <div class="breadcrumb-container">
+                <nav class="breadcrumbs">
+                    <span class="breadcrumb-item active">Dashboard</span>
                 </nav>
             </div>
 
-            <div class="content">
+            <div class="content-wrapper">
                 <!-- Dashboard Section -->
                 <section id="dashboard-section" class="content-section" style="display: block;">
                     <h2>🏠 Dashboard Principal</h2>
-                    
                     <div class="stats-grid">
                         <div class="stat-card primary">
                             <div class="stat-icon">🌺</div>
@@ -64,7 +171,7 @@
                                 <div class="stat-number" id="pedidos-pendientes">0</div>
                             </div>
                         </div>
-                        <div class="stat-card info">
+                        <div class="stat-card primary">
                             <div class="stat-icon">🎉</div>
                             <div class="stat-content">
                                 <h3>Eventos Activos</h3>
@@ -72,13 +179,248 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="dashboard-row">
-                        <div class="dashboard-card">
-                            <h3>💰 Ventas del Mes</h3>
-                            <div class="sales-amount" id="ventas-mes">€0.00</div>
-                            <div class="sales-trend">📈 Comparado con el mes anterior</div>
+                    <div class="dashboard-content">
+                        <div class="dashboard-main">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">💰 Ventas del Mes</h3>
+                                    <p class="card-subtitle">Rendimiento financiero actual</p>
+                                </div>
+                                <div class="card-body">
+                                    <div class="sales-amount" id="ventas-mes" style="font-size: 2rem; font-weight: 700; color: var(--success-600); margin-bottom: 1rem;">€0.00</div>
+                                    <div class="sales-trend" style="color: var(--gray-600); font-size: 0.875rem;">📈 Comparado con el mes anterior</div>
+                                </div>
+                            </div>
                         </div>
+                        <div class="dashboard-sidebar">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">⚠️ Stock Bajo</h3>
+                                    <p class="card-subtitle">Productos que requieren atención</p>
+                                </div>
+                                <div class="card-body">
+                                    <div id="stock-bajo-list" class="stock-list">
+                                        <p class="text-success">✅ Todos los productos tienen stock suficiente</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">📅 Próximos Eventos</h3>
+                                    <p class="card-subtitle">Eventos programados</p>
+                                </div>
+                                <div class="card-body">
+                                    <div id="proximos-eventos">
+                                        <p>📅 No hay eventos próximos programados</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Productos Section -->
+                <section id="productos-section" class="content-section" style="display: none;">
+                    <h2>🌺 Gestión de Productos</h2>
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Productos</h3>
+                            <div class="table-actions">
+                                <div class="search-input">
+                                    <input type="text" id="search-productos" placeholder="Buscar productos..." class="form-input">
+                                </div>
+                                <select id="filter-categoria" class="form-select" style="width: auto;">
+                                    <option value="">Todas las categorías</option>
+                                </select>
+                                <button id="btn-nuevo-producto" class="btn btn-primary">
+                                    ➕ Nuevo Producto
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="productos-table">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Stock</th>
+                                        <th>Precio Venta</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Cargando productos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Clientes Section -->
+                <section id="clientes-section" class="content-section" style="display: none;">
+                    <h2>👥 Gestión de Clientes</h2>
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Clientes</h3>
+                            <div class="table-actions">
+                                <div class="search-input">
+                                    <input type="text" id="search-clientes" placeholder="Buscar clientes..." class="form-input">
+                                </div>
+                                <button id="btn-nuevo-cliente" class="btn btn-primary">
+                                    ➕ Nuevo Cliente
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="clientes-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Teléfono</th>
+                                        <th>Email</th>
+                                        <th>Tipo</th>
+                                        <th>Total Compras</th>
+                                        <th>Última Compra</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Cargando clientes...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Eventos Section -->
+                <section id="eventos-section" class="content-section" style="display: none;">
+                    <h2>🎉 Gestión de Eventos</h2>
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Eventos</h3>
+                            <div class="table-actions">
+                                <button id="btn-nuevo-evento" class="btn btn-primary">
+                                    ➕ Nuevo Evento
+                                </button>
+                            </div>
+                        </div>
+                        <div class="eventos-grid" id="eventos-grid">
+                            <p class="text-center">Cargando eventos...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pedidos Section -->
+                <section id="pedidos-section" class="content-section" style="display: none;">
+                    <h2>📋 Gestión de Pedidos</h2>
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Pedidos</h3>
+                            <div class="table-actions">
+                                <div class="filters-row">
+                                    <select id="filter-estado" class="form-select">
+                                        <option value="">Todos los estados</option>
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="confirmado">Confirmado</option>
+                                        <option value="preparando">Preparando</option>
+                                        <option value="listo">Listo</option>
+                                        <option value="entregado">Entregado</option>
+                                        <option value="cancelado">Cancelado</option>
+                                    </select>
+                                    <input type="date" id="filter-fecha" class="form-input">
+                                </div>
+                                <button id="btn-nuevo-pedido-section" class="btn btn-primary">
+                                    ➕ Nuevo Pedido
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="pedidos-table">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Entrega</th>
+                                        <th>Estado</th>
+                                        <th>Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Cargando pedidos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Inventario Section -->
+                <section id="inventario-section" class="content-section" style="display: none;">
+                    <h2>📦 Control de Inventario</h2>
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <h3>📊 Resumen de Stock</h3>
+                            <div id="inventory-summary" class="stats-content">
+                                <p>Cargando resumen de inventario...</p>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <h3>⚠️ Alertas de Stock</h3>
+                            <div id="inventory-alerts" class="alerts-content">
+                                <p>Cargando alertas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reportes Section -->
+                <section id="reportes-section" class="content-section" style="display: none;">
+                    <h2>� Reportes y Análisis</h2>
+                    <div class="reports-grid">
+                        <div class="report-card">
+                            <h3>💰 Ventas por Período</h3>
+                            <canvas id="sales-chart"></canvas>
+                        </div>
+                        <div class="report-card">
+                            <h3>🌺 Productos Más Vendidos</h3>
+                            <div id="top-products"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Configuración Section -->
+                <section id="configuracion-section" class="content-section" style="display: none;">
+                    <h2>⚙️ Configuración</h2>
+                    <div class="config-grid">
+                        <div class="config-card">
+                            <h3>🏢 Datos de la Empresa</h3>
+                            <form id="empresa-form">
+                                <div class="form-group">
+                                    <label>Nombre de la Empresa</label>
+                                    <input type="text" id="empresa-nombre" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Dirección</label>
+                                    <input type="text" id="empresa-direccion" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Teléfono</label>
+                                    <input type="text" id="empresa-telefono" class="form-control">
+                                </div>
+                                <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
                         
                         <div class="dashboard-card">
                             <h3>⚠️ Stock Bajo</h3>
@@ -98,23 +440,25 @@
 
                 <!-- Productos Section -->
                 <section id="productos-section" class="content-section" style="display: none;">
-                    <div class="section-header">
-                        <h2>🌺 Gestión de Productos</h2>
-                        <button id="btn-nuevo-producto" class="btn btn-primary">
-                            ➕ Nuevo Producto
-                        </button>
-                    </div>
-                    
-                    <div class="products-filters">
-                        <select id="filter-categoria" class="form-control">
-                            <option value="">Todas las categorías</option>
-                        </select>
-                        <input type="text" id="search-productos" placeholder="Buscar productos..." class="form-control">
-                    </div>
+                    <h2>🌺 Gestión de Productos</h2>
 
-                    <div class="records-container">
-                        <div class="records-table-container">
-                            <table class="records-table" id="productos-table">
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Productos</h3>
+                            <div class="table-actions">
+                                <div class="search-input">
+                                    <input type="text" id="search-productos" placeholder="Buscar productos..." class="form-input">
+                                </div>
+                                <select id="filter-categoria" class="form-select" style="width: auto;">
+                                    <option value="">Todas las categorías</option>
+                                </select>
+                                <button id="btn-nuevo-producto" class="btn btn-primary">
+                                    ➕ Nuevo Producto
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="productos-table">
                                 <thead>
                                     <tr>
                                         <th>Código</th>
@@ -128,7 +472,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="7">Cargando productos...</td>
+                                        <td colspan="7" class="text-center">Cargando productos...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -138,16 +482,22 @@
 
                 <!-- Clientes Section -->
                 <section id="clientes-section" class="content-section" style="display: none;">
-                    <div class="section-header">
-                        <h2>👥 Gestión de Clientes</h2>
-                        <button id="btn-nuevo-cliente" class="btn btn-primary">
-                            ➕ Nuevo Cliente
-                        </button>
-                    </div>
+                    <h2>👥 Gestión de Clientes</h2>
 
-                    <div class="records-container">
-                        <div class="records-table-container">
-                            <table class="records-table" id="clientes-table">
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Clientes</h3>
+                            <div class="table-actions">
+                                <div class="search-input">
+                                    <input type="text" id="search-clientes" placeholder="Buscar clientes..." class="form-input">
+                                </div>
+                                <button id="btn-nuevo-cliente" class="btn btn-primary">
+                                    ➕ Nuevo Cliente
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="clientes-table">
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>
@@ -161,8 +511,13 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="7">Cargando clientes...</td>
+                                        <td colspan="7" class="text-center">Cargando clientes...</td>
                                     </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
                                 </tbody>
                             </table>
                         </div>
@@ -171,43 +526,50 @@
 
                 <!-- Eventos Section -->
                 <section id="eventos-section" class="content-section" style="display: none;">
-                    <div class="section-header">
-                        <h2>🎉 Gestión de Eventos</h2>
-                        <button id="btn-nuevo-evento" class="btn btn-primary">
-                            ➕ Nuevo Evento
-                        </button>
-                    </div>
+                    <h2>🎉 Gestión de Eventos</h2>
 
-                    <div class="eventos-grid" id="eventos-grid">
-                        <p>Cargando eventos...</p>
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Eventos</h3>
+                            <div class="table-actions">
+                                <button id="btn-nuevo-evento" class="btn btn-primary">
+                                    ➕ Nuevo Evento
+                                </button>
+                            </div>
+                        </div>
+                        <div class="eventos-grid" id="eventos-grid">
+                            <p class="text-center">Cargando eventos...</p>
+                        </div>
                     </div>
                 </section>
 
                 <!-- Pedidos Section -->
                 <section id="pedidos-section" class="content-section" style="display: none;">
-                    <div class="section-header">
-                        <h2>📋 Gestión de Pedidos</h2>
-                        <button id="btn-nuevo-pedido-section" class="btn btn-primary">
-                            ➕ Nuevo Pedido
-                        </button>
-                    </div>
+                    <h2>📋 Gestión de Pedidos</h2>
 
-                    <div class="pedidos-filters">
-                        <select id="filter-estado" class="form-control">
-                            <option value="">Todos los estados</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="confirmado">Confirmado</option>
-                            <option value="preparando">Preparando</option>
-                            <option value="listo">Listo</option>
-                            <option value="entregado">Entregado</option>
-                            <option value="cancelado">Cancelado</option>
-                        </select>
-                        <input type="date" id="filter-fecha" class="form-control">
-                    </div>
-
-                    <div class="records-container">
-                        <div class="records-table-container">
-                            <table class="records-table" id="pedidos-table">
+                    <div class="card">
+                        <div class="table-header">
+                            <h3 class="table-title">Lista de Pedidos</h3>
+                            <div class="table-actions">
+                                <div class="filters-row">
+                                    <select id="filter-estado" class="form-select">
+                                        <option value="">Todos los estados</option>
+                                        <option value="pendiente">Pendiente</option>
+                                        <option value="confirmado">Confirmado</option>
+                                        <option value="preparando">Preparando</option>
+                                        <option value="listo">Listo</option>
+                                        <option value="entregado">Entregado</option>
+                                        <option value="cancelado">Cancelado</option>
+                                    </select>
+                                    <input type="date" id="filter-fecha" class="form-input">
+                                </div>
+                                <button id="btn-nuevo-pedido-section" class="btn btn-primary">
+                                    ➕ Nuevo Pedido
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="pedidos-table">
                                 <thead>
                                     <tr>
                                         <th>Número</th>
@@ -221,7 +583,7 @@
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td colspan="7">Cargando pedidos...</td>
+                                        <td colspan="7" class="text-center">Cargando pedidos...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -232,14 +594,20 @@
                 <!-- Inventario Section -->
                 <section id="inventario-section" class="content-section" style="display: none;">
                     <h2>📦 Control de Inventario</h2>
-                    <div class="inventory-summary">
-                        <div class="inventory-card">
+                    
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
                             <h3>📊 Resumen de Stock</h3>
-                            <div id="inventory-summary"></div>
+                            <div id="inventory-summary" class="stats-content">
+                                <p>Cargando resumen de inventario...</p>
+                            </div>
                         </div>
-                        <div class="inventory-card">
-                            <h3>⚠️ Alertas</h3>
-                            <div id="inventory-alerts"></div>
+                        
+                        <div class="dashboard-card">
+                            <h3>⚠️ Alertas de Stock</h3>
+                            <div id="inventory-alerts" class="alerts-content">
+                                <p>Cargando alertas...</p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -488,6 +856,10 @@
         </div>
     </div>
 
-    <script src="../scripts/main.js"></script>
+            </div> <!-- Close content-wrapper -->
+        </main> <!-- Close modern-main-content -->
+    </div> <!-- Close app-container -->
+
+    <script src="../js/main.js"></script>
 </body>
 </html>

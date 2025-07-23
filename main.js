@@ -9,9 +9,9 @@ let dbManager;
 // Función para crear la ventana principal
 function createMainWindow() {
     mainWindow = new BrowserWindow({
-        width: 1400,
+        width: 1800,
         height: 900,
-        minWidth: 1000,
+        minWidth: 1200,
         minHeight: 700,
         icon: path.join(__dirname, 'assets', 'icon.png'), // Opcional: agregar icono
         webPreferences: {
@@ -196,6 +196,107 @@ ipcMain.handle('get-estadisticas', async () => {
         return await dbManager.getEstadisticasGenerales();
     } catch (error) {
         console.error('Error obteniendo estadísticas:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('get-categorias', async () => {
+    try {
+        return await dbManager.allQuery('SELECT * FROM categorias ORDER BY nombre');
+    } catch (error) {
+        console.error('Error obteniendo categorías:', error);
+        throw error;
+    }
+});
+
+// Métodos de actualización
+ipcMain.handle('actualizar-producto', async (event, id, producto) => {
+    try {
+        const result = await dbManager.runQuery(
+            `UPDATE productos SET nombre=?, categoria_id=?, descripcion=?, precio_compra=?, 
+             precio_venta=?, stock_actual=?, stock_minimo=?, unidad_medida=?, temporada=?, 
+             perecedero=?, dias_caducidad=?, proveedor=?, codigo_producto=?, updated_at=CURRENT_TIMESTAMP 
+             WHERE id=?`,
+            [producto.nombre, producto.categoria_id, producto.descripcion, producto.precio_compra,
+             producto.precio_venta, producto.stock_actual, producto.stock_minimo, producto.unidad_medida,
+             producto.temporada, producto.perecedero, producto.dias_caducidad, producto.proveedor,
+             producto.codigo_producto, id]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error actualizando producto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('actualizar-cliente', async (event, id, cliente) => {
+    try {
+        const result = await dbManager.runQuery(
+            `UPDATE clientes SET nombre=?, apellidos=?, telefono=?, email=?, direccion=?, 
+             fecha_nacimiento=?, tipo_cliente=?, notas=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+            [cliente.nombre, cliente.apellidos, cliente.telefono, cliente.email, cliente.direccion,
+             cliente.fecha_nacimiento, cliente.tipo_cliente, cliente.notas, id]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error actualizando cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('actualizar-evento', async (event, id, evento) => {
+    try {
+        const result = await dbManager.runQuery(
+            `UPDATE eventos SET nombre=?, descripcion=?, fecha_inicio=?, fecha_fin=?, tipo_evento=?, 
+             demanda_esperada=?, descuento_especial=?, preparacion_dias=?, notas=?, updated_at=CURRENT_TIMESTAMP 
+             WHERE id=?`,
+            [evento.nombre, evento.descripcion, evento.fecha_inicio, evento.fecha_fin,
+             evento.tipo_evento, evento.demanda_esperada, evento.descuento_especial,
+             evento.preparacion_dias, evento.notas, id]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error actualizando evento:', error);
+        throw error;
+    }
+});
+
+// Métodos de eliminación
+ipcMain.handle('eliminar-producto', async (event, id) => {
+    try {
+        const result = await dbManager.runQuery(
+            'UPDATE productos SET activo = FALSE WHERE id = ?',
+            [id]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error eliminando producto:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('eliminar-cliente', async (event, id) => {
+    try {
+        const result = await dbManager.runQuery(
+            'UPDATE clientes SET activo = FALSE WHERE id = ?',
+            [id]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error eliminando cliente:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('eliminar-evento', async (event, id) => {
+    try {
+        const result = await dbManager.runQuery(
+            'UPDATE eventos SET activo = FALSE WHERE id = ?',
+            [id]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error eliminando evento:', error);
         throw error;
     }
 });

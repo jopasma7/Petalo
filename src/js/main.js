@@ -5,6 +5,7 @@ class FlowerShopApp {
     }
 
     async init() {
+        console.log('🌸 Iniciando aplicación de floristería...');
         this.setupNavigation();
         this.setupModals();
         this.setupEventListeners();
@@ -12,7 +13,7 @@ class FlowerShopApp {
         this.showSection('dashboard');
     }
 
-    // Navegación entre secciones
+    // ========== NAVEGACIÓN ==========
     setupNavigation() {
         const navLinks = document.querySelectorAll('.nav-link');
         navLinks.forEach(link => {
@@ -34,10 +35,13 @@ class FlowerShopApp {
         sections.forEach(section => section.style.display = 'none');
         
         // Mostrar la sección seleccionada
-        const targetSection = document.getElementById(sectionId);
+        const targetSection = document.getElementById(sectionId + '-section');
         if (targetSection) {
             targetSection.style.display = 'block';
             this.currentSection = sectionId;
+            
+            // Actualizar breadcrumbs
+            this.updateBreadcrumbs(sectionId);
             
             // Cargar datos específicos de la sección
             this.loadSectionData(sectionId);
@@ -45,546 +49,819 @@ class FlowerShopApp {
     }
 
     async loadSectionData(sectionId) {
+        console.log(`📊 Cargando datos de: ${sectionId}`);
         try {
             switch (sectionId) {
                 case 'dashboard':
                     await this.loadDashboardData();
                     break;
                 case 'productos':
-                    await this.loadProductos();
+                    await this.loadProductosData();
                     break;
                 case 'clientes':
-                    await this.loadClientes();
+                    await this.loadClientesData();
                     break;
                 case 'eventos':
-                    await this.loadEventos();
+                    await this.loadEventosData();
                     break;
                 case 'pedidos':
-                    await this.loadPedidos();
+                    await this.loadPedidosData();
                     break;
                 case 'inventario':
-                    await this.loadInventario();
+                    await this.loadInventarioData();
                     break;
                 case 'reportes':
-                    await this.loadReportes();
+                    await this.loadReportesData();
+                    break;
+                case 'configuracion':
+                    await this.loadConfiguracionData();
                     break;
             }
         } catch (error) {
-            console.error(`Error cargando datos de ${sectionId}:`, error);
-            this.showNotification('Error cargando datos', 'error');
+            console.error(`❌ Error cargando datos de ${sectionId}:`, error);
+            this.showNotification('Error cargando datos de la sección', 'error');
         }
     }
 
-    // Dashboard
+    // ========== DASHBOARD ==========
     async loadDashboardData() {
         try {
-            const [stats, lowStock, recentSales, upcomingEvents] = await Promise.all([
-                window.flowerShopAPI.getStats(),
-                window.flowerShopAPI.getLowStockProducts(),
-                window.flowerShopAPI.getRecentSales(),
-                window.flowerShopAPI.getUpcomingEvents()
-            ]);
-
-            this.updateDashboardStats(stats);
-            this.updateLowStockList(lowStock);
-            this.updateRecentSales(recentSales);
-            this.updateUpcomingEvents(upcomingEvents);
+            console.log('📈 Cargando dashboard...');
+            const stats = await window.flowerShopAPI.getEstadisticas();
+            
+            // Actualizar estadísticas principales
+            this.updateElement('total-productos', stats.totalProductos || 0);
+            this.updateElement('total-clientes', stats.totalClientes || 0);
+            this.updateElement('pedidos-pendientes', stats.pedidosPendientes || 0);
+            this.updateElement('eventos-activos', stats.eventosActivos || 0);
+            
+            // Actualizar ventas del mes
+            this.updateElement('ventas-mes', window.flowerShopAPI.formatCurrency(stats.ventasMesActual || 0));
+            
+            // Actualizar productos con stock bajo
+            this.updateStockBajo(stats.stockBajo || []);
+            
+            // Cargar próximos eventos
+            const eventos = await window.flowerShopAPI.getEventos();
+            this.updateProximosEventos(eventos);
+            
         } catch (error) {
-            console.error('Error cargando dashboard:', error);
+            console.error('❌ Error cargando dashboard:', error);
+            this.showNotification('Error cargando el dashboard', 'error');
         }
     }
 
-    updateDashboardStats(stats) {
-        document.getElementById('totalProductos').textContent = stats.totalProductos || 0;
-        document.getElementById('totalClientes').textContent = stats.totalClientes || 0;
-        document.getElementById('pedidosHoy').textContent = stats.pedidosHoy || 0;
-        document.getElementById('eventosActivos').textContent = stats.eventosActivos || 0;
-        
-        // Ventas del mes
-        const salesAmount = document.querySelector('.sales-amount');
-        if (salesAmount) {
-            salesAmount.textContent = window.flowerShopAPI.formatCurrency(stats.ventasMes || 0);
+    updateElement(id, content) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = content;
         }
     }
 
-    updateLowStockList(products) {
-        const container = document.querySelector('.stock-list');
+    updateStockBajo(productos) {
+        const container = document.getElementById('stock-bajo-list');
         if (!container) return;
 
-        container.innerHTML = products.map(product => `
-            <div class="stock-item">
-                <span>${product.nombre}</span>
-                <span class="stock-quantity ${product.stock_actual <= product.stock_minimo ? 'low' : ''}">${product.stock_actual}</span>
-            </div>
-        `).join('');
+        if (productos.length > 0) {
+            container.innerHTML = productos.map(producto => `
+                <div class="stock-item warning">
+                    <span class="producto-nombre">${producto.nombre}</span>
+                    <span class="stock-info">${producto.stock_actual}/${producto.stock_minimo} unidades</span>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="text-success">✅ Todos los productos tienen stock suficiente</p>';
+        }
     }
 
-    updateRecentSales(sales) {
-        // Implementar actualización de ventas recientes
-        console.log('Ventas recientes:', sales);
+    updateProximosEventos(eventos) {
+        const container = document.getElementById('proximos-eventos');
+        if (!container) return;
+
+        const proximosEventos = eventos
+            .filter(evento => new Date(evento.fecha_inicio) >= new Date())
+            .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio))
+            .slice(0, 3);
+
+        if (proximosEventos.length > 0) {
+            container.innerHTML = proximosEventos.map(evento => `
+                <div class="evento-item">
+                    <div class="evento-fecha">${window.flowerShopAPI.formatDate(evento.fecha_inicio)}</div>
+                    <div class="evento-nombre">${evento.nombre}</div>
+                    <div class="evento-tipo">${evento.tipo_evento}</div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p>📅 No hay eventos próximos programados</p>';
+        }
     }
 
-    updateUpcomingEvents(events) {
-        // Implementar actualización de eventos próximos
-        console.log('Eventos próximos:', events);
-    }
-
-    // Productos
-    async loadProductos() {
+    // ========== PRODUCTOS ==========
+    async loadProductosData() {
         try {
-            const [productos, categorias] = await Promise.all([
-                window.flowerShopAPI.getProductos(),
-                window.flowerShopAPI.getCategorias()
-            ]);
-
+            console.log('🌺 Cargando productos...');
+            const productos = await window.flowerShopAPI.getProductos();
             this.displayProductos(productos);
-            this.loadCategoriasFilter(categorias);
         } catch (error) {
-            console.error('Error cargando productos:', error);
+            console.error('❌ Error cargando productos:', error);
+            this.showNotification('Error cargando productos', 'error');
         }
     }
 
     displayProductos(productos) {
-        const tbody = document.querySelector('#productosTable tbody');
+        const tbody = document.querySelector('#productos-table tbody');
         if (!tbody) return;
 
+        if (productos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay productos registrados</td></tr>';
+            return;
+        }
+
         tbody.innerHTML = productos.map(producto => `
-            <tr>
-                <td>${producto.codigo}</td>
-                <td>${producto.nombre}</td>
-                <td>${producto.categoria_nombre}</td>
-                <td>${window.flowerShopAPI.formatCurrency(producto.precio)}</td>
-                <td>${producto.stock_actual}</td>
+            <tr data-id="${producto.id}">
+                <td>${producto.codigo_producto || 'N/A'}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="app.editProducto(${producto.id})">Editar</button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.deleteProducto(${producto.id})">Eliminar</button>
+                    <div class="producto-info">
+                        <span class="producto-nombre">${producto.nombre}</span>
+                        <small class="producto-categoria">${producto.categoria_icono} ${producto.categoria_nombre}</small>
+                    </div>
+                </td>
+                <td>${producto.categoria_nombre}</td>
+                <td>
+                    <span class="stock-badge ${producto.stock_actual <= producto.stock_minimo ? 'low-stock' : 'normal-stock'}">
+                        ${producto.stock_actual} ${producto.unidad_medida}
+                    </span>
+                </td>
+                <td>${window.flowerShopAPI.formatCurrency(producto.precio_venta)}</td>
+                <td>
+                    <span class="status-badge ${producto.activo ? 'active' : 'inactive'}">
+                        ${producto.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-primary" onclick="app.editarProducto(${producto.id})" title="Editar">
+                            ✏️
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="app.verProducto(${producto.id})" title="Ver detalles">
+                            👁️
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="app.eliminarProducto(${producto.id})" title="Eliminar">
+                            🗑️
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
     }
 
-    loadCategoriasFilter(categorias) {
-        const select = document.getElementById('categoriaFilter');
-        if (!select) return;
-
-        select.innerHTML = '<option value="">Todas las categorías</option>' +
-            categorias.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('');
-    }
-
-    // Clientes
-    async loadClientes() {
+    // ========== CLIENTES ==========
+    async loadClientesData() {
         try {
+            console.log('👥 Cargando clientes...');
             const clientes = await window.flowerShopAPI.getClientes();
             this.displayClientes(clientes);
         } catch (error) {
-            console.error('Error cargando clientes:', error);
+            console.error('❌ Error cargando clientes:', error);
+            this.showNotification('Error cargando clientes', 'error');
         }
     }
 
     displayClientes(clientes) {
-        const tbody = document.querySelector('#clientesTable tbody');
+        const tbody = document.querySelector('#clientes-table tbody');
         if (!tbody) return;
 
+        if (clientes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay clientes registrados</td></tr>';
+            return;
+        }
+
         tbody.innerHTML = clientes.map(cliente => `
-            <tr>
-                <td>${cliente.nombre}</td>
-                <td>${cliente.telefono || '-'}</td>
-                <td>${cliente.email || '-'}</td>
-                <td>${cliente.total_pedidos}</td>
-                <td>${window.flowerShopAPI.formatCurrency(cliente.total_gastado || 0)}</td>
+            <tr data-id="${cliente.id}">
+                <td>${cliente.nombre} ${cliente.apellidos || ''}</td>
+                <td>${cliente.telefono || 'N/A'}</td>
+                <td>${cliente.email || 'N/A'}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="app.editCliente(${cliente.id})">Editar</button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.deleteCliente(${cliente.id})">Eliminar</button>
+                    <span class="cliente-tipo ${cliente.tipo_cliente}">${cliente.tipo_cliente}</span>
+                </td>
+                <td>${window.flowerShopAPI.formatCurrency(cliente.total_compras || 0)}</td>
+                <td>${cliente.ultima_compra ? window.flowerShopAPI.formatDate(cliente.ultima_compra) : 'N/A'}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-sm btn-primary" onclick="app.editarCliente(${cliente.id})" title="Editar">
+                            ✏️
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="app.verCliente(${cliente.id})" title="Ver historial">
+                            👁️
+                        </button>
+                        <button class="btn btn-sm btn-success" onclick="app.nuevoPedidoCliente(${cliente.id})" title="Nuevo pedido">
+                            📋
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
     }
 
-    // Eventos
-    async loadEventos() {
+    // ========== EVENTOS ==========
+    async loadEventosData() {
         try {
+            console.log('🎉 Cargando eventos...');
             const eventos = await window.flowerShopAPI.getEventos();
             this.displayEventos(eventos);
         } catch (error) {
-            console.error('Error cargando eventos:', error);
+            console.error('❌ Error cargando eventos:', error);
+            this.showNotification('Error cargando eventos', 'error');
         }
     }
 
     displayEventos(eventos) {
-        const container = document.querySelector('.eventos-grid');
+        const container = document.getElementById('eventos-grid');
         if (!container) return;
 
-        container.innerHTML = eventos.map(evento => `
-            <div class="evento-card">
-                <div class="evento-header">
-                    <div class="evento-title">${evento.nombre}</div>
-                    <div class="evento-dates">
-                        ${window.flowerShopAPI.formatDate(evento.fecha_inicio)} - 
-                        ${window.flowerShopAPI.formatDate(evento.fecha_fin)}
+        if (eventos.length === 0) {
+            container.innerHTML = '<p class="text-center">No hay eventos registrados</p>';
+            return;
+        }
+
+        container.innerHTML = eventos.map(evento => {
+            const fechaInicio = new Date(evento.fecha_inicio);
+            const fechaFin = new Date(evento.fecha_fin);
+            const hoy = new Date();
+            const esActivo = fechaInicio <= hoy && fechaFin >= hoy;
+            const esProximo = fechaInicio > hoy;
+            
+            return `
+                <div class="evento-card ${esActivo ? 'activo' : ''} ${esProximo ? 'proximo' : ''}" data-id="${evento.id}">
+                    <div class="evento-header">
+                        <h3>${evento.nombre}</h3>
+                        <span class="evento-estado ${esActivo ? 'activo' : esProximo ? 'proximo' : 'pasado'}">
+                            ${esActivo ? 'ACTIVO' : esProximo ? 'PRÓXIMO' : 'PASADO'}
+                        </span>
                     </div>
-                </div>
-                <div class="evento-body">
-                    <div class="evento-info">
-                        <span class="evento-badge ${evento.demanda.toLowerCase()}">${evento.demanda}</span>
-                        <span>${evento.productos_especiales?.length || 0} productos especiales</span>
+                    <div class="evento-details">
+                        <p><strong>Tipo:</strong> ${evento.tipo_evento}</p>
+                        <p><strong>Fechas:</strong> ${window.flowerShopAPI.formatDate(evento.fecha_inicio)} - ${window.flowerShopAPI.formatDate(evento.fecha_fin)}</p>
+                        <p><strong>Demanda esperada:</strong> ${evento.demanda_esperada}</p>
+                        ${evento.descuento_especial > 0 ? `<p><strong>Descuento:</strong> ${evento.descuento_especial}%</p>` : ''}
+                        <p class="evento-descripcion">${evento.descripcion}</p>
                     </div>
-                    <p>${evento.descripcion}</p>
                     <div class="evento-actions">
-                        <button class="btn btn-primary" onclick="app.editEvento(${evento.id})">Editar</button>
-                        <button class="btn btn-secondary" onclick="app.manageEventoProducts(${evento.id})">Productos</button>
+                        <button class="btn btn-sm btn-primary" onclick="app.editarEvento(${evento.id})">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn btn-sm btn-success" onclick="app.gestionarEventoStock(${evento.id})">
+                            📦 Stock
+                        </button>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    // Pedidos
-    async loadPedidos() {
+    // ========== PEDIDOS ==========
+    async loadPedidosData() {
         try {
+            console.log('📋 Cargando pedidos...');
             const pedidos = await window.flowerShopAPI.getPedidos();
-            this.displayPedidos(pedidos);
+            console.log('Pedidos cargados:', pedidos.length);
+            // TODO: Implementar vista de pedidos
         } catch (error) {
-            console.error('Error cargando pedidos:', error);
+            console.error('❌ Error cargando pedidos:', error);
+            this.showNotification('Error cargando pedidos', 'error');
         }
     }
 
-    displayPedidos(pedidos) {
-        const tbody = document.querySelector('#pedidosTable tbody');
-        if (!tbody) return;
-
-        tbody.innerHTML = pedidos.map(pedido => `
-            <tr>
-                <td>#${pedido.id.toString().padStart(4, '0')}</td>
-                <td>${pedido.cliente_nombre}</td>
-                <td>${window.flowerShopAPI.formatDate(pedido.fecha)}</td>
-                <td>${window.flowerShopAPI.formatCurrency(pedido.total)}</td>
-                <td><span class="estado-badge ${pedido.estado}">${pedido.estado}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="app.viewPedido(${pedido.id})">Ver</button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.updatePedidoStatus(${pedido.id})">Estado</button>
-                </td>
-            </tr>
-        `).join('');
+    async loadInventarioData() {
+        console.log('📦 Cargando inventario...');
+        // TODO: Implementar gestión de inventario
     }
 
-    // Inventario
-    async loadInventario() {
+    async loadReportesData() {
+        console.log('📈 Cargando reportes...');
+        // TODO: Implementar reportes
+    }
+
+    async loadConfiguracionData() {
+        console.log('⚙️ Cargando configuración...');
+        // TODO: Implementar configuración
+    }
+
+    // ========== ACCIONES CRUD ==========
+    
+    // Productos
+    async nuevoProducto() {
+        console.log('➕ Nuevo producto');
         try {
-            const [movimientos, resumen] = await Promise.all([
-                window.flowerShopAPI.getInventarioMovimientos(),
-                window.flowerShopAPI.getInventarioResumen()
-            ]);
-
-            this.displayInventarioMovimientos(movimientos);
-            this.displayInventarioResumen(resumen);
+            // Limpiar formulario
+            this.clearForm('form-producto');
+            // Cargar categorías
+            await this.loadCategoriasEnModal();
+            // Mostrar modal
+            this.showModal('modal-producto');
         } catch (error) {
-            console.error('Error cargando inventario:', error);
+            console.error('❌ Error abriendo modal de producto:', error);
+            this.showNotification('Error abriendo formulario', 'error');
         }
     }
 
-    displayInventarioMovimientos(movimientos) {
-        const tbody = document.querySelector('#inventarioTable tbody');
-        if (!tbody) return;
-
-        tbody.innerHTML = movimientos.map(mov => `
-            <tr>
-                <td>${window.flowerShopAPI.formatDate(mov.fecha)}</td>
-                <td>${mov.producto_nombre}</td>
-                <td>${mov.tipo}</td>
-                <td class="${mov.cantidad > 0 ? 'text-success' : 'text-danger'}">
-                    ${mov.cantidad > 0 ? '+' : ''}${mov.cantidad}
-                </td>
-                <td>${mov.motivo || '-'}</td>
-            </tr>
-        `).join('');
-    }
-
-    displayInventarioResumen(resumen) {
-        // Implementar resumen de inventario
-        console.log('Resumen inventario:', resumen);
-    }
-
-    // Modales
-    setupModals() {
-        // Cerrar modales al hacer click en el overlay
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                this.closeModal(e.target);
-            }
-        });
-
-        // Cerrar modales con botón close
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('close')) {
-                const modal = e.target.closest('.modal');
-                if (modal) this.closeModal(modal);
-            }
-        });
-
-        // Cerrar modales con ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const openModal = document.querySelector('.modal[style*="block"]');
-                if (openModal) this.closeModal(openModal);
-            }
-        });
-    }
-
-    showModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-    }
-
-    closeModal(modal) {
-        if (typeof modal === 'string') {
-            modal = document.getElementById(modal);
-        }
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-            // Limpiar formularios
-            const forms = modal.querySelectorAll('form');
-            forms.forEach(form => form.reset());
-        }
-    }
-
-    // Event Listeners
-    setupEventListeners() {
-        // Filtros de productos
-        const categoriaFilter = document.getElementById('categoriaFilter');
-        const stockFilter = document.getElementById('stockFilter');
-        
-        if (categoriaFilter) {
-            categoriaFilter.addEventListener('change', () => this.filterProductos());
-        }
-        
-        if (stockFilter) {
-            stockFilter.addEventListener('change', () => this.filterProductos());
-        }
-
-        // Filtros de pedidos
-        const estadoFilter = document.getElementById('estadoFilter');
-        const fechaFilter = document.getElementById('fechaFilter');
-        
-        if (estadoFilter) {
-            estadoFilter.addEventListener('change', () => this.filterPedidos());
-        }
-        
-        if (fechaFilter) {
-            fechaFilter.addEventListener('change', () => this.filterPedidos());
-        }
-
-        // Botones de agregar
-        const addButtons = {
-            'addProducto': () => this.showAddProductoModal(),
-            'addCliente': () => this.showAddClienteModal(),
-            'addEvento': () => this.showAddEventoModal(),
-            'addPedido': () => this.showAddPedidoModal()
-        };
-
-        Object.entries(addButtons).forEach(([id, handler]) => {
-            const button = document.getElementById(id);
-            if (button) button.addEventListener('click', handler);
-        });
-
-        // Formularios
-        this.setupForms();
-    }
-
-    setupForms() {
-        // Formulario de producto
-        const productoForm = document.getElementById('productoForm');
-        if (productoForm) {
-            productoForm.addEventListener('submit', (e) => this.handleProductoSubmit(e));
-        }
-
-        // Formulario de cliente
-        const clienteForm = document.getElementById('clienteForm');
-        if (clienteForm) {
-            clienteForm.addEventListener('submit', (e) => this.handleClienteSubmit(e));
-        }
-
-        // Formulario de evento
-        const eventoForm = document.getElementById('eventoForm');
-        if (eventoForm) {
-            eventoForm.addEventListener('submit', (e) => this.handleEventoSubmit(e));
-        }
-
-        // Formulario de pedido
-        const pedidoForm = document.getElementById('pedidoForm');
-        if (pedidoForm) {
-            pedidoForm.addEventListener('submit', (e) => this.handlePedidoSubmit(e));
-        }
-    }
-
-    // Handlers CRUD - Productos
-    showAddProductoModal() {
-        this.clearProductoForm();
-        this.loadCategoriasInForm();
-        this.showModal('productoModal');
-    }
-
-    async loadCategoriasInForm() {
+    async loadCategoriasEnModal() {
         try {
             const categorias = await window.flowerShopAPI.getCategorias();
-            const select = document.getElementById('productoCategoria');
+            const select = document.getElementById('producto-categoria');
             if (select) {
                 select.innerHTML = '<option value="">Seleccionar categoría</option>' +
                     categorias.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('');
             }
         } catch (error) {
-            console.error('Error cargando categorías:', error);
+            console.error('❌ Error cargando categorías:', error);
+            this.showNotification('Error cargando categorías', 'error');
         }
     }
 
-    clearProductoForm() {
-        const form = document.getElementById('productoForm');
+    clearForm(formId) {
+        const form = document.getElementById(formId);
         if (form) {
             form.reset();
-            form.setAttribute('data-id', '');
+            // Limpiar cualquier data-id
+            form.removeAttribute('data-edit-id');
+        }
+    }
+
+    async editarProducto(id) {
+        console.log('✏️ Editar producto:', id);
+        try {
+            await this.loadCategoriasEnModal();
+            // TODO: Cargar datos del producto y llenar formulario
+            this.showModal('modal-producto');
+            this.showNotification('Funcionalidad de edición en desarrollo', 'info');
+        } catch (error) {
+            console.error('❌ Error editando producto:', error);
+            this.showNotification('Error abriendo editor', 'error');
+        }
+    }
+
+    async verProducto(id) {
+        console.log('👁️ Ver producto:', id);
+        // TODO: Implementar vista de detalles del producto
+        this.showNotification('Vista de detalles en desarrollo', 'info');
+    }
+
+    async eliminarProducto(id) {
+        if (confirm('🗑️ ¿Estás seguro de que deseas eliminar este producto?\n\nEsta acción no se puede deshacer.')) {
+            try {
+                console.log('🗑️ Eliminar producto:', id);
+                await window.flowerShopAPI.eliminarProducto(id);
+                await this.loadProductosData();
+                this.showNotification('Producto eliminado correctamente', 'success');
+            } catch (error) {
+                console.error('❌ Error eliminando producto:', error);
+                this.showNotification('Error eliminando producto: ' + error.message, 'error');
+            }
+        }
+    }
+
+    // Clientes
+    async nuevoCliente() {
+        console.log('➕ Nuevo cliente');
+        try {
+            this.clearForm('form-cliente');
+            this.showModal('modal-cliente');
+        } catch (error) {
+            console.error('❌ Error abriendo modal de cliente:', error);
+            this.showNotification('Error abriendo formulario', 'error');
+        }
+    }
+
+    async editarCliente(id) {
+        console.log('✏️ Editar cliente:', id);
+        try {
+            // TODO: Cargar datos del cliente
+            this.showModal('modal-cliente');
+            this.showNotification('Funcionalidad de edición en desarrollo', 'info');
+        } catch (error) {
+            console.error('❌ Error editando cliente:', error);
+            this.showNotification('Error abriendo editor', 'error');
+        }
+    }
+
+    async verCliente(id) {
+        console.log('👁️ Ver cliente:', id);
+        this.showNotification('Vista de historial en desarrollo', 'info');
+    }
+
+    async nuevoPedidoCliente(id) {
+        console.log('📋 Nuevo pedido para cliente:', id);
+        this.showNotification('Funcionalidad de pedidos en desarrollo', 'info');
+    }
+
+    // Eventos
+    async nuevoEvento() {
+        console.log('➕ Nuevo evento');
+        try {
+            this.clearForm('form-evento');
+            this.showModal('modal-evento');
+        } catch (error) {
+            console.error('❌ Error abriendo modal de evento:', error);
+            this.showNotification('Error abriendo formulario', 'error');
+        }
+    }
+
+    async editarEvento(id) {
+        console.log('✏️ Editar evento:', id);
+        try {
+            // TODO: Cargar datos del evento
+            this.showModal('modal-evento');
+            this.showNotification('Funcionalidad de edición en desarrollo', 'info');
+        } catch (error) {
+            console.error('❌ Error editando evento:', error);
+            this.showNotification('Error abriendo editor', 'error');
+        }
+    }
+
+    async gestionarEventoStock(id) {
+        console.log('📦 Gestionar stock del evento:', id);
+        this.showNotification('Gestión de stock en desarrollo', 'info');
+    }
+
+    async nuevoPedido() {
+        console.log('📋 Nuevo pedido');
+        this.showNotification('Funcionalidad de pedidos en desarrollo', 'info');
+    }
+
+    // ========== MODALES ==========
+    setupModals() {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            const closeBtn = modal.querySelector('.modal-close');
+            closeBtn?.addEventListener('click', () => this.hideModal(modal.id));
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.hideModal(modal.id);
+                }
+            });
+        });
+        
+        // Escape key para cerrar modales
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const activeModal = document.querySelector('.modal[style*="block"]');
+                if (activeModal) {
+                    this.hideModal(activeModal.id);
+                }
+            }
+        });
+
+        // Configurar formularios
+        this.setupForms();
+    }
+
+    setupForms() {
+        // Formulario de producto
+        const formProducto = document.getElementById('form-producto');
+        if (formProducto) {
+            formProducto.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.handleProductoSubmit(e);
+            });
+        }
+
+        // Formulario de cliente
+        const formCliente = document.getElementById('form-cliente');
+        if (formCliente) {
+            formCliente.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.handleClienteSubmit(e);
+            });
+        }
+
+        // Formulario de evento
+        const formEvento = document.getElementById('form-evento');
+        if (formEvento) {
+            formEvento.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await this.handleEventoSubmit(e);
+            });
         }
     }
 
     async handleProductoSubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData);
-        const id = e.target.getAttribute('data-id');
-
         try {
-            if (id) {
-                await window.flowerShopAPI.updateProducto(id, data);
-                this.showNotification('Producto actualizado correctamente');
-            } else {
-                await window.flowerShopAPI.createProducto(data);
-                this.showNotification('Producto creado correctamente');
+            const formData = new FormData(e.target);
+            const producto = {
+                codigo_producto: formData.get('codigo'),
+                nombre: formData.get('nombre'),
+                descripcion: formData.get('descripcion'),
+                categoria_id: parseInt(formData.get('categoria')),
+                precio_compra: parseFloat(formData.get('precio_compra')) || 0,
+                precio_venta: parseFloat(formData.get('precio_venta')),
+                stock_actual: parseInt(formData.get('stock_actual')) || 0,
+                stock_minimo: parseInt(formData.get('stock_minimo')) || 5,
+                unidad_medida: formData.get('unidad_medida') || 'unidad',
+                temporada: formData.get('temporada') || 'todo_año',
+                perecedero: formData.get('perecedero') === 'on',
+                dias_caducidad: parseInt(formData.get('dias_caducidad')) || null,
+                proveedor: formData.get('proveedor') || ''
+            };
+
+            console.log('📝 Guardando producto:', producto);
+
+            // Validación básica
+            if (!producto.nombre || !producto.precio_venta || !producto.categoria_id) {
+                this.showNotification('Por favor completa los campos obligatorios', 'warning');
+                return;
             }
+
+            // Llamar a la API
+            await window.flowerShopAPI.crearProducto(producto);
             
-            this.closeModal('productoModal');
-            await this.loadProductos();
+            this.hideModal('modal-producto');
+            this.showNotification('Producto guardado correctamente', 'success');
+            await this.loadProductosData();
+
         } catch (error) {
-            console.error('Error guardando producto:', error);
-            this.showNotification('Error guardando producto', 'error');
-        }
-    }
-
-    async editProducto(id) {
-        try {
-            const producto = await window.flowerShopAPI.getProducto(id);
-            this.fillProductoForm(producto);
-            await this.loadCategoriasInForm();
-            this.showModal('productoModal');
-        } catch (error) {
-            console.error('Error cargando producto:', error);
-            this.showNotification('Error cargando producto', 'error');
-        }
-    }
-
-    fillProductoForm(producto) {
-        const form = document.getElementById('productoForm');
-        if (!form) return;
-
-        form.setAttribute('data-id', producto.id);
-        form.querySelector('[name="codigo"]').value = producto.codigo;
-        form.querySelector('[name="nombre"]').value = producto.nombre;
-        form.querySelector('[name="descripcion"]').value = producto.descripcion || '';
-        form.querySelector('[name="precio"]').value = producto.precio;
-        form.querySelector('[name="stock_actual"]').value = producto.stock_actual;
-        form.querySelector('[name="stock_minimo"]').value = producto.stock_minimo;
-        
-        // Categoría se carga después del loadCategoriasInForm
-        setTimeout(() => {
-            const select = form.querySelector('[name="categoria_id"]');
-            if (select) select.value = producto.categoria_id;
-        }, 100);
-    }
-
-    async deleteProducto(id) {
-        if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-
-        try {
-            await window.flowerShopAPI.deleteProducto(id);
-            this.showNotification('Producto eliminado correctamente');
-            await this.loadProductos();
-        } catch (error) {
-            console.error('Error eliminando producto:', error);
-            this.showNotification('Error eliminando producto', 'error');
-        }
-    }
-
-    // Handlers CRUD - Clientes
-    showAddClienteModal() {
-        this.clearClienteForm();
-        this.showModal('clienteModal');
-    }
-
-    clearClienteForm() {
-        const form = document.getElementById('clienteForm');
-        if (form) {
-            form.reset();
-            form.setAttribute('data-id', '');
+            console.error('❌ Error guardando producto:', error);
+            this.showNotification('Error guardando producto: ' + error.message, 'error');
         }
     }
 
     async handleClienteSubmit(e) {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData);
-        const id = e.target.getAttribute('data-id');
-
         try {
-            if (id) {
-                await window.flowerShopAPI.updateCliente(id, data);
-                this.showNotification('Cliente actualizado correctamente');
-            } else {
-                await window.flowerShopAPI.createCliente(data);
-                this.showNotification('Cliente creado correctamente');
+            const formData = new FormData(e.target);
+            const cliente = {
+                nombre: formData.get('nombre'),
+                apellidos: formData.get('apellidos'),
+                telefono: formData.get('telefono'),
+                email: formData.get('email'),
+                direccion: formData.get('direccion'),
+                fecha_nacimiento: formData.get('fecha_nacimiento'),
+                tipo_cliente: formData.get('tipo_cliente') || 'regular',
+                notas: formData.get('notas')
+            };
+
+            console.log('📝 Guardando cliente:', cliente);
+
+            if (!cliente.nombre) {
+                this.showNotification('El nombre es obligatorio', 'warning');
+                return;
             }
+
+            // Llamar a la API
+            await window.flowerShopAPI.crearCliente(cliente);
             
-            this.closeModal('clienteModal');
-            await this.loadClientes();
+            this.hideModal('modal-cliente');
+            this.showNotification('Cliente guardado correctamente', 'success');
+            await this.loadClientesData();
+
         } catch (error) {
-            console.error('Error guardando cliente:', error);
-            this.showNotification('Error guardando cliente', 'error');
+            console.error('❌ Error guardando cliente:', error);
+            this.showNotification('Error guardando cliente: ' + error.message, 'error');
         }
     }
 
-    // Filtros
-    async filterProductos() {
-        const categoria = document.getElementById('categoriaFilter')?.value;
-        const stock = document.getElementById('stockFilter')?.value;
-        
+    async handleEventoSubmit(e) {
         try {
-            const productos = await window.flowerShopAPI.getProductos({ categoria, stock });
-            this.displayProductos(productos);
+            const formData = new FormData(e.target);
+            const evento = {
+                nombre: formData.get('nombre'),
+                descripcion: formData.get('descripcion'),
+                fecha_inicio: formData.get('fecha_inicio'),
+                fecha_fin: formData.get('fecha_fin'),
+                tipo_evento: formData.get('tipo_evento'),
+                demanda_esperada: formData.get('demanda_esperada'),
+                descuento_especial: parseFloat(formData.get('descuento_especial')) || 0,
+                preparacion_dias: parseInt(formData.get('preparacion_dias')) || 7,
+                notas: formData.get('notas')
+            };
+
+            console.log('📝 Guardando evento:', evento);
+
+            if (!evento.nombre || !evento.fecha_inicio || !evento.fecha_fin) {
+                this.showNotification('Por favor completa los campos obligatorios', 'warning');
+                return;
+            }
+
+            // Llamar a la API
+            await window.flowerShopAPI.crearEvento(evento);
+            
+            this.hideModal('modal-evento');
+            this.showNotification('Evento guardado correctamente', 'success');
+            await this.loadEventosData();
+
         } catch (error) {
-            console.error('Error filtrando productos:', error);
+            console.error('❌ Error guardando evento:', error);
+            this.showNotification('Error guardando evento: ' + error.message, 'error');
         }
     }
 
-    async filterPedidos() {
-        const estado = document.getElementById('estadoFilter')?.value;
-        const fecha = document.getElementById('fechaFilter')?.value;
+    showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            console.log(`🔄 Modal abierto: ${modalId}`);
+        }
+    }
+
+    hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            console.log(`🔄 Modal cerrado: ${modalId}`);
+        }
+    }
+
+    // ========== EVENT LISTENERS ==========
+    setupEventListeners() {
+        // Botones principales
+        document.getElementById('btn-nuevo-producto')?.addEventListener('click', () => this.nuevoProducto());
+        document.getElementById('btn-nuevo-cliente')?.addEventListener('click', () => this.nuevoCliente());
+        document.getElementById('btn-nuevo-evento')?.addEventListener('click', () => this.nuevoEvento());
+        document.getElementById('btn-nuevo-pedido')?.addEventListener('click', () => this.nuevoPedido());
+        document.getElementById('btn-nuevo-pedido-section')?.addEventListener('click', () => this.nuevoPedido());
         
-        try {
-            const pedidos = await window.flowerShopAPI.getPedidos({ estado, fecha });
-            this.displayPedidos(pedidos);
-        } catch (error) {
-            console.error('Error filtrando pedidos:', error);
+        // Floating Action Button
+        this.setupFAB();
+        
+        // Búsqueda y filtros
+        document.getElementById('search-productos')?.addEventListener('input', (e) => {
+            this.filtrarProductos(e.target.value);
+        });
+        
+        document.getElementById('filter-categoria')?.addEventListener('change', (e) => {
+            this.filtrarProductosPorCategoria(e.target.value);
+        });
+        
+        // Búsqueda global
+        document.querySelector('.global-search-input')?.addEventListener('input', (e) => {
+            this.busquedaGlobal(e.target.value);
+        });
+        
+        // Eventos del menú
+        if (window.flowerShopAPI?.onMenuAction) {
+            window.flowerShopAPI.onMenuAction((action) => {
+                this.handleMenuAction(action);
+            });
         }
     }
 
-    // Notificaciones
-    showNotification(message, type = 'success') {
+    setupFAB() {
+        const mainFab = document.getElementById('main-fab');
+        const fabMenu = document.getElementById('fab-menu');
+        
+        if (mainFab && fabMenu) {
+            let isOpen = false;
+            
+            mainFab.addEventListener('click', () => {
+                isOpen = !isOpen;
+                fabMenu.classList.toggle('active', isOpen);
+                mainFab.style.transform = isOpen ? 'rotate(45deg)' : 'rotate(0deg)';
+            });
+            
+            // Cerrar al hacer click fuera
+            document.addEventListener('click', (e) => {
+                if (!mainFab.contains(e.target) && !fabMenu.contains(e.target)) {
+                    isOpen = false;
+                    fabMenu.classList.remove('active');
+                    mainFab.style.transform = 'rotate(0deg)';
+                }
+            });
+            
+            // Acciones del FAB
+            fabMenu.addEventListener('click', (e) => {
+                const action = e.target.closest('.fab-secondary')?.dataset.action;
+                if (action) {
+                    this.handleFabAction(action);
+                    // Cerrar menú
+                    isOpen = false;
+                    fabMenu.classList.remove('active');
+                    mainFab.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+    }
+
+    handleFabAction(action) {
+        switch (action) {
+            case 'nuevo-producto':
+                this.nuevoProducto();
+                break;
+            case 'nuevo-cliente':
+                this.nuevoCliente();
+                break;
+            case 'nuevo-evento':
+                this.nuevoEvento();
+                break;
+            case 'nuevo-pedido':
+                this.nuevoPedido();
+                break;
+        }
+    }
+
+    busquedaGlobal(termino) {
+        if (termino.length < 2) return;
+        
+        console.log('🔍 Búsqueda global:', termino);
+        // TODO: Implementar búsqueda global en todas las secciones
+        this.showNotification(`Buscando: "${termino}"`, 'info');
+    }
+
+    updateBreadcrumbs(section) {
+        const breadcrumbs = document.querySelector('.breadcrumbs');
+        if (breadcrumbs) {
+            const sectionNames = {
+                dashboard: 'Dashboard',
+                productos: 'Productos',
+                clientes: 'Clientes',
+                eventos: 'Eventos',
+                pedidos: 'Pedidos',
+                inventario: 'Inventario',
+                reportes: 'Reportes'
+            };
+            
+            breadcrumbs.innerHTML = `
+                <span class="breadcrumb-item active">${sectionNames[section] || section}</span>
+            `;
+        }
+    }
+
+    // ========== FILTROS ==========
+    filtrarProductos(termino) {
+        const filas = document.querySelectorAll('#productos-table tbody tr');
+        filas.forEach(fila => {
+            const texto = fila.textContent.toLowerCase();
+            if (texto.includes(termino.toLowerCase())) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    }
+
+    filtrarProductosPorCategoria(categoria) {
+        const filas = document.querySelectorAll('#productos-table tbody tr');
+        filas.forEach(fila => {
+            if (!categoria || fila.textContent.includes(categoria)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    }
+
+    // ========== UTILIDADES ==========
+    handleMenuAction(action) {
+        switch (action) {
+            case 'productos':
+                this.showSection('productos');
+                break;
+            case 'clientes':
+                this.showSection('clientes');
+                break;
+            case 'eventos':
+                this.showSection('eventos');
+                break;
+            case 'pedidos':
+                this.showSection('pedidos');
+                break;
+            case 'reportes-ventas':
+            case 'reportes-inventario':
+            case 'reportes-eventos':
+                this.showSection('reportes');
+                break;
+            case 'ayuda':
+                this.mostrarAyuda();
+                break;
+            case 'acerca-de':
+                this.mostrarAcercaDe();
+                break;
+        }
+    }
+
+    mostrarAyuda() {
+        alert('🌸 Floristería Manager\n\nManual de usuario próximamente disponible');
+    }
+
+    mostrarAcercaDe() {
+        alert('🌸 Floristería Manager v1.0.0\nSistema de gestión integral para floristerías\n\n© 2025 - Desarrollado con ❤️');
+    }
+
+    showNotification(message, type = 'info') {
+        console.log(`${type.toUpperCase()}: ${message}`);
+        
         // Crear elemento de notificación
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
-        notification.textContent = message;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <span class="notification-icon">${this.getNotificationIcon(type)}</span>
+                <span class="notification-message">${message}</span>
+            </div>
+        `;
         
-        // Estilos inline para la notificación
+        // Estilos
         Object.assign(notification.style, {
             position: 'fixed',
             top: '20px',
@@ -592,77 +869,77 @@ class FlowerShopApp {
             padding: '1rem 1.5rem',
             borderRadius: '8px',
             color: 'white',
-            backgroundColor: type === 'success' ? '#4caf50' : '#f44336',
+            backgroundColor: this.getNotificationColor(type),
             boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
             zIndex: '2000',
-            animation: 'slideInRight 0.3s ease-out'
+            transform: 'translateX(100%)',
+            transition: 'transform 0.3s ease-out',
+            minWidth: '300px',
+            maxWidth: '500px'
         });
 
         document.body.appendChild(notification);
 
-        // Remover después de 3 segundos
+        // Animación de entrada
         setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+
+        // Remover después de 4 segundos
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                 }
             }, 300);
-        }, 3000);
+        }, 4000);
     }
 
-    // Datos iniciales
+    getNotificationIcon(type) {
+        const icons = {
+            success: '✅',
+            error: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        };
+        return icons[type] || 'ℹ️';
+    }
+
+    getNotificationColor(type) {
+        const colors = {
+            success: '#4caf50',
+            error: '#f44336',
+            warning: '#ff9800',
+            info: '#2196f3'
+        };
+        return colors[type] || '#2196f3';
+    }
+
     async loadInitialData() {
         try {
-            // Cargar datos básicos necesarios para la aplicación
+            console.log('🚀 Cargando datos iniciales...');
             await this.loadDashboardData();
+            console.log('✅ Datos iniciales cargados correctamente');
         } catch (error) {
-            console.error('Error cargando datos iniciales:', error);
+            console.error('❌ Error cargando datos iniciales:', error);
+            this.showNotification('Error cargando datos iniciales', 'error');
         }
     }
 }
 
-// CSS para animaciones de notificaciones
-const notificationStyles = `
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-`;
-
-// Agregar estilos al documento
-const styleElement = document.createElement('style');
-styleElement.textContent = notificationStyles;
-document.head.appendChild(styleElement);
-
-// Inicializar la aplicación cuando el DOM esté listo
+// ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🌸 DOM cargado, inicializando aplicación...');
     window.app = new FlowerShopApp();
 });
 
-// Funciones auxiliares globales para los onclick en HTML
-window.editProducto = (id) => window.app.editProducto(id);
-window.deleteProducto = (id) => window.app.deleteProducto(id);
-window.editCliente = (id) => window.app.editCliente(id);
-window.deleteCliente = (id) => window.app.deleteCliente(id);
-window.editEvento = (id) => window.app.editEvento(id);
-window.manageEventoProducts = (id) => window.app.manageEventoProducts(id);
-window.viewPedido = (id) => window.app.viewPedido(id);
-window.updatePedidoStatus = (id) => window.app.updatePedidoStatus(id);
+// Funciones globales para HTML onclick
+window.editarProducto = (id) => window.app?.editarProducto(id);
+window.verProducto = (id) => window.app?.verProducto(id);
+window.eliminarProducto = (id) => window.app?.eliminarProducto(id);
+window.editarCliente = (id) => window.app?.editarCliente(id);
+window.verCliente = (id) => window.app?.verCliente(id);
+window.nuevoPedidoCliente = (id) => window.app?.nuevoPedidoCliente(id);
+window.editarEvento = (id) => window.app?.editarEvento(id);
+window.gestionarEventoStock = (id) => window.app?.gestionarEventoStock(id);
