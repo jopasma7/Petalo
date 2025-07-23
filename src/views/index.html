@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌸 Gestión de Floristería</title>
+    <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🌸 Gestión de Floristería</h1>
+            <div class="header-actions">
+                <button id="btn-nuevo-pedido" class="btn btn-primary">
+                    📋 Nuevo Pedido
+                </button>
+                <button id="btn-buscar" class="btn btn-secondary">
+                    🔍 Buscar
+                </button>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="sidebar">
+                <nav class="nav-menu">
+                    <h3>📊 Navegación</h3>
+                    <ul>
+                        <li><a href="#" data-section="dashboard" class="nav-link active">🏠 Dashboard</a></li>
+                        <li><a href="#" data-section="productos" class="nav-link">🌺 Productos</a></li>
+                        <li><a href="#" data-section="clientes" class="nav-link">👥 Clientes</a></li>
+                        <li><a href="#" data-section="eventos" class="nav-link">🎉 Eventos</a></li>
+                        <li><a href="#" data-section="pedidos" class="nav-link">📋 Pedidos</a></li>
+                        <li><a href="#" data-section="inventario" class="nav-link">📦 Inventario</a></li>
+                        <li><a href="#" data-section="reportes" class="nav-link">📈 Reportes</a></li>
+                        <li><a href="#" data-section="configuracion" class="nav-link">⚙️ Configuración</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="content">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="content-section" style="display: block;">
+                    <h2>🏠 Dashboard Principal</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card primary">
+                            <div class="stat-icon">🌺</div>
+                            <div class="stat-content">
+                                <h3>Total Productos</h3>
+                                <div class="stat-number" id="total-productos">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card success">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <h3>Total Clientes</h3>
+                                <div class="stat-number" id="total-clientes">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card warning">
+                            <div class="stat-icon">📋</div>
+                            <div class="stat-content">
+                                <h3>Pedidos Pendientes</h3>
+                                <div class="stat-number" id="pedidos-pendientes">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card info">
+                            <div class="stat-icon">🎉</div>
+                            <div class="stat-content">
+                                <h3>Eventos Activos</h3>
+                                <div class="stat-number" id="eventos-activos">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-row">
+                        <div class="dashboard-card">
+                            <h3>💰 Ventas del Mes</h3>
+                            <div class="sales-amount" id="ventas-mes">€0.00</div>
+                            <div class="sales-trend">📈 Comparado con el mes anterior</div>
+                        </div>
+                        
+                        <div class="dashboard-card">
+                            <h3>⚠️ Stock Bajo</h3>
+                            <div id="stock-bajo-list" class="stock-list">
+                                <p>Cargando...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card full-width">
+                        <h3>📅 Próximos Eventos</h3>
+                        <div id="proximos-eventos" class="eventos-list">
+                            <p>Cargando eventos...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Productos Section -->
+                <section id="productos-section" class="content-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>🌺 Gestión de Productos</h2>
+                        <button id="btn-nuevo-producto" class="btn btn-primary">
+                            ➕ Nuevo Producto
+                        </button>
+                    </div>
+                    
+                    <div class="products-filters">
+                        <select id="filter-categoria" class="form-control">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <input type="text" id="search-productos" placeholder="Buscar productos..." class="form-control">
+                    </div>
+
+                    <div class="records-container">
+                        <div class="records-table-container">
+                            <table class="records-table" id="productos-table">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Stock</th>
+                                        <th>Precio Venta</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7">Cargando productos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Clientes Section -->
+                <section id="clientes-section" class="content-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>👥 Gestión de Clientes</h2>
+                        <button id="btn-nuevo-cliente" class="btn btn-primary">
+                            ➕ Nuevo Cliente
+                        </button>
+                    </div>
+
+                    <div class="records-container">
+                        <div class="records-table-container">
+                            <table class="records-table" id="clientes-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Teléfono</th>
+                                        <th>Email</th>
+                                        <th>Tipo</th>
+                                        <th>Total Compras</th>
+                                        <th>Última Compra</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7">Cargando clientes...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Eventos Section -->
+                <section id="eventos-section" class="content-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>🎉 Gestión de Eventos</h2>
+                        <button id="btn-nuevo-evento" class="btn btn-primary">
+                            ➕ Nuevo Evento
+                        </button>
+                    </div>
+
+                    <div class="eventos-grid" id="eventos-grid">
+                        <p>Cargando eventos...</p>
+                    </div>
+                </section>
+
+                <!-- Pedidos Section -->
+                <section id="pedidos-section" class="content-section" style="display: none;">
+                    <div class="section-header">
+                        <h2>📋 Gestión de Pedidos</h2>
+                        <button id="btn-nuevo-pedido-section" class="btn btn-primary">
+                            ➕ Nuevo Pedido
+                        </button>
+                    </div>
+
+                    <div class="pedidos-filters">
+                        <select id="filter-estado" class="form-control">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="confirmado">Confirmado</option>
+                            <option value="preparando">Preparando</option>
+                            <option value="listo">Listo</option>
+                            <option value="entregado">Entregado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                        <input type="date" id="filter-fecha" class="form-control">
+                    </div>
+
+                    <div class="records-container">
+                        <div class="records-table-container">
+                            <table class="records-table" id="pedidos-table">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Entrega</th>
+                                        <th>Estado</th>
+                                        <th>Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7">Cargando pedidos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Inventario Section -->
+                <section id="inventario-section" class="content-section" style="display: none;">
+                    <h2>📦 Control de Inventario</h2>
+                    <div class="inventory-summary">
+                        <div class="inventory-card">
+                            <h3>📊 Resumen de Stock</h3>
+                            <div id="inventory-summary"></div>
+                        </div>
+                        <div class="inventory-card">
+                            <h3>⚠️ Alertas</h3>
+                            <div id="inventory-alerts"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reportes Section -->
+                <section id="reportes-section" class="content-section" style="display: none;">
+                    <h2>📈 Reportes y Análisis</h2>
+                    <div class="reports-grid">
+                        <div class="report-card">
+                            <h3>💰 Ventas por Período</h3>
+                            <canvas id="sales-chart"></canvas>
+                        </div>
+                        <div class="report-card">
+                            <h3>🌺 Productos Más Vendidos</h3>
+                            <div id="top-products"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Configuración Section -->
+                <section id="configuracion-section" class="content-section" style="display: none;">
+                    <h2>⚙️ Configuración</h2>
+                    <div class="config-grid">
+                        <div class="config-card">
+                            <h3>🏢 Datos de la Empresa</h3>
+                            <form id="empresa-form">
+                                <div class="form-group">
+                                    <label>Nombre de la Empresa</label>
+                                    <input type="text" id="empresa-nombre" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Dirección</label>
+                                    <input type="text" id="empresa-direccion" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Teléfono</label>
+                                    <input type="text" id="empresa-telefono" class="form-control">
+                                </div>
+                                <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modales -->
+    <!-- Modal Producto -->
+    <div id="modal-producto" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>🌺 Nuevo Producto</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="form-producto" class="form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="producto-nombre">Nombre *</label>
+                            <input type="text" id="producto-nombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-codigo">Código de Producto</label>
+                            <input type="text" id="producto-codigo" name="codigo_producto">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="producto-categoria">Categoría *</label>
+                            <select id="producto-categoria" name="categoria_id" required>
+                                <option value="">Seleccionar...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-temporada">Temporada</label>
+                            <select id="producto-temporada" name="temporada">
+                                <option value="todo_año">Todo el año</option>
+                                <option value="primavera">Primavera</option>
+                                <option value="verano">Verano</option>
+                                <option value="otoño">Otoño</option>
+                                <option value="invierno">Invierno</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="producto-precio-compra">Precio Compra (€)</label>
+                            <input type="number" id="producto-precio-compra" name="precio_compra" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-precio-venta">Precio Venta (€) *</label>
+                            <input type="number" id="producto-precio-venta" name="precio_venta" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="producto-stock">Stock Actual</label>
+                            <input type="number" id="producto-stock" name="stock_actual" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="producto-stock-minimo">Stock Mínimo</label>
+                            <input type="number" id="producto-stock-minimo" name="stock_minimo" value="5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="producto-descripcion">Descripción</label>
+                        <textarea id="producto-descripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cliente -->
+    <div id="modal-cliente" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 Nuevo Cliente</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="form-cliente" class="form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cliente-nombre">Nombre *</label>
+                            <input type="text" id="cliente-nombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cliente-apellidos">Apellidos</label>
+                            <input type="text" id="cliente-apellidos" name="apellidos">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cliente-telefono">Teléfono *</label>
+                            <input type="tel" id="cliente-telefono" name="telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="cliente-email">Email</label>
+                            <input type="email" id="cliente-email" name="email">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cliente-direccion">Dirección</label>
+                        <input type="text" id="cliente-direccion" name="direccion">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cliente-fecha-nacimiento">Fecha de Nacimiento</label>
+                            <input type="date" id="cliente-fecha-nacimiento" name="fecha_nacimiento">
+                        </div>
+                        <div class="form-group">
+                            <label for="cliente-tipo">Tipo de Cliente</label>
+                            <select id="cliente-tipo" name="tipo_cliente">
+                                <option value="regular">Regular</option>
+                                <option value="frecuente">Frecuente</option>
+                                <option value="vip">VIP</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cliente-notas">Notas</label>
+                        <textarea id="cliente-notas" name="notas" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Evento -->
+    <div id="modal-evento" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>🎉 Nuevo Evento</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="form-evento" class="form">
+                    <div class="form-group">
+                        <label for="evento-nombre">Nombre del Evento *</label>
+                        <input type="text" id="evento-nombre" name="nombre" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="evento-fecha-inicio">Fecha Inicio *</label>
+                            <input type="date" id="evento-fecha-inicio" name="fecha_inicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="evento-fecha-fin">Fecha Fin *</label>
+                            <input type="date" id="evento-fecha-fin" name="fecha_fin" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="evento-tipo">Tipo de Evento</label>
+                            <select id="evento-tipo" name="tipo_evento">
+                                <option value="temporal">Temporal</option>
+                                <option value="religioso">Religioso</option>
+                                <option value="comercial">Comercial</option>
+                                <option value="personalizado">Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="evento-demanda">Demanda Esperada</label>
+                            <select id="evento-demanda" name="demanda_esperada">
+                                <option value="baja">Baja</option>
+                                <option value="media">Media</option>
+                                <option value="alta">Alta</option>
+                                <option value="extrema">Extrema</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="evento-descuento">Descuento Especial (%)</label>
+                            <input type="number" id="evento-descuento" name="descuento_especial" min="0" max="100" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label for="evento-preparacion">Días de Preparación</label>
+                            <input type="number" id="evento-preparacion" name="preparacion_dias" value="7">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="evento-descripcion">Descripción</label>
+                        <textarea id="evento-descripcion" name="descripcion" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="evento-notas">Notas</label>
+                        <textarea id="evento-notas" name="notas" rows="2"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../scripts/main.js"></script>
+</body>
+</html>

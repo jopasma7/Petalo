@@ -1,0 +1,57 @@
+{
+    "name": "floristeria-manager",
+    "version": "1.0.0",
+    "description": "Sistema de Gestión para Floristería - Manejo de inventario, clientes, eventos y pedidos especiales",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "dev": "electron . --dev",
+        "build": "electron-builder",
+        "pack": "electron-builder --dir",
+        "dist": "electron-builder --publish=never"
+    },
+    "keywords": [
+        "floristeria",
+        "gestión",
+        "inventario",
+        "eventos",
+        "jardineras",
+        "electron",
+        "desktop"
+    ],
+    "author": "Tu Nombre",
+    "license": "MIT",
+    "devDependencies": {
+        "electron": "^30.0.0",
+        "electron-builder": "^24.6.3"
+    },
+    "dependencies": {
+        "sqlite3": "^5.1.7"
+    },
+    "build": {
+        "appId": "com.tuempresa.floristeria",
+        "productName": "Gestión de Floristería",
+        "directories": {
+            "output": "dist"
+        },
+        "files": [
+            "**/*",
+            "!**/*.ts",
+            "!*.code-workspace",
+            "!LICENSE.md",
+            "!package.json.md",
+            "!.gitignore",
+            "!README.md",
+            "!yarn.lock",
+            "!**/*.map",
+            "!dist",
+            "!docs",
+            "!.editorconfig",
+            "!**/.*"
+        ]
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jopasma7/Trabajos.git"
+    }
+}
