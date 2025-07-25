@@ -348,7 +348,8 @@ body {
     border-radius: 0;
     transition: var(--transition-all);
     position: relative;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .nav-link::before {
@@ -2480,7 +2481,10 @@ body::after {
     flex-direction: column;
     box-shadow: var(--shadow-lg);
     position: relative;
-    overflow: hidden;
+    height: 100vh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .modern-sidebar::before {
@@ -2507,10 +2511,14 @@ body::after {
 }
 
 .sidebar-content {
-    flex: 1;
+    flex: 1 1 auto;
     display: flex;
     flex-direction: column;
     padding: var(--space-6);
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .nav-sections {
