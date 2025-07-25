@@ -46,6 +46,24 @@ class FlowerShopApp {
             // Cargar datos específicos de la sección
             this.loadSectionData(sectionId);
         }
+        // Actualiza el sidebar activo
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.dataset.section === sectionId) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+        // Si la navegación viene desde el dashboard, también actualiza el color del dashboard si corresponde
+        if (sectionId === 'dashboard') {
+            document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+                if (link.dataset.section === 'dashboard') {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
     }
 
     async loadSectionData(sectionId) {
@@ -705,6 +723,16 @@ class FlowerShopApp {
                 this.handleMenuAction(action);
             });
         }
+
+        // Dashboard stat cards click
+        document.querySelectorAll('.dashboard-link').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const section = card.getAttribute('data-section');
+                if (section) {
+                    this.showSection(section);
+                }
+            });
+        });
     }
 
     setupFAB() {
