@@ -137,9 +137,10 @@ body * {
     position: relative !important;
 }
 
-.modern-main-content {
+ .modern-main-content {
     grid-area: main !important;
-    padding: calc(var(--space-6) + 30px) var(--space-6) var(--space-6) var(--space-6) !important;
+    /* Reducido el padding superior para menos espacio arriba */
+    padding: var(--space-4) var(--space-6) var(--space-6) var(--space-6) !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 50%, var(--success-50) 100%) !important;
