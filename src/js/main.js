@@ -733,6 +733,17 @@ class FlowerShopApp {
                 }
             });
         });
+
+        // Topbar: Notificaciones, Configuración, Perfil
+        document.querySelector('.nav-action-btn[title="Notificaciones"]')?.addEventListener('click', () => {
+            this.showSection('notificaciones');
+        });
+        document.querySelector('.nav-action-btn[title="Configuración"]')?.addEventListener('click', () => {
+            this.showSection('configuracion');
+        });
+        document.querySelector('.user-menu')?.addEventListener('click', () => {
+            this.showSection('perfil');
+        });
     }
 
     setupFAB() {
