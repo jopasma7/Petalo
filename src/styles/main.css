@@ -1,33 +1,25 @@
 /* --- Evento-header original --- */
-.evento-header {
-    padding: 1.2rem 1.5rem 1rem 1.5rem;
-    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-    color: #2d1152;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+.evento-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 2.2rem 1.8rem 1.6rem 1.8rem;
+  border-radius: 1.6rem;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+  overflow: hidden;
+  min-height: 180px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  z-index: 1;
 }
-/* Nombre del evento: grande, elegante, con sombra */
-.evento-header h3 {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    text-shadow: 0 2px 8px rgba(44,0,80,0.10);
-    flex: 1 1 auto;
-    line-height: 1.1;
-    font-family: var(--font-sans);
-    color: transparent;
-    background: linear-gradient(135deg, #22c55e, #15803d);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
+
 /* === Tarjetas de eventos profesionales === */
 /* --- Evento Card Glassmorphism Pro --- */
 /* --- Evento Card Glassmorphism Pro (compacto) --- */
 .eventos-grid .evento-card, .event-cards-container .evento-card {
-    background: rgba(255,255,255,0.55);
     border-radius: 1.5rem;
     box-shadow: 0 8px 32px 0 rgba(180, 70, 239, 0.13), 0 2px 8px 0 rgba(80, 60, 180, 0.10);
     border: 1.5px solid rgba(180, 70, 239, 0.13);
@@ -37,37 +29,31 @@
     transition: box-shadow 0.22s, transform 0.22s, border-color 0.18s;
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(10px) saturate(1.18);
-    -webkit-backdrop-filter: blur(10px) saturate(1.18);
     gap: 0.7rem;
 }
+/* Fondo glassmorphism con blur solo en el fondo */
 .eventos-grid .evento-card::before, .event-cards-container .evento-card::before {
     content: "";
     position: absolute;
-    top: -40px;
-    right: -40px;
-    width: 120px;
-    height: 120px;
-    background: radial-gradient(circle at 60% 40%, #e0c3fc 0%, #8ec5fc 100%);
-    opacity: 0.18;
+    inset: 0;
     z-index: 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 40%, #f0fdf4 100%), rgba(255,255,255,0.55);
+    background-blend-mode: lighten;
+    opacity: 0.98;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+    backdrop-filter: blur(14px) saturate(1.12);
+    -webkit-backdrop-filter: blur(14px) saturate(1.12);
+    border-radius: 1.6rem;
     pointer-events: none;
-    border-radius: 50%;
+    transition: background 0.3s;
 }
-.eventos-grid .evento-card::after, .event-cards-container .evento-card::after {
-    content: "🌸";
-    position: absolute;
-    left: 1.2rem;
-    bottom: 1.1rem;
-    font-size: 2.2rem;
-    opacity: 0.10;
-    z-index: 0;
-    pointer-events: none;
-    filter: blur(0.5px);
-}
+/* Esfera decorativa arriba a la derecha */
+
+
+/* El contenido siempre por encima del fondo y la esfera */
 .eventos-grid .evento-card > *, .event-cards-container .evento-card > * {
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 .eventos-grid .evento-card:hover, .event-cards-container .evento-card:hover {
     box-shadow: 0 12px 40px 0 rgba(180, 70, 239, 0.20), 0 4px 16px 0 rgba(80, 60, 180, 0.15);
@@ -1385,20 +1371,6 @@ body {
     transition: var(--transition);
 }
 
-.evento-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-hover);
-}
-
-.evento-header {
-    padding: 1.5rem;
-    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
-    color: white;
-}
-
-.evento-body {
-    padding: 1.5rem;
-}
 
 .evento-title {
     font-size: 1.2rem;
@@ -1406,22 +1378,26 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.evento-dates {
-    font-size: 0.9rem;
-    opacity: 0.9;
+.evento-header {
+  font-size: 1.55rem;
+  font-weight: 800;
+  font-family: var(--font-sans);
+  line-height: 1.13;
+  letter-spacing: 0.01em;
+  color: #23272f;
+  background: none;
+  text-shadow: 0 1px 2px rgba(34,34,34,0.07);
+  margin-bottom: 0.2rem;
+  margin-top: 0.2rem;
 }
 
-.evento-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-}
-
-.evento-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
+.evento-header-hr {
+  border: none;
+  border-top: 1.5px solid #e0e7ff;
+  margin: 0.2rem 0 1.1rem 0;
+  width: 100%;
+  align-self: stretch;
+  display: block;
 }
 
 .evento-badge.extrema {

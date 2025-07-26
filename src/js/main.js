@@ -314,6 +314,7 @@ class FlowerShopApp {
                     <div class="evento-header">
                         <h3>${evento.nombre}</h3>
                     </div>
+                    <hr class="evento-header-hr" />
                     <div class="evento-details">
                         <p><strong>Tipo:</strong> ${evento.tipo_evento}</p>
                         <p><strong>Fechas:</strong> ${window.flowerShopAPI.formatDate(evento.fecha_inicio)} - ${window.flowerShopAPI.formatDate(evento.fecha_fin)}</p>
