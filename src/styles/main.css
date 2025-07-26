@@ -1,3 +1,128 @@
+/* --- Evento-header original --- */
+.evento-header {
+    padding: 1.2rem 1.5rem 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+    color: #2d1152;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+/* Nombre del evento: grande, elegante, con sombra */
+.evento-header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-shadow: 0 2px 8px rgba(44,0,80,0.10);
+    flex: 1 1 auto;
+    line-height: 1.1;
+    font-family: var(--font-sans);
+    color: transparent;
+    background: linear-gradient(135deg, #22c55e, #15803d);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+/* === Tarjetas de eventos profesionales === */
+/* --- Evento Card Glassmorphism Pro --- */
+/* --- Evento Card Glassmorphism Pro (compacto) --- */
+.eventos-grid .evento-card, .event-cards-container .evento-card {
+    background: rgba(255,255,255,0.55);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(180, 70, 239, 0.13), 0 2px 8px 0 rgba(80, 60, 180, 0.10);
+    border: 1.5px solid rgba(180, 70, 239, 0.13);
+    padding: 0 1.6rem 1.5rem 1.6rem !important;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.22s, transform 0.22s, border-color 0.18s;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px) saturate(1.18);
+    -webkit-backdrop-filter: blur(10px) saturate(1.18);
+    gap: 0.7rem;
+}
+.eventos-grid .evento-card::before, .event-cards-container .evento-card::before {
+    content: "";
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle at 60% 40%, #e0c3fc 0%, #8ec5fc 100%);
+    opacity: 0.18;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 50%;
+}
+.eventos-grid .evento-card::after, .event-cards-container .evento-card::after {
+    content: "🌸";
+    position: absolute;
+    left: 1.2rem;
+    bottom: 1.1rem;
+    font-size: 2.2rem;
+    opacity: 0.10;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(0.5px);
+}
+.eventos-grid .evento-card > *, .event-cards-container .evento-card > * {
+    position: relative;
+    z-index: 1;
+}
+.eventos-grid .evento-card:hover, .event-cards-container .evento-card:hover {
+    box-shadow: 0 12px 40px 0 rgba(180, 70, 239, 0.20), 0 4px 16px 0 rgba(80, 60, 180, 0.15);
+    transform: translateY(-7px) scale(1.022);
+    border-color: #e879f9;
+}
+.evento-card .evento-info {
+    margin-bottom: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.evento-card .evento-info p {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #5b217b;
+}
+.evento-card .evento-info p strong {
+    color: #a21caf;
+    font-weight: 700;
+}
+.evento-card .evento-desc {
+    color: #6b7280;
+    font-size: 0.98rem;
+    margin-bottom: 1.2rem;
+    margin-top: 0.5rem;
+}
+.evento-card .evento-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1.2rem;
+    border-top: 1px solid #f3e8ff;
+    background: none;
+    justify-content: flex-start;
+}
+.evento-card .evento-actions .btn {
+    min-width: 90px;
+}
+.evento-card .evento-actions .btn-primary {
+    background: linear-gradient(135deg, #d946ef, #a21caf);
+    color: #fff;
+    border: none;
+}
+.evento-card .evento-actions .btn-primary:hover {
+    background: linear-gradient(135deg, #a21caf, #86198f);
+}
+.evento-card .evento-actions .btn-success {
+    background: linear-gradient(135deg, #22c55e, #15803d);
+    color: #fff;
+    border: none;
+}
+.evento-card .evento-actions .btn-success:hover {
+    background: linear-gradient(135deg, #15803d, #166534);
+}
 /* ========== VARIABLES MODERNAS ========== */
 :root {
     /* Colores principales */

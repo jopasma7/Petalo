@@ -313,9 +313,6 @@ class FlowerShopApp {
                 <div class="evento-card ${esActivo ? 'activo' : ''} ${esProximo ? 'proximo' : ''}" data-id="${evento.id}">
                     <div class="evento-header">
                         <h3>${evento.nombre}</h3>
-                        <span class="evento-estado ${esActivo ? 'activo' : esProximo ? 'proximo' : 'pasado'}">
-                            ${esActivo ? 'ACTIVO' : esProximo ? 'PRÓXIMO' : 'PASADO'}
-                        </span>
                     </div>
                     <div class="evento-details">
                         <p><strong>Tipo:</strong> ${evento.tipo_evento}</p>
