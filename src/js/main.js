@@ -329,12 +329,14 @@ class FlowerShopApp {
                         <button class="btn btn-sm btn-success" onclick="app.gestionarEventoStock(${evento.id})">
                             📦 Stock
                         </button>
+                        <button class="btn btn-sm btn-danger" onclick="app.eliminarEvento(${evento.id})">
+                            🗑️ Eliminar
+                        </button>
                     </div>
                 </div>
             `;
         }).join('');
     }
-
     // ========== PEDIDOS ==========
     async loadPedidosData() {
         try {
@@ -492,6 +494,19 @@ class FlowerShopApp {
         } catch (error) {
             console.error('❌ Error editando evento:', error);
             this.showNotification('Error abriendo editor', 'error');
+        }
+    }
+    // Eliminar evento
+    async eliminarEvento(id) {
+        if (confirm('🗑️ ¿Estás seguro de que deseas eliminar este evento?\n\nEsta acción no se puede deshacer.')) {
+            try {
+                await window.flowerShopAPI.eliminarEvento(id);
+                this.showNotification('Evento eliminado correctamente', 'success');
+                await this.loadEventosData();
+            } catch (error) {
+                this.showNotification('Error al eliminar el evento', 'error');
+                console.error('❌ Error eliminando evento:', error);
+            }
         }
     }
 
