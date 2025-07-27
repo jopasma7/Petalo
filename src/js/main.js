@@ -410,9 +410,29 @@ class FlowerShopApp {
         console.log('✏️ Editar producto:', id);
         try {
             await this.loadCategoriasEnModal();
-            // TODO: Cargar datos del producto y llenar formulario
+            // Obtener todos los productos y buscar el que corresponde
+            const productos = await window.flowerShopAPI.getProductos();
+            const producto = productos.find(p => p.id === id);
+            if (!producto) {
+                this.showNotification('No se encontró el producto', 'error');
+                return;
+            }
+            // Rellenar el formulario
+            const form = document.getElementById('form-producto');
+            if (!form) return;
+            form.reset();
+            form.setAttribute('data-edit-id', id);
+            document.getElementById('producto-nombre').value = producto.nombre || '';
+            document.getElementById('producto-codigo').value = producto.codigo_producto || '';
+            document.getElementById('producto-categoria').value = producto.categoria_id || '';
+            document.getElementById('producto-temporada').value = producto.temporada || 'todo_año';
+            document.getElementById('producto-precio-compra').value = producto.precio_compra || '';
+            document.getElementById('producto-precio-venta').value = producto.precio_venta || '';
+            document.getElementById('producto-stock').value = producto.stock_actual || 0;
+            document.getElementById('producto-stock-minimo').value = producto.stock_minimo || 5;
+            document.getElementById('producto-descripcion').value = producto.descripcion || '';
+            // Si tienes más campos, agrégalos aquí
             this.showModal('modal-producto');
-            this.showNotification('Funcionalidad de edición en desarrollo', 'info');
         } catch (error) {
             console.error('❌ Error editando producto:', error);
             this.showNotification('Error abriendo editor', 'error');
@@ -454,9 +474,24 @@ class FlowerShopApp {
     async editarCliente(id) {
         console.log('✏️ Editar cliente:', id);
         try {
-            // TODO: Cargar datos del cliente
+            // Obtener todos los clientes y buscar el que corresponde
+            const clientes = await window.flowerShopAPI.getClientes();
+            const cliente = clientes.find(c => c.id === id);
+            if (!cliente) {
+                this.showNotification('No se encontró el cliente', 'error');
+                return;
+            }
+            // Rellenar el formulario compacto
+            const form = document.getElementById('form-cliente');
+            if (!form) return;
+            form.reset();
+            form.setAttribute('data-edit-id', id);
+            document.getElementById('cliente-nombre-completo').value = cliente.nombre || '';
+            document.getElementById('cliente-telefono').value = cliente.telefono || '';
+            document.getElementById('cliente-direccion').value = cliente.direccion || '';
+            document.getElementById('cliente-tipo').value = cliente.tipo_cliente || 'nuevo';
+            document.getElementById('cliente-notas').value = cliente.notas || '';
             this.showModal('modal-cliente');
-            this.showNotification('Funcionalidad de edición en desarrollo', 'info');
         } catch (error) {
             console.error('❌ Error editando cliente:', error);
             this.showNotification('Error abriendo editor', 'error');
@@ -488,9 +523,28 @@ class FlowerShopApp {
     async editarEvento(id) {
         console.log('✏️ Editar evento:', id);
         try {
-            // TODO: Cargar datos del evento
+            // Obtener todos los eventos y buscar el que corresponde
+            const eventos = await window.flowerShopAPI.getEventos();
+            const evento = eventos.find(ev => ev.id === id);
+            if (!evento) {
+                this.showNotification('No se encontró el evento', 'error');
+                return;
+            }
+            // Rellenar el formulario
+            const form = document.getElementById('form-evento');
+            if (!form) return;
+            form.reset();
+            form.setAttribute('data-edit-id', id);
+            document.getElementById('evento-nombre').value = evento.nombre || '';
+            document.getElementById('evento-fecha-inicio').value = evento.fecha_inicio || '';
+            document.getElementById('evento-fecha-fin').value = evento.fecha_fin || '';
+            document.getElementById('evento-tipo').value = evento.tipo_evento || '';
+            document.getElementById('evento-demanda').value = evento.demanda_esperada || '';
+            document.getElementById('evento-descuento').value = evento.descuento_especial || '';
+            document.getElementById('evento-preparacion').value = evento.preparacion_dias || 7;
+            document.getElementById('evento-descripcion').value = evento.descripcion || '';
+            document.getElementById('evento-notas').value = evento.notas || '';
             this.showModal('modal-evento');
-            this.showNotification('Funcionalidad de edición en desarrollo', 'info');
         } catch (error) {
             console.error('❌ Error editando evento:', error);
             this.showNotification('Error abriendo editor', 'error');
@@ -524,9 +578,12 @@ class FlowerShopApp {
     setupModals() {
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => {
-            const closeBtn = modal.querySelector('.modal-close');
-            closeBtn?.addEventListener('click', () => this.hideModal(modal.id));
-            
+            // Cerrar con cualquier botón .modal-close o .btn-cancelar dentro del modal
+            const closeBtns = modal.querySelectorAll('.modal-close, .btn-cancelar');
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', () => this.hideModal(modal.id));
+            });
+            // Cerrar al hacer click fuera del contenido
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     this.hideModal(modal.id);
@@ -579,12 +636,13 @@ class FlowerShopApp {
 
     async handleProductoSubmit(e) {
         try {
-            const formData = new FormData(e.target);
+            const form = e.target;
+            const formData = new FormData(form);
             const producto = {
-                codigo_producto: formData.get('codigo'),
+                codigo_producto: formData.get('codigo_producto'),
                 nombre: formData.get('nombre'),
                 descripcion: formData.get('descripcion'),
-                categoria_id: parseInt(formData.get('categoria')),
+                categoria_id: parseInt(formData.get('categoria_id')),
                 precio_compra: parseFloat(formData.get('precio_compra')) || 0,
                 precio_venta: parseFloat(formData.get('precio_venta')),
                 stock_actual: parseInt(formData.get('stock_actual')) || 0,
@@ -596,21 +654,24 @@ class FlowerShopApp {
                 proveedor: formData.get('proveedor') || ''
             };
 
-            console.log('📝 Guardando producto:', producto);
-
             // Validación básica
             if (!producto.nombre || !producto.precio_venta || !producto.categoria_id) {
                 this.showNotification('Por favor completa los campos obligatorios', 'warning');
                 return;
             }
 
-            // Llamar a la API
-            await window.flowerShopAPI.crearProducto(producto);
-            
+            // Si está en modo edición
+            const editId = form.getAttribute('data-edit-id');
+            if (editId) {
+                await window.flowerShopAPI.actualizarProducto(Number(editId), producto);
+                form.removeAttribute('data-edit-id');
+                this.showNotification('Producto actualizado correctamente', 'success');
+            } else {
+                await window.flowerShopAPI.crearProducto(producto);
+                this.showNotification('Producto guardado correctamente', 'success');
+            }
             this.hideModal('modal-producto');
-            this.showNotification('Producto guardado correctamente', 'success');
             await this.loadProductosData();
-
         } catch (error) {
             console.error('❌ Error guardando producto:', error);
             this.showNotification('Error guardando producto: ' + error.message, 'error');
@@ -620,21 +681,19 @@ class FlowerShopApp {
     async handleClienteSubmit(e) {
         try {
             const formData = new FormData(e.target);
+            const nombreCompleto = formData.get('nombre_completo')?.trim() || '';
             const cliente = {
-                nombre: formData.get('nombre'),
-                apellidos: formData.get('apellidos'),
+                nombre: nombreCompleto,
                 telefono: formData.get('telefono'),
-                email: formData.get('email'),
                 direccion: formData.get('direccion'),
-                fecha_nacimiento: formData.get('fecha_nacimiento'),
-                tipo_cliente: formData.get('tipo_cliente') || 'regular',
+                tipo_cliente: formData.get('tipo_cliente') || 'nuevo',
                 notas: formData.get('notas')
             };
 
             console.log('📝 Guardando cliente:', cliente);
 
             if (!cliente.nombre) {
-                this.showNotification('El nombre es obligatorio', 'warning');
+                this.showNotification('El nombre completo es obligatorio', 'warning');
                 return;
             }
 
@@ -653,7 +712,8 @@ class FlowerShopApp {
 
     async handleEventoSubmit(e) {
         try {
-            const formData = new FormData(e.target);
+            const form = e.target;
+            const formData = new FormData(form);
             const evento = {
                 nombre: formData.get('nombre'),
                 descripcion: formData.get('descripcion'),
@@ -673,13 +733,19 @@ class FlowerShopApp {
                 return;
             }
 
-            // Llamar a la API
-            await window.flowerShopAPI.crearEvento(evento);
-            
+            const editId = form.getAttribute('data-edit-id');
+            if (editId) {
+                // Actualizar evento existente
+                await window.flowerShopAPI.actualizarEvento(Number(editId), evento);
+                form.removeAttribute('data-edit-id');
+                this.showNotification('Evento actualizado correctamente', 'success');
+            } else {
+                // Crear nuevo evento
+                await window.flowerShopAPI.crearEvento(evento);
+                this.showNotification('Evento guardado correctamente', 'success');
+            }
             this.hideModal('modal-evento');
-            this.showNotification('Evento guardado correctamente', 'success');
             await this.loadEventosData();
-
         } catch (error) {
             console.error('❌ Error guardando evento:', error);
             this.showNotification('Error guardando evento: ' + error.message, 'error');

@@ -1,51 +1,119 @@
+
+/* Quitar borde solo al botón editar en productos y clientes */
+.action-buttons .btn-primary {
+  border: none !important;
+  box-shadow: none !important;
+}
+#btn-nuevo-producto,
+#btn-nuevo-cliente,
+#btn-nuevo-pedido-section {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%) !important;
+    color: #fff !important;
+    border: 2.5px solid #15803d !important;
+    font-weight: 800 !important;
+    font-family: var(--font-sans, 'Segoe UI', Arial, sans-serif) !important;
+    font-size: 0.95rem !important;
+    box-shadow: 0 2px 10px 0 #15803d33 !important;
+    padding: 0.55em 1.5em !important;
+    border-radius: 0.8em !important;
+    letter-spacing: 0.01em;
+    transition: background 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+#btn-nuevo-producto:hover,
+#btn-nuevo-cliente:hover,
+#btn-nuevo-pedido-section:hover,
+#btn-nuevo-producto:focus,
+#btn-nuevo-cliente:focus,
+#btn-nuevo-pedido-section:focus {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%) !important;
+    color: #fff !important;
+    border-color: #22c55e !important;
+    box-shadow: 0 4px 16px 0 #15803d55 !important;
+    outline: none !important;
+    transform: translateY(-2px);
+}
+#btn-nuevo-evento {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%) !important;
+    color: #fff !important;
+    border: 2.5px solid #15803d !important;
+    font-weight: 800;
+    font-family: var(--font-sans, 'Segoe UI', Arial, sans-serif);
+    font-size: 0.95rem;
+    box-shadow: 0 2px 10px 0 #15803d33 !important;
+    padding: 0.55em 1.5em !important;
+    border-radius: 0.8em !important;
+    letter-spacing: 0.01em;
+    transition: background 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+#btn-nuevo-evento:hover,
+#btn-nuevo-evento:focus {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%) !important;
+    color: #fff !important;
+    border-color: #22c55e !important;
+    box-shadow: 0 4px 16px 0 #15803d55 !important;
+    outline: none !important;
+    transform: translateY(-2px);
+}
 /* Botón rojo profesional para cancelar (alta visibilidad) */
 
 /* Botón rojo profesional para cancelar (alta visibilidad, sin rosado, fuerte y moderno) */
 
 /* Botón cancelar: rojo fuerte, sin transparencia ni efecto deshabilitado */
+/* Botón cancelar: rojo fuerte, moderno, sin transparencia */
 .btn-cancelar, button.btn-cancelar, input.btn-cancelar {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-    color: #fff !important;
-    border: 2.5px solid #b91c1c !important;
-    font-weight: 700;
-    font-family: var(--font-sans, 'Segoe UI', Arial, sans-serif);
-    font-size: 0.875rem;
-    box-shadow: 0 2px 8px 0 #b91c1c44 !important;
-    padding: var(--space-3) var(--space-6) !important;
-    border-radius: var(--radius-lg) !important;
-    filter: none !important;
-    letter-spacing: 0.025em;
-    opacity: 1 !important;
-    transition: var(--transition-all) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 160px !important;
+  flex: 0 0 160px !important;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+  color: #fff !important;
+  border: 1.5px solid #23272f !important;
+  font-weight: 700;
+  font-family: var(--font-sans, 'Segoe UI', Arial, sans-serif);
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px 0 #b91c1c44 !important;
+  padding: 0.55em 1.5em !important;
+  border-radius: 0.8em !important;
+  filter: none !important;
+  letter-spacing: 0.025em;
+  opacity: 1 !important;
+  transition: background 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
 .btn-cancelar:hover, .btn-cancelar:focus, button.btn-cancelar:hover, button.btn-cancelar:focus {
-    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%) !important;
-    color: #fff !important;
-    border-color: #dc2626 !important;
-    box-shadow: 0 4px 16px 0 #b91c1c77 !important;
-    outline: none !important;
+  background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%) !important;
+  color: #fff !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 4px 16px 0 #b91c1c77 !important;
+  outline: none !important;
 }
 
 /* Botón verde profesional para guardar */
 
 /* Botón verde profesional para guardar (fuerte y moderno) */
+/* Botón guardar: verde fuerte, moderno */
 .btn-guardar {
-    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
-    color: #fff !important;
-    border: 2.5px solid #15803d;
-    font-weight: 800;
-    box-shadow: 0 2px 10px 0 #15803d33;
-    padding: var(--space-3) var(--space-6);
-    border-radius: var(--radius-lg);
-    transition: var(--transition-all);
-    letter-spacing: 0.01em;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  width: 160px !important;
+  flex: 0 0 160px !important;
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  color: #fff !important;
+  border: 1.5px solid #23272f !important;
+  font-weight: 700;
+  font-family: var(--font-sans, 'Segoe UI', Arial, sans-serif);
+  font-size: 0.95rem !important;
+  box-shadow: 0 2px 8px 0 #b91c1c44 !important;
+  padding: 0.55em 1.5em !important;
+  border-radius: 0.8em !important;
+  letter-spacing: 0.025em;
+  transition: background 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
 .btn-guardar:hover, .btn-guardar:focus {
-    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
-    color: #fff !important;
-    border-color: #22c55e;
-    box-shadow: 0 4px 16px 0 #15803d55;
-    outline: none;
+  background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+  color: #fff !important;
+  border-color: #22c55e;
+  box-shadow: 0 4px 16px 0 #15803d55;
+  outline: none;
 }
 
 /* Título de modal profesional */
@@ -82,13 +150,52 @@
   gap: 0.8rem;
   padding: 2.2rem 1.8rem 1.6rem 1.8rem;
   border-radius: 1.6rem;
-  background: rgba(255, 255, 255, 0.18);
+  background: #fff;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
-  overflow: hidden;
+  overflow: visible !important;
   min-height: 180px;
   transition: box-shadow 0.2s, transform 0.2s;
   z-index: 1;
 }
+
+/* Evento Card Glassmorphism Pro (compacto y sin cortes visuales) */
+.eventos-grid .evento-card, .event-cards-container .evento-card {
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(180, 70, 239, 0.13), 0 2px 8px 0 rgba(80, 60, 180, 0.10);
+  border: 1.5px solid rgba(180, 70, 239, 0.13);
+  padding: 0 1.6rem 1.5rem 1.6rem !important;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.22s, transform 0.22s, border-color 0.18s;
+  position: relative;
+  overflow: hidden;
+  gap: 0.7rem;
+}
+.eventos-grid .evento-card::before, .event-cards-container .evento-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 40%, #f0fdf4 100%), rgba(255,255,255,0.55);
+  background-blend-mode: lighten;
+  opacity: 0.98;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  border-radius: 1.6rem;
+  pointer-events: none;
+  transition: background 0.3s;
+}
+.eventos-grid .evento-card > *, .event-cards-container .evento-card > * {
+  position: relative;
+  z-index: 2;
+}
+.eventos-grid .evento-card:hover, .event-cards-container .evento-card:hover {
+  box-shadow: 0 12px 40px 0 rgba(180, 70, 239, 0.20), 0 4px 16px 0 rgba(80, 60, 180, 0.15);
+  transform: translateY(-7px) scale(1.022);
+  border-color: #e879f9;
+}
+
 
 /* === Tarjetas de eventos profesionales === */
 /* --- Evento Card Glassmorphism Pro --- */
@@ -110,7 +217,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: -1;
     background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 40%, #f0fdf4 100%), rgba(255,255,255,0.55);
     background-blend-mode: lighten;
     opacity: 0.98;
@@ -157,21 +264,22 @@
 }
 .evento-card .evento-actions {
     display: flex;
-    gap: 0.6rem;
+    justify-content: center;
+    align-items: center;
+    gap: 0.7rem;
     margin-top: auto;
-    padding-top: 1.2rem;
+    padding: 1.2rem 0 0 0;
     border-top: 1px solid #f3e8ff;
     background: none;
-    justify-content: center;
-    flex-wrap: wrap;
     width: 100%;
     box-sizing: border-box;
 }
 .evento-card .evento-actions .btn {
-    min-width: 80px;
-    max-width: 120px;
-    flex: 1 1 80px;
+    min-width: 90px;
+    max-width: 140px;
+    flex: 1 1 0;
     white-space: nowrap;
+    box-sizing: border-box;
 }
 .evento-card .evento-actions .btn-primary {
     background: linear-gradient(135deg, #d946ef, #a21caf);
@@ -710,14 +818,25 @@ body {
 
 /* Variantes de botones */
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
-    color: white;
-    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    color: #fff !important;
+    border: 2.5px solid #15803d;
+    font-weight: 800;
+    font-family: var(--font-sans, 'Segoe UI', Arial, sans-serif);
+    font-size: 0.95rem;
+    box-shadow: 0 2px 10px 0 #15803d33;
+    padding: 0.55em 1.5em;
+    border-radius: 0.8em;
+    letter-spacing: 0.01em;
+    transition: background 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
-    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+    color: #fff !important;
+    border-color: #22c55e;
+    box-shadow: 0 4px 16px 0 #15803d55;
+    outline: none;
     transform: translateY(-2px);
 }
 
@@ -1582,9 +1701,10 @@ body {
 
 .form-actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 1rem;
+    justify-content: center;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 1.2rem;
     padding-top: 1rem;
     border-top: 1px solid var(--border-color);
 }

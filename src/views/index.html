@@ -737,8 +737,8 @@
                         <textarea id="producto-descripcion" name="descripcion" rows="3"></textarea>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                        <button type="button" class="btn btn-cancelar modal-close">❌ Cancelar</button>
+                        <button type="submit" class="btn btn-guardar">💾 Guardar</button>
                     </div>
                 </form>
             </div>
@@ -747,7 +747,7 @@
 
     <!-- Modal Cliente -->
     <div id="modal-cliente" class="modal" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content compact-modal">
             <div class="modal-header">
                 <h3>👤 Nuevo Cliente</h3>
                 <span class="close modal-close">&times;</span>
@@ -755,37 +755,24 @@
             <div class="modal-body">
                 <form id="form-cliente" class="form">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="cliente-nombre">Nombre *</label>
-                            <input type="text" id="cliente-nombre" name="nombre" required>
+                        <div class="form-group" style="flex:2;">
+                            <label for="cliente-nombre-completo">Nombre Completo *</label>
+                            <input type="text" id="cliente-nombre-completo" name="nombre_completo" required>
                         </div>
-                        <div class="form-group">
-                            <label for="cliente-apellidos">Apellidos</label>
-                            <input type="text" id="cliente-apellidos" name="apellidos">
+                        <div class="form-group" style="flex:1;">
+                            <label for="cliente-telefono">Teléfono</label>
+                            <input type="tel" id="cliente-telefono" name="telefono">
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="cliente-telefono">Teléfono *</label>
-                            <input type="tel" id="cliente-telefono" name="telefono" required>
+                        <div class="form-group" style="flex:2;">
+                            <label for="cliente-direccion">Dirección</label>
+                            <input type="text" id="cliente-direccion" name="direccion">
                         </div>
-                        <div class="form-group">
-                            <label for="cliente-email">Email</label>
-                            <input type="email" id="cliente-email" name="email">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="cliente-direccion">Dirección</label>
-                        <input type="text" id="cliente-direccion" name="direccion">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="cliente-fecha-nacimiento">Fecha de Nacimiento</label>
-                            <input type="date" id="cliente-fecha-nacimiento" name="fecha_nacimiento">
-                        </div>
-                        <div class="form-group">
+                        <div class="form-group" style="flex:1;">
                             <label for="cliente-tipo">Tipo de Cliente</label>
                             <select id="cliente-tipo" name="tipo_cliente">
+                                <option value="nuevo">Nuevo</option>
                                 <option value="regular">Regular</option>
                                 <option value="frecuente">Frecuente</option>
                                 <option value="vip">VIP</option>
@@ -794,11 +781,11 @@
                     </div>
                     <div class="form-group">
                         <label for="cliente-notas">Notas</label>
-                        <textarea id="cliente-notas" name="notas" rows="3"></textarea>
+                        <textarea id="cliente-notas" name="notas" rows="2"></textarea>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">💾 Guardar</button>
+                        <button type="button" class="btn btn-cancelar modal-close">❌ Cancelar</button>
+                        <button type="submit" class="btn btn-guardar">💾 Guardar</button>
                     </div>
                 </form>
             </div>
@@ -867,7 +854,7 @@
                         <textarea id="evento-notas" name="notas" rows="2"></textarea>
                     </div>
                     <div class="form-actions">
-                    <button type="button" class="btn btn-cancelar modal-close">Cancelar</button>
+                    <button type="button" class="btn btn-cancelar modal-close">❌ Cancelar</button>
                     <button type="submit" class="btn btn-guardar">💾 Guardar</button>
                     </div>
                 </form>
