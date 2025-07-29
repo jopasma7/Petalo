@@ -394,15 +394,21 @@ class FlowerShopApp {
         }
 
         tbody.innerHTML = pedidos.map(pedido => {
-            const estadoBadge = `<span class="badge-estado badge-estado-${pedido.estado?.toLowerCase() || 'otro'}">${pedido.estado || 'N/A'}</span>`;
+            const estadoBadge = `<span class="badge-estado badge-estado-${(pedido.estado || '').toLowerCase()}">${pedido.estado || 'N/A'}</span>`;
+            // Usar los nombres correctos de los campos según la base de datos
+            const numeroPedido = pedido.numero_pedido || pedido.numero || pedido.id;
+            const cliente = (pedido.cliente_nombre ? pedido.cliente_nombre : '') + (pedido.cliente_apellidos ? ' ' + pedido.cliente_apellidos : '');
+            const fechaPedido = pedido.fecha_pedido ? (window.flowerShopAPI.formatDate ? window.flowerShopAPI.formatDate(pedido.fecha_pedido) : pedido.fecha_pedido) : 'N/A';
+            const fechaEntrega = pedido.fecha_entrega ? (window.flowerShopAPI.formatDate ? window.flowerShopAPI.formatDate(pedido.fecha_entrega) : pedido.fecha_entrega) : 'N/A';
+            const totalPedido = (typeof pedido.total !== 'undefined' && pedido.total !== null) ? (window.flowerShopAPI.formatCurrency ? window.flowerShopAPI.formatCurrency(pedido.total) : pedido.total) : 'N/A';
             return `
                 <tr data-id="${pedido.id}">
-                    <td>${pedido.numero || pedido.id}</td>
-                    <td>${pedido.cliente_nombre || 'N/A'}</td>
-                    <td>${pedido.fecha || 'N/A'}</td>
-                    <td>${pedido.entrega || 'N/A'}</td>
+                    <td>${numeroPedido}</td>
+                    <td>${cliente.trim() || 'N/A'}</td>
+                    <td>${fechaPedido}</td>
+                    <td>${fechaEntrega}</td>
                     <td>${estadoBadge}</td>
-                    <td>${window.flowerShopAPI.formatCurrency ? window.flowerShopAPI.formatCurrency(pedido.total || 0) : (pedido.total || 0)}</td>
+                    <td>${totalPedido}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="btn btn-sm btn-secondary" onclick="app.verPedido(${pedido.id})" title="Ver detalles">👁️</button>
@@ -761,8 +767,8 @@ class FlowerShopApp {
                                 <textarea id="pedido-notas" name="notas" rows="2"></textarea>
                             </div>
                             <div style="text-align:right">
-                                <button type="button" class="btn btn-secondary btn-cancelar">Cancelar</button>
-                                <button type="submit" class="btn btn-success">Guardar Pedido</button>
+                                <button type="button" class="btn btn-cancelar modal-close"><span style='font-size:1.1em;vertical-align:middle;'>❌</span> <span style='vertical-align:middle;'>Cancelar</span></button>
+                                <button type="submit" class="btn btn-guardar"><span style='font-size:1.1em;vertical-align:middle;'>💾</span> <span style='vertical-align:middle;'>Guardar</span></button>
                             </div>
                         </form>
                     </div>
@@ -844,12 +850,52 @@ class FlowerShopApp {
                 this.showNotification('Completa todos los campos obligatorios y agrega al menos un producto', 'warning');
                 return;
             }
-            // Guardar pedido
+
+            // Calcular subtotal y total (sin descuentos ni impuestos por ahora)
+            let subtotal = 0;
+            let total = 0;
+            let descuento = 0;
+            let adelanto = 0;
+            let saldo_pendiente = 0;
+            let metodo_pago = '';
+            let direccion_entrega = '';
+            let instrucciones_especiales = '';
+            // Obtener precios de productos
+            const productosData = this._productosParaPedido || [];
+            const detalles = productos.map(p => {
+                const prod = productosData.find(pr => pr.id === p.producto_id);
+                const precio_unitario = prod ? parseFloat(prod.precio_venta) : 0;
+                const cantidad = p.cantidad;
+                const subtotalDetalle = precio_unitario * cantidad;
+                subtotal += subtotalDetalle;
+                return {
+                    producto_id: p.producto_id,
+                    cantidad,
+                    precio_unitario,
+                    subtotal: subtotalDetalle,
+                    personalizacion: ''
+                };
+            });
+            total = subtotal - descuento; // No se aplica descuento ni impuestos por ahora
+            saldo_pendiente = total - adelanto;
+
+            // Guardar pedido con todos los campos requeridos
             const pedido = {
                 cliente_id: parseInt(clienteId),
-                productos,
-                entrega,
-                notas
+                evento_id: null, // No se selecciona evento en el formulario actual
+                fecha_entrega: entrega,
+                estado: 'pendiente',
+                tipo_pedido: 'regular',
+                subtotal,
+                descuento,
+                total,
+                adelanto,
+                saldo_pendiente,
+                metodo_pago,
+                direccion_entrega,
+                instrucciones_especiales,
+                notas,
+                detalles
             };
             await window.flowerShopAPI.crearPedido(pedido);
             this.showNotification('Pedido creado correctamente', 'success');
