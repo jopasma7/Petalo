@@ -1,5 +1,51 @@
-/* ====== MODAL NUEVO PEDIDO (mejorado) ====== */
-#modal-nuevo-pedido .modal-content {
+/* Scroll vertical para la tabla de productos */
+#tabla-productos-wrapper {
+  width: 100%;
+  max-height: 60vh;
+  min-height: 0;
+  overflow-y: auto;
+  background: transparent;
+  margin-bottom: 1rem;
+}
+
+#tabla-productos {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#tabla-productos th, #tabla-productos td {
+  padding: 0.7em 1em;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+#tabla-productos tr:last-child td {
+  border-bottom: none;
+}
+#form-producto .form-group[style*="flex-basis:100%"],
+#form-evento .form-group[style*="flex-basis:100%"],
+#form-producto .form-actions,
+#form-evento .form-actions {
+    grid-column: 1 / -1;
+}
+
+#form-producto .form-actions,
+#form-evento .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+#form-producto .form-group textarea,
+#form-evento .form-group textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+/* ====== MODALES UNIFICADOS (producto, cliente, evento) ====== */
+#modal-producto .modal-content,
+#modal-cliente .modal-content,
+#modal-evento .modal-content {
   background: rgba(255,255,255,0.97);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.18);
@@ -8,6 +54,160 @@
   max-width: 650px;
   margin: 40px auto;
   font-family: inherit;
+}
+#modal-producto h2,
+#modal-cliente h2,
+#modal-evento h2 {
+  margin-top: 0;
+  margin-bottom: 1.2rem;
+  font-size: 2rem;
+  color: #2d3a4a;
+  letter-spacing: 0.5px;
+}
+#modal-producto .form-group,
+#modal-cliente .form-group,
+#modal-evento .form-group {
+  margin-bottom: 1.2rem;
+}
+#modal-producto label,
+#modal-cliente label,
+#modal-evento label {
+  font-weight: 600;
+  color: #3a3a3a;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+#modal-producto select,
+#modal-producto input,
+#modal-producto textarea,
+#modal-cliente select,
+#modal-cliente input,
+#modal-cliente textarea,
+#modal-evento select,
+#modal-evento input,
+#modal-evento textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-top: 0.2rem;
+  background: #f8fafc;
+  transition: border 0.2s;
+}
+#modal-producto select:focus,
+#modal-producto input:focus,
+#modal-producto textarea:focus,
+#modal-cliente select:focus,
+#modal-cliente input:focus,
+#modal-cliente textarea:focus,
+#modal-evento select:focus,
+#modal-evento input:focus,
+#modal-evento textarea:focus {
+  border-color: #7c3aed;
+  outline: none;
+}
+#modal-producto .btn-primary,
+#modal-cliente .btn-primary,
+#modal-evento .btn-primary {
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#modal-producto .btn-primary:hover,
+#modal-cliente .btn-primary:hover,
+#modal-evento .btn-primary:hover {
+  background: #5b21b6;
+}
+#modal-producto .btn-success,
+#modal-cliente .btn-success,
+#modal-evento .btn-success {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#modal-producto .btn-success:hover,
+#modal-cliente .btn-success:hover,
+#modal-evento .btn-success:hover {
+  background: #15803d;
+}
+#modal-producto .btn-secondary,
+#modal-cliente .btn-secondary,
+#modal-evento .btn-secondary {
+  background: #64748b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#modal-producto .btn-secondary:hover,
+#modal-cliente .btn-secondary:hover,
+#modal-evento .btn-secondary:hover {
+  background: #334155;
+}
+#modal-producto .modal-content,
+#modal-evento .modal-content {
+    background: rgba(255,255,255,0.85);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 2.2rem 2.5rem 2rem 2.5rem;
+    position: relative;
+    margin: 40px auto;
+    max-width: 980px;
+    width: 100%;
+    min-width: 320px;
+    animation: modalFadeIn 0.25s;
+}
+
+/* Distribución de campos en dos columnas para formularios de producto y evento */
+#form-producto, #form-evento {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 24px;
+}
+#form-producto .form-group, #form-evento .form-group {
+    margin-bottom: 0.2rem;
+}
+@media (max-width: 1100px) {
+  #form-producto, #form-evento {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  #form-producto, #form-evento {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+#modal-cliente .modal-content,
+#modal-nuevo-pedido .modal-content {
+    background: rgba(255,255,255,0.85);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    padding: 2.2rem 2.5rem 2rem 2.5rem;
+    position: relative;
+    margin: 40px auto;
+    max-width: 500px;
+    width: 100%;
+    min-width: 320px;
+    animation: modalFadeIn 0.25s;
 }
 #modal-nuevo-pedido h2 {
   margin-top: 0;
@@ -562,26 +762,21 @@ body * {
     position: relative !important;
 }
 
- .modern-main-content {
+.modern-main-content {
     grid-area: main !important;
-    /* Reducido el padding superior para menos espacio arriba */
     padding: var(--space-4) var(--space-6) var(--space-6) var(--space-6) !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
     background: linear-gradient(135deg, var(--primary-50) 0%, var(--primary-100) 50%, var(--success-50) 100%) !important;
     z-index: 10 !important;
-    min-height: 100vh;
-    /* Forzar alineación y ancho completo del contenido principal */
-    display: block !important;
+    min-height: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
     text-align: left !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
-    /* El scroll solo ocurre aquí */
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
     position: relative !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
 }
 
 /* Ensure content wrapper works within grid */
@@ -590,24 +785,15 @@ body * {
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
     text-align: left !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
     position: static !important;
     z-index: auto !important;
-    left: auto !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    box-shadow: inherit;
-    background-clip: border-box;
-    position: static !important;
-    z-index: auto !important;
-    left: auto !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
     background-clip: border-box !important;
     box-shadow: inherit !important;
 }
@@ -623,9 +809,11 @@ body * {
     text-align: left !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
-    /* Nunca superponer ni fijar */
     position: static !important;
     z-index: auto !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: auto !important;
 }
 
 .content-section[style*="block"] {

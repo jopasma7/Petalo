@@ -273,7 +273,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="table-container">
+                        <div id="tabla-productos-wrapper">
+                          <div class="table-container">
                             <table class="table" id="productos-table">
                                 <thead>
                                     <tr>
@@ -292,6 +293,7 @@
                                     </tr>
                                 </tbody>
                             </table>
+                          </div>
                         </div>
                     </div>
                 </section>
@@ -684,59 +686,111 @@
             </div>
             <div class="modal-body">
                 <form id="form-producto" class="form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="producto-nombre">Nombre *</label>
-                            <input type="text" id="producto-nombre" name="nombre" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="producto-codigo">Código de Producto</label>
-                            <input type="text" id="producto-codigo" name="codigo_producto">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="producto-categoria">Categoría *</label>
-                            <select id="producto-categoria" name="categoria_id" required>
-                                <option value="">Seleccionar...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="producto-temporada">Temporada</label>
-                            <select id="producto-temporada" name="temporada">
-                                <option value="todo_año">Todo el año</option>
-                                <option value="primavera">Primavera</option>
-                                <option value="verano">Verano</option>
-                                <option value="otoño">Otoño</option>
-                                <option value="invierno">Invierno</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="producto-precio-compra">Precio Compra (€)</label>
-                            <input type="number" id="producto-precio-compra" name="precio_compra" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="producto-precio-venta">Precio Venta (€) *</label>
-                            <input type="number" id="producto-precio-venta" name="precio_venta" step="0.01" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="producto-stock">Stock Actual</label>
-                            <input type="number" id="producto-stock" name="stock_actual" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="producto-stock-minimo">Stock Mínimo</label>
-                            <input type="number" id="producto-stock-minimo" name="stock_minimo" value="5">
-                        </div>
+                    <div class="form-group">
+                        <label for="producto-nombre">Nombre *</label>
+                        <input type="text" id="producto-nombre" name="nombre" required>
                     </div>
                     <div class="form-group">
+                        <label for="producto-codigo">Código de Producto</label>
+<input type="text" id="producto-codigo" name="codigo_producto" readonly style="background:#f3f4f6;cursor:not-allowed;" value="">
+<script>
+// Generar código de producto tipo XX-001 según el nombre y que no coincida con productos existentes
+async function generarCodigoProducto(nombre) {
+  if (!nombre) return '';
+  // Obtener iniciales (primeras letras de cada palabra, máx 2)
+  const palabras = nombre.trim().split(/\s+/);
+  let iniciales = palabras.map(p => p[0].toUpperCase()).join('');
+  iniciales = iniciales.slice(0,2);
+  // Si termina en guion, lo quitamos
+  iniciales = iniciales.replace(/-+$/,'');
+  // Obtener productos existentes (window.flowerShopAPI)
+  let usados = [];
+  if (window.flowerShopAPI && window.flowerShopAPI.getProductos) {
+    try {
+      const productos = await window.flowerShopAPI.getProductos();
+      usados = productos.map(p => (p.codigo_producto || '').toUpperCase());
+    } catch {}
+  }
+  // Buscar el primer número libre
+  let n = 1;
+  let codigo = '';
+  do {
+    codigo = `${iniciales}-${String(n).padStart(3,'0')}`;
+    n++;
+  } while (usados.includes(codigo));
+  return codigo;
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const inputNombre = document.getElementById('producto-nombre');
+  const inputCodigo = document.getElementById('producto-codigo');
+  // Generar código al escribir el nombre
+  if (inputNombre && inputCodigo) {
+    inputNombre.addEventListener('input', async function() {
+      const nombre = inputNombre.value;
+      if (nombre.length > 0) {
+        inputCodigo.value = '...';
+        const codigo = await generarCodigoProducto(nombre);
+        inputCodigo.value = codigo;
+      } else {
+        inputCodigo.value = '';
+      }
+    });
+  }
+  // Al abrir el modal, si hay nombre, generar código
+  const btn = document.getElementById('btn-nuevo-producto');
+  if (btn && inputNombre && inputCodigo) {
+    btn.addEventListener('click', function() {
+      setTimeout(async function() {
+        if (inputNombre.value.length > 0) {
+          inputCodigo.value = '...';
+          const codigo = await generarCodigoProducto(inputNombre.value);
+          inputCodigo.value = codigo;
+        } else {
+          inputCodigo.value = '';
+        }
+      }, 100);
+    });
+  }
+});
+</script>
+                    </div>
+                    <div class="form-group">
+                        <label for="producto-categoria">Categoría *</label>
+                        <select id="producto-categoria" name="categoria_id" required>
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="producto-temporada">Temporada</label>
+                        <select id="producto-temporada" name="temporada">
+                            <option value="todo_año">Todo el año</option>
+                            <option value="primavera">Primavera</option>
+                            <option value="verano">Verano</option>
+                            <option value="otoño">Otoño</option>
+                            <option value="invierno">Invierno</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="producto-precio-compra">Precio Compra (€)</label>
+                        <input type="number" id="producto-precio-compra" name="precio_compra" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="producto-precio-venta">Precio Venta (€) *</label>
+                        <input type="number" id="producto-precio-venta" name="precio_venta" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="producto-stock">Stock Actual</label>
+                        <input type="number" id="producto-stock" name="stock_actual" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="producto-stock-minimo">Stock Mínimo</label>
+                        <input type="number" id="producto-stock-minimo" name="stock_minimo" value="5">
+                    </div>
+                    <div class="form-group" style="flex-basis:100%">
                         <label for="producto-descripcion">Descripción</label>
                         <textarea id="producto-descripcion" name="descripcion" rows="3"></textarea>
                     </div>
-                    <div class="form-actions">
+                    <div class="form-actions" style="flex-basis:100%">
                         <button type="button" class="btn btn-cancelar modal-close">❌ Cancelar</button>
                         <button type="submit" class="btn btn-guardar">💾 Guardar</button>
                     </div>
@@ -805,57 +859,51 @@
                         <label for="evento-nombre">Nombre del Evento *</label>
                         <input type="text" id="evento-nombre" name="nombre" required>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="evento-fecha-inicio">Fecha Inicio *</label>
-                            <input type="date" id="evento-fecha-inicio" name="fecha_inicio" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="evento-fecha-fin">Fecha Fin *</label>
-                            <input type="date" id="evento-fecha-fin" name="fecha_fin" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="evento-tipo">Tipo de Evento</label>
-                            <select id="evento-tipo" name="tipo_evento">
-                                <option value="temporal">Temporal</option>
-                                <option value="religioso">Religioso</option>
-                                <option value="comercial">Comercial</option>
-                                <option value="personalizado">Personalizado</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="evento-demanda">Demanda Esperada</label>
-                            <select id="evento-demanda" name="demanda_esperada">
-                                <option value="baja">Baja</option>
-                                <option value="media">Media</option>
-                                <option value="alta">Alta</option>
-                                <option value="extrema">Extrema</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="evento-descuento">Descuento Especial (%)</label>
-                            <input type="number" id="evento-descuento" name="descuento_especial" min="0" max="100" step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label for="evento-preparacion">Días de Preparación</label>
-                            <input type="number" id="evento-preparacion" name="preparacion_dias" value="7">
-                        </div>
+                    <div class="form-group">
+                        <label for="evento-fecha-inicio">Fecha Inicio *</label>
+                        <input type="date" id="evento-fecha-inicio" name="fecha_inicio" required>
                     </div>
                     <div class="form-group">
+                        <label for="evento-fecha-fin">Fecha Fin *</label>
+                        <input type="date" id="evento-fecha-fin" name="fecha_fin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="evento-tipo">Tipo de Evento</label>
+                        <select id="evento-tipo" name="tipo_evento">
+                            <option value="temporal">Temporal</option>
+                            <option value="religioso">Religioso</option>
+                            <option value="comercial">Comercial</option>
+                            <option value="personalizado">Personalizado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="evento-demanda">Demanda Esperada</label>
+                        <select id="evento-demanda" name="demanda_esperada">
+                            <option value="baja">Baja</option>
+                            <option value="media">Media</option>
+                            <option value="alta">Alta</option>
+                            <option value="extrema">Extrema</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="evento-descuento">Descuento Especial (%)</label>
+                        <input type="number" id="evento-descuento" name="descuento_especial" min="0" max="100" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="evento-preparacion">Días de Preparación</label>
+                        <input type="number" id="evento-preparacion" name="preparacion_dias" value="7">
+                    </div>
+                    <div class="form-group" style="flex-basis:100%">
                         <label for="evento-descripcion">Descripción</label>
                         <textarea id="evento-descripcion" name="descripcion" rows="3"></textarea>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="flex-basis:100%">
                         <label for="evento-notas">Notas</label>
                         <textarea id="evento-notas" name="notas" rows="2"></textarea>
                     </div>
-                    <div class="form-actions">
-                    <button type="button" class="btn btn-cancelar modal-close">❌ Cancelar</button>
-                    <button type="submit" class="btn btn-guardar">💾 Guardar</button>
+                    <div class="form-actions" style="flex-basis:100%">
+                        <button type="button" class="btn btn-cancelar modal-close">❌ Cancelar</button>
+                        <button type="submit" class="btn btn-guardar">💾 Guardar</button>
                     </div>
                 </form>
             </div>
