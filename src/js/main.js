@@ -1,4 +1,25 @@
 class FlowerShopApp {
+    // Actualiza los badges del sidebar con los valores reales
+    async updateSidebarBadges() {
+        try {
+            const [productos, clientes, eventos, pedidos] = await Promise.all([
+                window.flowerShopAPI.getProductos(),
+                window.flowerShopAPI.getClientes(),
+                window.flowerShopAPI.getEventos(),
+                window.flowerShopAPI.getPedidos()
+            ]);
+            const badgeProductos = document.getElementById('badge-productos');
+            const badgeClientes = document.getElementById('badge-clientes');
+            const badgeEventos = document.getElementById('badge-eventos');
+            const badgePedidos = document.getElementById('badge-pedidos');
+            if (badgeProductos) badgeProductos.textContent = productos.length;
+            if (badgeClientes) badgeClientes.textContent = clientes.length;
+            if (badgeEventos) badgeEventos.textContent = eventos.length;
+            if (badgePedidos) badgePedidos.textContent = pedidos.length;
+        } catch (error) {
+            console.error('❌ Error actualizando badges del sidebar:', error);
+        }
+    }
     constructor() {
         this.currentSection = 'dashboard';
         this.init();
@@ -9,6 +30,7 @@ class FlowerShopApp {
         this.setupNavigation();
         this.setupModals();
         this.setupEventListeners();
+        await this.updateSidebarBadges();
         await this.loadInitialData();
         this.showSection('dashboard');
     }
@@ -180,6 +202,7 @@ class FlowerShopApp {
             console.log('🌺 Cargando productos...');
             const productos = await window.flowerShopAPI.getProductos();
             this.displayProductos(productos);
+            await this.updateSidebarBadges();
         } catch (error) {
             console.error('❌ Error cargando productos:', error);
             this.showNotification('Error cargando productos', 'error');
@@ -239,6 +262,7 @@ class FlowerShopApp {
             console.log('👥 Cargando clientes...');
             const clientes = await window.flowerShopAPI.getClientes();
             this.displayClientes(clientes);
+            await this.updateSidebarBadges();
         } catch (error) {
             console.error('❌ Error cargando clientes:', error);
             this.showNotification('Error cargando clientes', 'error');
@@ -287,6 +311,7 @@ class FlowerShopApp {
             console.log('🎉 Cargando eventos...');
             const eventos = await window.flowerShopAPI.getEventos();
             this.displayEventos(eventos);
+            await this.updateSidebarBadges();
         } catch (error) {
             console.error('❌ Error cargando eventos:', error);
             this.showNotification('Error cargando eventos', 'error');
@@ -343,6 +368,7 @@ class FlowerShopApp {
             console.log('📋 Cargando pedidos...');
             const pedidos = await window.flowerShopAPI.getPedidos();
             console.log('Pedidos cargados:', pedidos.length);
+            await this.updateSidebarBadges();
             // TODO: Implementar vista de pedidos
         } catch (error) {
             console.error('❌ Error cargando pedidos:', error);
