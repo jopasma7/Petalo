@@ -15,7 +15,16 @@ class FlowerShopApp {
             if (badgeProductos) badgeProductos.textContent = productos.length;
             if (badgeClientes) badgeClientes.textContent = clientes.length;
             if (badgeEventos) badgeEventos.textContent = eventos.length;
-            if (badgePedidos) badgePedidos.textContent = pedidos.length;
+            if (badgePedidos) {
+                badgePedidos.textContent = pedidos.length;
+                // Buscar pedidos pendientes
+                const pendientes = pedidos.filter(p => p.estado && p.estado.toLowerCase() === 'pendiente');
+                if (pendientes.length > 0) {
+                    badgePedidos.classList.add('new');
+                } else {
+                    badgePedidos.classList.remove('new');
+                }
+            }
         } catch (error) {
             console.error('❌ Error actualizando badges del sidebar:', error);
         }
@@ -367,12 +376,138 @@ class FlowerShopApp {
         try {
             console.log('📋 Cargando pedidos...');
             const pedidos = await window.flowerShopAPI.getPedidos();
-            console.log('Pedidos cargados:', pedidos.length);
+            this.displayPedidos(pedidos);
             await this.updateSidebarBadges();
-            // TODO: Implementar vista de pedidos
         } catch (error) {
             console.error('❌ Error cargando pedidos:', error);
             this.showNotification('Error cargando pedidos', 'error');
+        }
+    }
+
+    displayPedidos(pedidos) {
+        const tbody = document.querySelector('#pedidos-table tbody');
+        if (!tbody) return;
+
+        if (!pedidos || pedidos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay pedidos registrados</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = pedidos.map(pedido => {
+            const estadoBadge = `<span class="badge-estado badge-estado-${pedido.estado?.toLowerCase() || 'otro'}">${pedido.estado || 'N/A'}</span>`;
+            return `
+                <tr data-id="${pedido.id}">
+                    <td>${pedido.numero || pedido.id}</td>
+                    <td>${pedido.cliente_nombre || 'N/A'}</td>
+                    <td>${pedido.fecha || 'N/A'}</td>
+                    <td>${pedido.entrega || 'N/A'}</td>
+                    <td>${estadoBadge}</td>
+                    <td>${window.flowerShopAPI.formatCurrency ? window.flowerShopAPI.formatCurrency(pedido.total || 0) : (pedido.total || 0)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="app.verPedido(${pedido.id})" title="Ver detalles">👁️</button>
+                            ${pedido.estado && pedido.estado.toLowerCase() === 'pendiente' ? `<button class="btn btn-sm btn-success" onclick="app.aprobarPedido(${pedido.id})" title="Aprobar">✔️</button>` : ''}
+                            ${pedido.estado && pedido.estado.toLowerCase() !== 'cancelado' && pedido.estado.toLowerCase() !== 'entregado' ? `<button class="btn btn-sm btn-danger" onclick="app.cancelarPedido(${pedido.id})" title="Cancelar">🗑️</button>` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Acciones básicas para pedidos
+    async verPedido(id) {
+        try {
+            // Obtener el pedido y sus detalles
+            const pedidos = await window.flowerShopAPI.getPedidos();
+            const pedido = pedidos.find(p => p.id === id);
+            if (!pedido) {
+                this.showNotification('No se encontró el pedido', 'error');
+                return;
+            }
+            // Obtener detalles de productos del pedido si existe la función
+            let productosPedido = pedido.productos || [];
+            if (!productosPedido.length && window.flowerShopAPI.getProductosPedido) {
+                productosPedido = await window.flowerShopAPI.getProductosPedido(id);
+            }
+            // Renderizar modal de detalles
+            this.renderPedidoDetallesModal(pedido, productosPedido);
+            this.showModal('modal-pedido-detalles');
+        } catch (error) {
+            this.showNotification('Error mostrando detalles del pedido', 'error');
+        }
+    }
+
+    renderPedidoDetallesModal(pedido, productos) {
+        // Crear el modal si no existe
+        let modal = document.getElementById('modal-pedido-detalles');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'modal-pedido-detalles';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width:600px">
+                    <span class="modal-close" style="float:right;cursor:pointer;font-size:1.5rem">&times;</span>
+                    <h2>Detalles del Pedido #<span id="detalle-numero-pedido"></span></h2>
+                    <div id="detalle-pedido-body"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            // Cerrar modal al hacer click en la X
+            modal.querySelector('.modal-close').onclick = () => this.hideModal('modal-pedido-detalles');
+            // Cerrar al hacer click fuera del contenido
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) this.hideModal('modal-pedido-detalles');
+            });
+        }
+        // Rellenar datos
+        document.getElementById('detalle-numero-pedido').textContent = pedido.numero || pedido.id;
+        const body = document.getElementById('detalle-pedido-body');
+        body.innerHTML = `
+            <p><strong>Cliente:</strong> ${pedido.cliente_nombre || 'N/A'}</p>
+            <p><strong>Fecha:</strong> ${pedido.fecha || 'N/A'}</p>
+            <p><strong>Entrega:</strong> ${pedido.entrega || 'N/A'}</p>
+            <p><strong>Estado:</strong> <span class="badge-estado badge-estado-${pedido.estado?.toLowerCase() || 'otro'}">${pedido.estado || 'N/A'}</span></p>
+            <h4>Productos</h4>
+            <div style="max-height:180px;overflow:auto">
+                <table class="table table-sm">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead>
+                    <tbody>
+                        ${productos && productos.length > 0 ? productos.map(prod => `
+                            <tr>
+                                <td>${prod.nombre || prod.producto_nombre || 'N/A'}</td>
+                                <td>${prod.cantidad || 1}</td>
+                                <td>${window.flowerShopAPI.formatCurrency ? window.flowerShopAPI.formatCurrency(prod.precio_unitario || prod.precio || 0) : (prod.precio_unitario || prod.precio || 0)}</td>
+                                <td>${window.flowerShopAPI.formatCurrency ? window.flowerShopAPI.formatCurrency((prod.cantidad || 1) * (prod.precio_unitario || prod.precio || 0)) : ((prod.cantidad || 1) * (prod.precio_unitario || prod.precio || 0))}</td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="4">No hay productos</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+            <p style="text-align:right;font-size:1.2em"><strong>Total:</strong> ${window.flowerShopAPI.formatCurrency ? window.flowerShopAPI.formatCurrency(pedido.total || 0) : (pedido.total || 0)}</p>
+            <p><strong>Notas:</strong> ${pedido.notas || '-'}</p>
+        `;
+    }
+
+    async aprobarPedido(id) {
+        try {
+            if (!confirm('¿Aprobar este pedido?')) return;
+            await window.flowerShopAPI.actualizarEstadoPedido(id, 'confirmado');
+            this.showNotification('Pedido aprobado', 'success');
+            await this.loadPedidosData();
+        } catch (error) {
+            this.showNotification('Error aprobando pedido', 'error');
+        }
+    }
+
+    async cancelarPedido(id) {
+        try {
+            if (!confirm('¿Cancelar este pedido?')) return;
+            await window.flowerShopAPI.actualizarEstadoPedido(id, 'cancelado');
+            this.showNotification('Pedido cancelado', 'success');
+            await this.loadPedidosData();
+        } catch (error) {
+            this.showNotification('Error cancelando pedido', 'error');
         }
     }
 
@@ -596,8 +731,133 @@ class FlowerShopApp {
     }
 
     async nuevoPedido() {
-        console.log('📋 Nuevo pedido');
-        this.showNotification('Funcionalidad de pedidos en desarrollo', 'info');
+        try {
+            // Crear modal si no existe
+            let modal = document.getElementById('modal-nuevo-pedido');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-nuevo-pedido';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width:650px">
+                        <span class="modal-close" style="float:right;cursor:pointer;font-size:1.5rem">&times;</span>
+                        <h2>Nuevo Pedido</h2>
+                        <form id="form-nuevo-pedido">
+                            <div class="form-group">
+                                <label>Cliente</label>
+                                <select id="pedido-cliente" name="cliente_id" required style="width:100%"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Productos</label>
+                                <div id="pedido-productos-list"></div>
+                                <button type="button" id="btn-agregar-producto-pedido" class="btn btn-sm btn-primary" style="margin-top:5px">Agregar producto</button>
+                            </div>
+                            <div class="form-group">
+                                <label>Fecha de entrega</label>
+                                <input type="date" id="pedido-entrega" name="entrega" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Notas</label>
+                                <textarea id="pedido-notas" name="notas" rows="2"></textarea>
+                            </div>
+                            <div style="text-align:right">
+                                <button type="button" class="btn btn-secondary btn-cancelar">Cancelar</button>
+                                <button type="submit" class="btn btn-success">Guardar Pedido</button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                // Cerrar modal
+                modal.querySelector('.modal-close').onclick = () => this.hideModal('modal-nuevo-pedido');
+                modal.querySelector('.btn-cancelar').onclick = () => this.hideModal('modal-nuevo-pedido');
+                modal.addEventListener('click', (e) => { if (e.target === modal) this.hideModal('modal-nuevo-pedido'); });
+                // Evento submit
+                modal.querySelector('#form-nuevo-pedido').onsubmit = (e) => this.handleNuevoPedidoSubmit(e);
+                // Agregar producto
+                modal.querySelector('#btn-agregar-producto-pedido').onclick = () => this.agregarProductoAlPedido();
+            }
+            // Cargar clientes y productos
+            await this.cargarClientesEnPedido();
+            await this.cargarProductosEnPedido();
+            // Limpiar productos seleccionados
+            document.getElementById('pedido-productos-list').innerHTML = '';
+            // Mostrar modal
+            this.showModal('modal-nuevo-pedido');
+        } catch (error) {
+            this.showNotification('Error abriendo formulario de pedido', 'error');
+        }
+    }
+
+    async cargarClientesEnPedido() {
+        const select = document.getElementById('pedido-cliente');
+        if (!select) return;
+        const clientes = await window.flowerShopAPI.getClientes();
+        select.innerHTML = '<option value="">Seleccionar cliente</option>' +
+            clientes.map(c => `<option value="${c.id}">${c.nombre} ${c.apellidos || ''}</option>`).join('');
+    }
+
+    async cargarProductosEnPedido() {
+        // Guardar productos en memoria para selección rápida
+        this._productosParaPedido = await window.flowerShopAPI.getProductos();
+    }
+
+    agregarProductoAlPedido() {
+        const productos = this._productosParaPedido || [];
+        const list = document.getElementById('pedido-productos-list');
+        if (!list) return;
+        // Crear fila de selección
+        const idx = list.children.length;
+        const row = document.createElement('div');
+        row.className = 'pedido-producto-row';
+        row.style.display = 'flex';
+        row.style.gap = '8px';
+        row.style.marginBottom = '4px';
+        row.innerHTML = `
+            <select class="pedido-producto-select" required style="flex:2">
+                <option value="">Producto</option>
+                ${productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
+            </select>
+            <input type="number" class="pedido-producto-cantidad" min="1" value="1" required style="width:60px" />
+            <button type="button" class="btn btn-danger btn-sm btn-quitar-producto">Quitar</button>
+        `;
+        // Quitar producto
+        row.querySelector('.btn-quitar-producto').onclick = () => row.remove();
+        list.appendChild(row);
+    }
+
+    async handleNuevoPedidoSubmit(e) {
+        e.preventDefault();
+        try {
+            const form = e.target;
+            const clienteId = form.querySelector('#pedido-cliente').value;
+            const entrega = form.querySelector('#pedido-entrega').value;
+            const notas = form.querySelector('#pedido-notas').value;
+            // Productos
+            const productos = Array.from(form.querySelectorAll('.pedido-producto-row')).map(row => {
+                return {
+                    producto_id: parseInt(row.querySelector('.pedido-producto-select').value),
+                    cantidad: parseInt(row.querySelector('.pedido-producto-cantidad').value)
+                };
+            }).filter(p => p.producto_id && p.cantidad > 0);
+            if (!clienteId || !entrega || productos.length === 0) {
+                this.showNotification('Completa todos los campos obligatorios y agrega al menos un producto', 'warning');
+                return;
+            }
+            // Guardar pedido
+            const pedido = {
+                cliente_id: parseInt(clienteId),
+                productos,
+                entrega,
+                notas
+            };
+            await window.flowerShopAPI.crearPedido(pedido);
+            this.showNotification('Pedido creado correctamente', 'success');
+            this.hideModal('modal-nuevo-pedido');
+            await this.loadPedidosData();
+        } catch (error) {
+            this.showNotification('Error guardando pedido', 'error');
+        }
     }
 
     // ========== MODALES ==========

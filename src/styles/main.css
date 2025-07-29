@@ -1,3 +1,129 @@
+/* ====== MODAL NUEVO PEDIDO (mejorado) ====== */
+#modal-nuevo-pedido .modal-content {
+  background: rgba(255,255,255,0.97);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 2rem 2.5rem 1.5rem 2.5rem;
+  position: relative;
+  max-width: 650px;
+  margin: 40px auto;
+  font-family: inherit;
+}
+#modal-nuevo-pedido h2 {
+  margin-top: 0;
+  margin-bottom: 1.2rem;
+  font-size: 2rem;
+  color: #2d3a4a;
+  letter-spacing: 0.5px;
+}
+#modal-nuevo-pedido .form-group {
+  margin-bottom: 1.2rem;
+}
+#modal-nuevo-pedido label {
+  font-weight: 600;
+  color: #3a3a3a;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+#modal-nuevo-pedido select,
+#modal-nuevo-pedido input[type="date"],
+#modal-nuevo-pedido textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-top: 0.2rem;
+  background: #f8fafc;
+  transition: border 0.2s;
+}
+#modal-nuevo-pedido select:focus,
+#modal-nuevo-pedido input[type="date"]:focus,
+#modal-nuevo-pedido textarea:focus {
+  border-color: #7c3aed;
+  outline: none;
+}
+#modal-nuevo-pedido .pedido-producto-row {
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+#modal-nuevo-pedido .pedido-producto-select {
+  min-width: 120px;
+}
+#modal-nuevo-pedido .pedido-producto-cantidad {
+  width: 60px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  margin-left: 4px;
+}
+#modal-nuevo-pedido .btn-quitar-producto {
+  margin-left: 8px;
+  background: #f87171;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#modal-nuevo-pedido .btn-quitar-producto:hover {
+  background: #dc2626;
+}
+#modal-nuevo-pedido .btn-primary {
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#modal-nuevo-pedido .btn-primary:hover {
+  background: #5b21b6;
+}
+#modal-nuevo-pedido .btn-success {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#modal-nuevo-pedido .btn-success:hover {
+  background: #15803d;
+}
+#modal-nuevo-pedido .btn-secondary {
+  background: #64748b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1.1rem;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#modal-nuevo-pedido .btn-secondary:hover {
+  background: #334155;
+}
+#modal-nuevo-pedido .modal-close {
+  color: #64748b;
+  transition: color 0.2s;
+}
+#modal-nuevo-pedido .modal-close:hover {
+  color: #dc2626;
+}
 
 /* Quitar borde solo al botón editar en productos y clientes */
 .action-buttons .btn-primary {
