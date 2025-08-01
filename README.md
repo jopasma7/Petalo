@@ -12,13 +12,41 @@
 - **Gestión de clientes**: CRUD, búsqueda avanzada y seguimiento de compras.
 - **Gestión de eventos**: Registro y administración de eventos especiales.
 - **Gestión de pedidos**: Control de pedidos, estados, fechas y totales.
-- **Inventario**: Resumen de stock y alertas de inventario bajo.
+- **📦 Inventario Avanzado**: 
+  - **Dashboard de inventario** con resumen de stock y alertas
+  - **Alertas inteligentes** de stock bajo y productos críticos
+  - **Predicción de demanda** con análisis automático
+  - **🏪 Gestión de proveedores** con tarjetas visuales y bordes mejorados
+  - **📋 Órdenes de compra** automáticas y manuales
+  - **📝 Movimientos de inventario** con registro detallado
 - **Reportes**: Gráficas de ventas y productos más vendidos.
 - **Configuración**: Personalización de datos de la empresa.
-- **Modales modernos**: Para añadir y editar productos, clientes y eventos.
+- **🎨 Modales profesionales**: Diseño limpio sin redundancias de texto
 - **Diseño responsive y moderno**: Basado en CSS Grid y glassmorphism.
 - **Navegación lateral y superior**: Acceso rápido a todas las secciones.
 - **Botón flotante de acciones rápidas**.
+
+---
+
+## 🆕 Últimas actualizaciones
+
+### ✅ Mejoras de UI/UX
+- **🎯 Títulos de modales optimizados**: Eliminación de texto redundante "Profesional" en modales de productos y proveedores
+- **🖼️ Tarjetas de proveedores mejoradas**: Bordes visibles y bien definidos para mejor separación visual
+- **🎨 CSS optimizado**: Eliminación de definiciones duplicadas y conflictos de estilos
+
+### ✅ Sistema de Inventario Avanzado
+- **📊 Dashboard de inventario** con métricas clave y visualización de alertas
+- **⚠️ Sistema de alertas inteligentes** para stock bajo y productos críticos
+- **🔮 Predicción de demanda** basada en patrones de ventas
+- **🏪 Módulo de proveedores** con gestión completa CRUD
+- **📋 Gestión de órdenes de compra** automáticas y manuales
+- **📝 Registro de movimientos** de inventario con seguimiento detallado
+
+### ✅ Mejoras técnicas
+- **🔧 Corrección de CSS**: Eliminación de clases duplicadas que causaban conflictos
+- **🎨 Estilos consistentes**: Uso de variables CSS para colores y espaciado uniformes
+- **🚀 Rendimiento mejorado**: Optimización de carga de datos y eventos
 
 ---
 
@@ -57,14 +85,28 @@ Floristeria/
 
 ## 🚀 ¿Qué puedes hacer con Floristería Manager Pro?
 
-- **Visualizar el estado general del negocio** en el Dashboard.
-- **Gestionar productos**: Añadir, editar, eliminar y buscar productos, controlar stock y categorías.
-- **Gestionar clientes**: Registrar nuevos clientes, editar información y consultar historial de compras.
-- **Gestionar eventos**: Programar y administrar eventos especiales.
-- **Gestionar pedidos**: Crear, filtrar y actualizar pedidos con diferentes estados.
-- **Controlar inventario**: Ver resúmenes y recibir alertas de stock bajo.
-- **Generar reportes**: Visualizar ventas y productos destacados mediante gráficas.
-- **Configurar datos de la empresa**: Personalizar información básica de la floristería.
+- **📊 Visualizar el estado general del negocio** en el Dashboard principal
+- **🌸 Gestionar productos**: Añadir, editar, eliminar y buscar productos, controlar stock y categorías
+- **👥 Gestionar clientes**: Registrar nuevos clientes, editar información y consultar historial de compras
+- **🎉 Gestionar eventos**: Programar y administrar eventos especiales (bodas, funerales, etc.)
+- **📋 Gestionar pedidos**: Crear, filtrar y actualizar pedidos con diferentes estados
+- **📦 Controlar inventario avanzado**:
+  - Ver dashboard completo con métricas y alertas
+  - Recibir alertas automáticas de stock bajo
+  - Analizar predicciones de demanda
+  - Gestionar proveedores con interfaz visual moderna
+  - Crear órdenes de compra automáticas y manuales
+  - Registrar movimientos de inventario detallados
+- **📈 Generar reportes**: Visualizar ventas y productos destacados mediante gráficas interactivas
+- **⚙️ Configurar datos de la empresa**: Personalizar información básica de la floristería
+
+### 🎯 Características especiales del inventario
+
+- **🤖 Generación automática de órdenes**: El sistema sugiere qué comprar basándose en stock mínimo
+- **📊 Análisis predictivo**: Predicción de demanda basada en histórico de ventas
+- **🏪 Gestión visual de proveedores**: Tarjetas con información completa y bordes bien definidos
+- **⚡ Alertas en tiempo real**: Notificaciones instantáneas para productos críticos
+- **📝 Trazabilidad completa**: Seguimiento detallado de todos los movimientos de stock
 
 ---
 
@@ -130,12 +172,20 @@ Para soporte técnico o consultas sobre el sistema, por favor crear un **Issue**
 ## 🗃️ Esquema de Base de Datos
 
 ### Tablas Principales:
-- **productos**: Flores, plantas, jardineras, accesorios
-- **clientes**: Información de clientes
-- **eventos**: Semana Santa, bodas, etc.
-- **pedidos**: Pedidos regulares y para eventos
-- **inventario**: Stock actual de productos
-- **ventas**: Registro de transacciones
+- **productos**: Flores, plantas, jardineras, accesorios con control de stock
+- **clientes**: Información completa de clientes y historial
+- **eventos**: Semana Santa, bodas, funerales y eventos especiales
+- **pedidos**: Pedidos regulares y para eventos con estados
+- **📦 proveedores**: Información de proveedores y contactos *(NUEVO)*
+- **📋 ordenes_compra**: Órdenes de compra automáticas y manuales *(NUEVO)*
+- **📝 movimientos_inventario**: Registro detallado de movimientos de stock *(NUEVO)*
+- **inventario**: Stock actual de productos con alertas
+- **ventas**: Registro de transacciones y análisis
+
+### 🆕 Nuevas tablas implementadas:
+- **⚠️ alertas_stock**: Sistema de alertas automáticas para productos críticos
+- **🔮 prediccion_demanda**: Análisis predictivo basado en patrones de venta
+- **📊 inventario_dashboard**: Métricas y KPIs del inventario
 
 ## 🚀 Desarrollo
 
@@ -154,11 +204,22 @@ npm run dev        # Ejecutar con herramientas de desarrollo
 
 ## 📝 Funcionalidades por Implementar
 
-- [ ] Integración con sistemas de pago
-- [ ] Sincronización en la nube
-- [ ] App móvil complementaria
-- [ ] Integración con redes sociales
-- [ ] Sistema de facturación electrónica
+- [ ] 💳 Integración con sistemas de pago
+- [ ] ☁️ Sincronización en la nube
+- [ ] 📱 App móvil complementaria
+- [ ] 📲 Integración con redes sociales
+- [ ] 🧾 Sistema de facturación electrónica
+- [ ] 📧 Notificaciones por email a proveedores
+- [ ] 📊 Reportes avanzados de inventario
+- [ ] 🔄 Sincronización automática con proveedores
+- [ ] 📦 Códigos de barras y QR para productos
+- [ ] 🎯 Optimización de rutas de entrega
+
+### 🚧 En desarrollo activo:
+- [ ] 🤖 IA para predicción de demanda más precisa
+- [ ] 📈 Dashboard de analytics avanzado
+- [ ] 🔔 Sistema de notificaciones push
+- [ ] 💼 Módulo de contabilidad básica
 
 ## 🤝 Contribuir
 

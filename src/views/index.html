@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌸 Gestión de Floristería</title>
     <link rel="stylesheet" href="../styles/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -400,21 +401,230 @@
                     </div>
                 </section>
 
-                <!-- Inventario Section -->
+                <!-- Inventario Avanzado Section -->
                 <section id="inventario-section" class="content-section" style="display: none;">
-                    <h2>📦 Control de Inventario</h2>
-                    <div class="dashboard-grid">
-                        <div class="dashboard-card">
-                            <h3>📊 Resumen de Stock</h3>
-                            <div id="inventory-summary" class="stats-content">
-                                <p>Cargando resumen de inventario...</p>
+                    <!-- Navegación de pestañas de inventario -->
+                    <div class="inventory-tabs">
+                        <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+                        <button class="tab-btn" data-tab="alertas">⚠️ Alertas</button>
+                        <button class="tab-btn" data-tab="prediccion">📈 Predicción</button>
+                        <button class="tab-btn" data-tab="proveedores">🏪 Proveedores</button>
+                        <button class="tab-btn" data-tab="ordenes">📋 Órdenes</button>
+                        <button class="tab-btn" data-tab="movimientos">📦 Movimientos</button>
+                    </div>
+
+                    <!-- Tab: Dashboard de Inventario -->
+                    <div id="tab-dashboard" class="tab-content active">
+                        <!-- KPIs de Inventario -->
+                        <div class="inventory-kpis">
+                            <div class="kpi-card">
+                                <div class="kpi-icon">📦</div>
+                                <div class="kpi-content">
+                                    <h3 id="inventario-total-productos">-</h3>
+                                    <p>Total Productos</p>
+                                    <span class="kpi-trend" id="trend-productos">+0%</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon">⚠️</div>
+                                <div class="kpi-content">
+                                    <h3 id="inventario-stock-bajo">-</h3>
+                                    <p>Stock Bajo</p>
+                                    <span class="kpi-trend negative" id="trend-stock">0 críticos</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon">💰</div>
+                                <div class="kpi-content">
+                                    <h3 id="inventario-valor-inventario">-</h3>
+                                    <p>Valor Inventario</p>
+                                    <span class="kpi-trend positive" id="trend-valor">+0%</span>
+                                </div>
+                            </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon">🔄</div>
+                                <div class="kpi-content">
+                                    <h3 id="inventario-rotacion-promedio">-</h3>
+                                    <p>Rotación Promedio</p>
+                                    <span class="kpi-trend" id="trend-rotacion">días</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="dashboard-card">
-                            <h3>⚠️ Alertas de Stock</h3>
-                            <div id="inventory-alerts" class="alerts-content">
-                                <p>Cargando alertas...</p>
+
+                        <!-- Gráficos de Análisis -->
+                        <div class="inventory-charts">
+                            <div class="chart-card">
+                                <h3>📊 Análisis de Rotación</h3>
+                                <div class="chart-container">
+                                    <canvas id="rotation-analysis-chart"></canvas>
+                                </div>
+                                <div class="chart-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #22c55e;"></span>
+                                        <div class="legend-text">
+                                            <strong>Rotación Rápida:</strong> Productos con stock alto (&gt;30 uds)<br>
+                                            <small>Se consideran populares y con buena demanda</small>
+                                        </div>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #f59e0b;"></span>
+                                        <div class="legend-text">
+                                            <strong>Rotación Lenta:</strong> Productos con stock medio (10-30 uds)<br>
+                                            <small>Venta moderada, requieren seguimiento</small>
+                                        </div>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-color" style="background-color: #ef4444;"></span>
+                                        <div class="legend-text">
+                                            <strong>Stock Bajo:</strong> Productos con stock crítico (&lt;10 uds)<br>
+                                            <small>Necesitan reabastecimiento urgente</small>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            <div class="chart-card">
+                                <h3>📈 Productos Sin Movimiento</h3>
+                                <div class="ranking-list" id="productos-sin-movimiento">
+                                    <div class="ranking-loading">Cargando análisis...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Alertas de Stock -->
+                    <div id="tab-alertas" class="tab-content">
+                        <div class="alerts-header">
+                            <h3>⚠️ Alertas de Stock Activas</h3>
+                            <div class="alert-filters">
+                                <select id="filter-nivel-alerta">
+                                    <option value="">Todos los niveles</option>
+                                    <option value="sin_stock">Sin Stock</option>
+                                    <option value="critico">Crítico</option>
+                                    <option value="bajo">Bajo</option>
+                                </select>
+                                <button class="btn btn-primary" id="btn-generar-orden-auto">🛒 Generar Orden Auto</button>
+                            </div>
+                        </div>
+                        <div class="alerts-grid" id="alertas-stock-grid">
+                            <div class="loading-message">Cargando alertas de stock...</div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Predicción de Demanda -->
+                    <div id="tab-prediccion" class="tab-content">
+                        <div class="prediction-header">
+                            <h3>📈 Predicción de Demanda</h3>
+                        </div>
+                        <div class="prediction-content">
+                            <div class="prediction-chart">
+                                <canvas id="demand-prediction-chart"></canvas>
+                            </div>
+                            <div class="prediction-table">
+                                <table class="table" id="prediction-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th>Stock Actual</th>
+                                            <th>Demanda Prevista</th>
+                                            <th>Stock Proyectado</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="5" class="text-center">Cargando predicciones...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Gestión de Proveedores -->
+                    <div id="tab-proveedores" class="tab-content">
+                        <div class="providers-header">
+                            <h3>🏪 Gestión de Proveedores</h3>
+                            <button class="btn btn-primary" onclick="app.nuevoProveedor()">➕ Nuevo Proveedor</button>
+                        </div>
+                        <div class="providers-grid" id="proveedores-grid">
+                            <div class="loading-message">Cargando proveedores...</div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Órdenes de Compra -->
+                    <div id="tab-ordenes" class="tab-content">
+                        <div class="orders-header">
+                            <h3>📋 Órdenes de Compra</h3>
+                            <div class="orders-actions">
+                                <select id="filter-estado-orden">
+                                    <option value="">Todos los estados</option>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="enviada">Enviada</option>
+                                    <option value="recibida">Recibida</option>
+                                    <option value="cancelada">Cancelada</option>
+                                </select>
+                                <button class="btn btn-primary" id="btn-nueva-orden">📋 Nueva Orden</button>
+                            </div>
+                        </div>
+                        <div class="orders-table">
+                            <table class="table" id="ordenes-table">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Proveedor</th>
+                                        <th>Fecha</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Cargando órdenes...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tab: Movimientos de Inventario -->
+                    <div id="tab-movimientos" class="tab-content">
+                        <div class="movements-header">
+                            <h3>📦 Movimientos de Inventario</h3>
+                            <div class="movements-filters">
+                                <input type="date" id="filter-fecha-desde" class="form-control">
+                                <input type="date" id="filter-fecha-hasta" class="form-control">
+                                <select id="filter-tipo-movimiento">
+                                    <option value="">Todos los tipos</option>
+                                    <option value="entrada">Entrada</option>
+                                    <option value="salida">Salida</option>
+                                    <option value="ajuste">Ajuste</option>
+                                    <option value="devolucion">Devolución</option>
+                                </select>
+                                <button class="btn btn-secondary" id="btn-filtrar-movimientos">🔍 Filtrar</button>
+                                <button class="btn btn-primary" id="btn-nuevo-movimiento">➕ Registrar Movimiento</button>
+                            </div>
+                        </div>
+                        <div class="movements-table">
+                            <table class="table" id="movimientos-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Producto</th>
+                                        <th>Tipo</th>
+                                        <th>Cantidad</th>
+                                        <th>Stock</th>
+                                        <th>Motivo</th>
+                                        <th>Referencia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Cargando movimientos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -635,15 +845,146 @@
 
                 <!-- Reportes Section -->
                 <section id="reportes-section" class="content-section" style="display: none;">
-                    <h2>📈 Reportes y Análisis</h2>
-                    <div class="reports-grid">
-                        <div class="report-card">
-                            <h3>💰 Ventas por Período</h3>
-                            <canvas id="sales-chart"></canvas>
+                    <div class="section-header">
+                        <h2>📈 Reportes y Análisis</h2>
+                        <div class="section-actions">
+                            <select id="report-period" class="form-control">
+                                <option value="7">Últimos 7 días</option>
+                                <option value="30" selected>Últimos 30 días</option>
+                                <option value="90">Últimos 3 meses</option>
+                                <option value="365">Último año</option>
+                            </select>
+                            <button class="btn btn-primary" id="btn-export-reports">
+                                📊 Exportar
+                            </button>
                         </div>
+                    </div>
+
+                    <!-- KPIs Principales -->
+                    <div class="reports-kpis">
+                        <div class="kpi-card">
+                            <div class="kpi-icon">💰</div>
+                            <div class="kpi-content">
+                                <h3 id="kpi-total-ventas">€0.00</h3>
+                                <p>Total Ventas</p>
+                                <span class="kpi-trend" id="kpi-ventas-trend">+0%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">📋</div>
+                            <div class="kpi-content">
+                                <h3 id="kpi-total-pedidos">0</h3>
+                                <p>Pedidos Completados</p>
+                                <span class="kpi-trend" id="kpi-pedidos-trend">+0%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">👥</div>
+                            <div class="kpi-content">
+                                <h3 id="kpi-clientes-activos">0</h3>
+                                <p>Clientes Activos</p>
+                                <span class="kpi-trend" id="kpi-clientes-trend">+0%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon">📈</div>
+                            <div class="kpi-content">
+                                <h3 id="kpi-ticket-promedio">€0.00</h3>
+                                <p>Ticket Promedio</p>
+                                <span class="kpi-trend" id="kpi-ticket-trend">+0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos Principales -->
+                    <div class="reports-grid">
+                        <div class="report-card large">
+                            <div class="card-header">
+                                <h3>💰 Evolución de Ventas</h3>
+                                <div class="chart-controls">
+                                    <button class="chart-btn active" data-chart="ventas" data-type="daily">Diario</button>
+                                    <button class="chart-btn" data-chart="ventas" data-type="weekly">Semanal</button>
+                                    <button class="chart-btn" data-chart="ventas" data-type="monthly">Mensual</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="sales-chart"></canvas>
+                            </div>
+                        </div>
+
                         <div class="report-card">
-                            <h3>🌺 Productos Más Vendidos</h3>
-                            <div id="top-products"></div>
+                            <div class="card-header">
+                                <h3>🌺 Top Productos</h3>
+                                <span class="info-badge">Por cantidad vendida</span>
+                            </div>
+                            <div id="top-products" class="ranking-list"></div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>🎯 Estados de Pedidos</h3>
+                                <span class="info-badge">Distribución actual</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="orders-status-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>👥 Clientes por Tipo</h3>
+                                <span class="info-badge">Segmentación</span>
+                            </div>
+                            <div id="clients-type" class="segment-chart"></div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>📅 Eventos Más Rentables</h3>
+                                <span class="info-badge">Por ventas generadas</span>
+                            </div>
+                            <div id="top-events" class="ranking-list"></div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>📦 Rotación de Inventario</h3>
+                                <span class="info-badge">Productos por categoría</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="inventory-rotation-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Detalles -->
+                    <div class="report-details">
+                        <div class="card-header">
+                            <h3>📊 Detalle de Ventas</h3>
+                            <div class="table-actions">
+                                <input type="text" placeholder="Buscar..." id="search-sales" class="form-control">
+                                <button class="btn btn-secondary" id="btn-filter-sales">🔍 Filtrar</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="sales-detail-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Pedido</th>
+                                        <th>Cliente</th>
+                                        <th>Productos</th>
+                                        <th>Total</th>
+                                        <th>Estado</th>
+                                        <th>Margen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Cargando datos de ventas...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -682,7 +1023,7 @@
         <div class="modal-content modal-large">
             <div class="modal-header" style="display: flex; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 1.5rem;">
                 <div style="flex:1 1 auto; min-width:0;">
-                  <h2 class="modal-title-pro">🌸 Alta de Producto Profesional</h2>
+                  <h2 class="modal-title-pro">🌸 Alta de Producto</h2>
                   <p class="modal-subtitle-pro">Completa los datos para registrar un nuevo producto en tu inventario</p>
                 </div>
                 <span class="close modal-close" style="font-size:2.2rem;line-height:1;cursor:pointer;align-self:flex-start;opacity:0.7;transition:opacity 0.2s;">&times;</span>
