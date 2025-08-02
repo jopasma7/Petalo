@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     getProductosVencimiento: (dias) => ipcRenderer.invoke('get-productos-vencimiento', dias),
     generarOrdenCompra: (productos) => ipcRenderer.invoke('generar-orden-compra', productos),
     getOrdenesCompra: () => ipcRenderer.invoke('get-ordenes-compra'),
+    getOrdenesCompraByProveedor: (proveedorId) => ipcRenderer.invoke('get-ordenes-compra-by-proveedor', proveedorId),
     actualizarOrdenCompra: (id, estado) => ipcRenderer.invoke('actualizar-orden-compra', id, estado),
     getAnalisisInventario: () => ipcRenderer.invoke('get-analisis-inventario'),
     actualizarStockMinimo: (productoId, stockMinimo) => ipcRenderer.invoke('actualizar-stock-minimo', productoId, stockMinimo),

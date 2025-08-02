@@ -538,6 +538,15 @@ ipcMain.handle('get-ordenes-compra', async () => {
     }
 });
 
+ipcMain.handle('get-ordenes-compra-by-proveedor', async (event, proveedorId) => {
+    try {
+        return await dbManager.getOrdenesCompraByProveedor(proveedorId);
+    } catch (error) {
+        console.error('Error obteniendo órdenes del proveedor:', error);
+        throw error;
+    }
+});
+
 ipcMain.handle('actualizar-orden-compra', async (event, id, estado, fechaEntrega = null) => {
     try {
         return await dbManager.actualizarOrdenCompra(id, estado, fechaEntrega);

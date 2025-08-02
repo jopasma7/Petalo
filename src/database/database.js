@@ -998,6 +998,24 @@ class FlowerShopDatabase {
         `);
     }
 
+    async getOrdenesCompraByProveedor(proveedorId) {
+        return this.allQuery(`
+            SELECT 
+                oc.*,
+                pr.nombre as proveedor_nombre,
+                pr.contacto as proveedor_contacto,
+                COUNT(ocd.id) as total_items,
+                COALESCE(SUM(ocd.cantidad_pedida), 0) as total_cantidad,
+                COALESCE(SUM(ocd.cantidad_pedida * ocd.precio_unitario), 0) as total_valor
+            FROM ordenes_compra oc
+            JOIN proveedores pr ON oc.proveedor_id = pr.id
+            LEFT JOIN orden_compra_detalles ocd ON oc.id = ocd.orden_id
+            WHERE oc.proveedor_id = ?
+            GROUP BY oc.id
+            ORDER BY oc.created_at DESC
+        `, [proveedorId]);
+    }
+
     // Actualizar estado de orden de compra
     async actualizarOrdenCompra(id, estado, fechaEntrega = null) {
         let query = 'UPDATE ordenes_compra SET estado = ?, updated_at = CURRENT_TIMESTAMP';

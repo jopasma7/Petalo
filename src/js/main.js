@@ -1072,8 +1072,11 @@ class FlowerShopApp {
                     <button class="btn btn-sm btn-primary" onclick="app.editarProveedor(${proveedor.id})">
                         ✏️ Editar
                     </button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.viewProviderOrders(${proveedor.id})">
+                    <button class="btn btn-sm btn-success" onclick="app.viewProviderOrders(${proveedor.id})">
                         📋 Órdenes
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="app.eliminarProveedor(${proveedor.id})">
+                        🗑️ Eliminar
                     </button>
                 </div>
             </div>
@@ -2918,10 +2921,29 @@ class FlowerShopApp {
         }
     }
 
-    eliminarProveedor(id) {
-        if (confirm('¿Estás seguro de eliminar este proveedor?')) {
-            this.showNotification(`Proveedor ${id} eliminado`, 'success');
-            this.loadProviders();
+    async eliminarProveedor(id) {
+        try {
+            // Obtener información del proveedor antes de eliminar
+            const proveedores = await window.flowerShopAPI.getProveedores();
+            const proveedor = proveedores.find(p => p.id === id);
+            
+            if (!proveedor) {
+                this.showNotification('Proveedor no encontrado', 'error');
+                return;
+            }
+            
+            // Confirmar eliminación
+            const confirmMessage = `🗑️ ¿Estás seguro de que deseas eliminar el proveedor "${proveedor.nombre}"?\n\n⚠️ Esta acción desactivará el proveedor pero mantendrá el historial de órdenes.\n\nEsta acción no se puede deshacer.`;
+            
+            if (confirm(confirmMessage)) {
+                await window.flowerShopAPI.eliminarProveedor(id);
+                this.showNotification(`Proveedor "${proveedor.nombre}" eliminado correctamente`, 'success');
+                await this.loadProviders(); // Recargar lista
+            }
+            
+        } catch (error) {
+            console.error('❌ Error eliminando proveedor:', error);
+            this.showNotification('Error al eliminar proveedor: ' + error.message, 'error');
         }
     }
 
@@ -3606,7 +3628,192 @@ class FlowerShopApp {
     }
 
     async viewProviderOrders(id) {
-        this.showNotification(`Viendo órdenes del proveedor ${id}`, 'info');
+        try {
+            console.log('🔍 Cargando órdenes del proveedor:', id);
+            
+            // Obtener información del proveedor
+            const proveedores = await window.flowerShopAPI.getProveedores();
+            const proveedor = proveedores.find(p => p.id === id);
+            
+            if (!proveedor) {
+                this.showNotification('Proveedor no encontrado', 'error');
+                return;
+            }
+            
+            // Obtener órdenes del proveedor
+            const ordenes = await window.flowerShopAPI.getOrdenesCompraByProveedor(id);
+            
+            // Crear modal
+            const modal = this.createProviderOrdersModal(proveedor, ordenes);
+            document.body.appendChild(modal);
+            
+            // Mostrar modal
+            this.showModal('modal-provider-orders');
+            
+        } catch (error) {
+            console.error('❌ Error cargando órdenes del proveedor:', error);
+            this.showNotification('Error cargando órdenes del proveedor', 'error');
+        }
+    }
+
+    createProviderOrdersModal(proveedor, ordenes) {
+        const modal = document.createElement('div');
+        modal.id = 'modal-provider-orders';
+        modal.className = 'modal';
+        modal.style.display = 'none';
+        
+        // Calcular estadísticas
+        const totalOrdenes = ordenes.length;
+        const ordenesPendientes = ordenes.filter(o => o.estado === 'pendiente').length;
+        const valorTotal = ordenes.reduce((sum, o) => sum + (o.total_valor || o.total || 0), 0);
+        
+        const ordenesHtml = ordenes.length === 0 
+            ? `<div class="no-data-message">
+                 <div class="no-data-icon">📋</div>
+                 <p>No hay órdenes de compra registradas para este proveedor</p>
+               </div>`
+            : ordenes.map(orden => `
+                <div class="order-item-pro">
+                    <div class="order-header-pro">
+                        <div class="order-main-info">
+                            <span class="order-number">Orden #${orden.numero_orden || orden.id}</span>
+                            <span class="order-date">${window.flowerShopAPI.formatDate(orden.created_at)}</span>
+                        </div>
+                        <span class="order-status ${orden.estado}">${orden.estado}</span>
+                    </div>
+                    <div class="order-details-row">
+                        <div class="order-detail-group">
+                            <div class="order-detail">
+                                <span class="label">Items:</span>
+                                <span class="value">${orden.total_items}</span>
+                            </div>
+                            <div class="order-detail">
+                                <span class="label">Total:</span>
+                                <span class="value">${window.flowerShopAPI.formatCurrency(orden.total_valor || orden.total || 0)}</span>
+                            </div>
+                            ${orden.fecha_entrega ? `
+                            <div class="order-detail">
+                                <span class="label">Entrega:</span>
+                                <span class="value">${window.flowerShopAPI.formatDate(orden.fecha_entrega)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="header-content">
+                        <h2 class="modal-title-pro">
+                            <span class="modal-icon">📋</span>
+                            Órdenes de Compra
+                        </h2>
+                        <p class="modal-subtitle-pro">Historial de órdenes del proveedor ${proveedor.nombre}</p>
+                    </div>
+                    <button class="modal-close" type="button">&times;</button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="two-column-layout">
+                        <!-- Columna izquierda: Información del proveedor -->
+                        <div class="left-column">
+                            <!-- Información del proveedor -->
+                            <div class="section-pro">
+                                <h3 class="section-title-pro">🏪 Información del Proveedor</h3>
+                                <div class="provider-info-card">
+                                    <div class="provider-name">${proveedor.nombre}</div>
+                                    <div class="provider-details">
+                                        <div class="provider-detail-item">
+                                            <span class="detail-icon">📞</span>
+                                            <span class="detail-text">${proveedor.contacto || proveedor.telefono || 'No disponible'}</span>
+                                        </div>
+                                        <div class="provider-detail-item">
+                                            <span class="detail-icon">📧</span>
+                                            <span class="detail-text">${proveedor.email || 'No disponible'}</span>
+                                        </div>
+                                        <div class="provider-detail-item">
+                                            <span class="detail-icon">📍</span>
+                                            <span class="detail-text">${proveedor.ciudad || proveedor.direccion || 'No disponible'}</span>
+                                        </div>
+                                        <div class="provider-detail-item">
+                                            <span class="detail-icon">🏷️</span>
+                                            <span class="detail-text ${proveedor.activo ? 'status-active' : 'status-inactive'}">
+                                                ${proveedor.activo ? 'Activo' : 'Inactivo'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna derecha: Resumen de órdenes -->
+                        <div class="right-column">
+                            <div class="section-pro">
+                                <h3 class="section-title-pro">📊 Resumen de Órdenes</h3>
+                                <div class="stats-grid-pro horizontal">
+                                    <div class="stat-card-pro compact">
+                                        <div class="stat-number-pro">${totalOrdenes}</div>
+                                        <div class="stat-label-pro">Total Órdenes</div>
+                                    </div>
+                                    <div class="stat-card-pro compact">
+                                        <div class="stat-number-pro">${ordenesPendientes}</div>
+                                        <div class="stat-label-pro">Pendientes</div>
+                                    </div>
+                                    <div class="stat-card-pro compact">
+                                        <div class="stat-number-pro">${window.flowerShopAPI.formatCurrency(valorTotal)}</div>
+                                        <div class="stat-label-pro">Valor Total</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Historial de órdenes - Ocupa toda la anchura -->
+                    <div class="section-pro full-width-section">
+                        <h3 class="section-title-pro">📦 Historial de Órdenes</h3>
+                        <div class="orders-container-pro">
+                            ${ordenesHtml}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-cancelar modal-close">Cerrar</button>
+                    <button type="button" class="btn btn-guardar" onclick="app.nuevaOrdenCompraProveedor(${proveedor.id})">Nueva Orden</button>
+                </div>
+            </div>
+        `;
+        
+        // Event listeners para cerrar modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeModal(modal);
+            }
+        });
+        
+        modal.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.closeModal(modal);
+            });
+        });
+        
+        return modal;
+    }
+
+    async nuevaOrdenCompraProveedor(proveedorId) {
+        try {
+            // Cerrar modal actual
+            this.hideModal('modal-provider-orders');
+            
+            // TODO: Implementar modal de nueva orden específica para este proveedor
+            this.showNotification(`Creando nueva orden para proveedor ${proveedorId}`, 'info');
+            
+        } catch (error) {
+            console.error('❌ Error creando nueva orden:', error);
+            this.showNotification('Error creando nueva orden', 'error');
+        }
     }
 
     async viewOrderDetails(id) {
