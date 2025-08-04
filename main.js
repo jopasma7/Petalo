@@ -36,10 +36,8 @@ function createMainWindow() {
         mainWindow = null;
     });
 
-    // Habilitar DevTools en desarrollo
-    if (process.env.NODE_ENV === 'development') {
-        mainWindow.webContents.openDevTools();
-    }
+    // Habilitar DevTools siempre
+    mainWindow.webContents.openDevTools();
 }
 
 // Crear menú de la aplicación
@@ -231,10 +229,16 @@ ipcMain.handle('actualizar-producto', async (event, id, producto) => {
 
 ipcMain.handle('actualizar-cliente', async (event, id, cliente) => {
     try {
+        // Dividir el nombre completo en nombre y apellidos
+        const nombreCompleto = cliente.nombre || '';
+        const partes = nombreCompleto.trim().split(' ');
+        const nombre = partes[0] || '';
+        const apellidos = partes.slice(1).join(' ') || '';
+        
         const result = await dbManager.runQuery(
             `UPDATE clientes SET nombre=?, apellidos=?, telefono=?, email=?, direccion=?, 
              fecha_nacimiento=?, tipo_cliente=?, notas=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
-            [cliente.nombre, cliente.apellidos, cliente.telefono, cliente.email, cliente.direccion,
+            [nombre, apellidos, cliente.telefono, cliente.email, cliente.direccion,
              cliente.fecha_nacimiento, cliente.tipo_cliente, cliente.notas, id]
         );
         return result;
@@ -321,10 +325,16 @@ ipcMain.handle('crear-producto', async (event, producto) => {
 
 ipcMain.handle('crear-cliente', async (event, cliente) => {
     try {
+        // Dividir el nombre completo en nombre y apellidos
+        const nombreCompleto = cliente.nombre || '';
+        const partes = nombreCompleto.trim().split(' ');
+        const nombre = partes[0] || '';
+        const apellidos = partes.slice(1).join(' ') || '';
+        
         const result = await dbManager.runQuery(
             `INSERT INTO clientes (nombre, apellidos, telefono, email, direccion, fecha_nacimiento, 
              tipo_cliente, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [cliente.nombre, cliente.apellidos, cliente.telefono, cliente.email, cliente.direccion,
+            [nombre, apellidos, cliente.telefono, cliente.email, cliente.direccion,
              cliente.fecha_nacimiento, cliente.tipo_cliente, cliente.notas]
         );
         return result;

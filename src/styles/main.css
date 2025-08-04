@@ -76,13 +76,16 @@
 }
 #form-producto .form-group[style*="flex-basis:100%"],
 #form-evento .form-group[style*="flex-basis:100%"],
+#form-cliente .form-group[style*="flex-basis:100%"],
 #form-producto .form-actions,
-#form-evento .form-actions {
+#form-evento .form-actions,
+#form-cliente .form-actions {
     grid-column: 1 / -1;
 }
 
 #form-producto .form-actions,
-#form-evento .form-actions {
+#form-evento .form-actions,
+#form-cliente .form-actions {
     display: flex;
     justify-content: center;
     gap: 2rem;
@@ -90,24 +93,69 @@
 }
 
 #form-producto .form-group textarea,
-#form-evento .form-group textarea {
+#form-evento .form-group textarea,
+#form-cliente .form-group textarea {
     min-height: 60px;
     resize: vertical;
 }
-/* ====== MODALES UNIFICADOS (producto, cliente, evento) ====== */
+/* ====== MODALES UNIFICADOS (producto, cliente, evento, historial, nuevo-pedido) ====== */
 #modal-producto .modal-content,
 #modal-cliente .modal-content,
 #modal-evento .modal-content,
-#modal-proveedor .modal-content {
+#modal-proveedor .modal-content,
+#modal-historial-cliente .modal-content,
+#modal-nuevo-pedido .modal-content {
   background: rgba(255,255,255,0.97);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   padding: 0;
   position: relative;
-  max-width: 650px;
+  max-width: 850px;
   margin: 40px auto;
   font-family: inherit;
 }
+
+/* Encabezados profesionales */
+#modal-producto .modal-header,
+#modal-cliente .modal-header,
+#modal-evento .modal-header,
+#modal-historial-cliente .modal-header,
+#modal-nuevo-pedido .modal-header {
+  padding: 2rem 2.5rem 0.5rem 2.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+/* Cuerpos de modales */
+#modal-producto .modal-body,
+#modal-cliente .modal-body,
+#modal-evento .modal-body,
+#modal-historial-cliente .modal-body,
+#modal-nuevo-pedido .modal-body {
+  padding: 1.5rem 2.5rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Pies de modales */
+#modal-producto .modal-footer,
+#modal-cliente .modal-footer,
+#modal-evento .modal-footer,
+#modal-historial-cliente .modal-footer,
+#modal-nuevo-pedido .modal-footer {
+  padding: 1.5rem 2.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 0 0 16px 16px;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
 #modal-producto h2,
 #modal-cliente h2,
 #modal-evento h2,
@@ -121,13 +169,17 @@
 #modal-producto .form-group,
 #modal-cliente .form-group,
 #modal-evento .form-group,
-#modal-proveedor .form-group {
+#modal-proveedor .form-group,
+#modal-historial-cliente .form-group,
+#modal-nuevo-pedido .form-group {
   margin-bottom: 1.2rem;
 }
 #modal-producto label,
 #modal-cliente label,
 #modal-evento label,
-#modal-proveedor label {
+#modal-proveedor label,
+#modal-historial-cliente label,
+#modal-nuevo-pedido label {
   font-weight: 600;
   color: #3a3a3a;
   margin-bottom: 0.3rem;
@@ -144,7 +196,13 @@
 #modal-evento textarea,
 #modal-proveedor select,
 #modal-proveedor input,
-#modal-proveedor textarea {
+#modal-proveedor textarea,
+#modal-historial-cliente select,
+#modal-historial-cliente input,
+#modal-historial-cliente textarea,
+#modal-nuevo-pedido select,
+#modal-nuevo-pedido input,
+#modal-nuevo-pedido textarea {
   width: 100%;
   padding: 0.5rem 0.7rem;
   border: 1px solid #d1d5db;
@@ -162,13 +220,21 @@
 #modal-cliente textarea:focus,
 #modal-evento select:focus,
 #modal-evento input:focus,
-#modal-evento textarea:focus {
+#modal-evento textarea:focus,
+#modal-historial-cliente select:focus,
+#modal-historial-cliente input:focus,
+#modal-historial-cliente textarea:focus,
+#modal-nuevo-pedido select:focus,
+#modal-nuevo-pedido input:focus,
+#modal-nuevo-pedido textarea:focus {
   border-color: #7c3aed;
   outline: none;
 }
 #modal-producto .btn-primary,
 #modal-cliente .btn-primary,
-#modal-evento .btn-primary {
+#modal-evento .btn-primary,
+#modal-historial-cliente .btn-primary,
+#modal-nuevo-pedido .btn-primary {
   background: #7c3aed;
   color: #fff;
   border: none;
@@ -181,12 +247,16 @@
 }
 #modal-producto .btn-primary:hover,
 #modal-cliente .btn-primary:hover,
-#modal-evento .btn-primary:hover {
+#modal-evento .btn-primary:hover,
+#modal-historial-cliente .btn-primary:hover,
+#modal-nuevo-pedido .btn-primary:hover {
   background: #5b21b6;
 }
 #modal-producto .btn-success,
 #modal-cliente .btn-success,
-#modal-evento .btn-success {
+#modal-evento .btn-success,
+#modal-historial-cliente .btn-success,
+#modal-nuevo-pedido .btn-success {
   background: #22c55e;
   color: #fff;
   border: none;
@@ -199,12 +269,16 @@
 }
 #modal-producto .btn-success:hover,
 #modal-cliente .btn-success:hover,
-#modal-evento .btn-success:hover {
+#modal-evento .btn-success:hover,
+#modal-historial-cliente .btn-success:hover,
+#modal-nuevo-pedido .btn-success:hover {
   background: #15803d;
 }
 #modal-producto .btn-secondary,
 #modal-cliente .btn-secondary,
-#modal-evento .btn-secondary {
+#modal-evento .btn-secondary,
+#modal-historial-cliente .btn-secondary,
+#modal-nuevo-pedido .btn-secondary {
   background: #64748b;
   color: #fff;
   border: none;
@@ -218,7 +292,9 @@
 #modal-producto .btn-secondary:hover,
 #modal-cliente .btn-secondary:hover,
 #modal-evento .btn-secondary:hover,
-#modal-proveedor .btn-secondary:hover {
+#modal-proveedor .btn-secondary:hover,
+#modal-historial-cliente .btn-secondary:hover,
+#modal-nuevo-pedido .btn-secondary:hover {
   background: #334155;
 }
 #modal-producto .modal-content,
@@ -237,7 +313,7 @@
 }
 
 /* Distribución de campos en dos columnas para formularios de producto, evento y proveedor */
-#form-producto, #form-evento {
+#form-producto, #form-evento, #form-cliente {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px 24px;
@@ -248,14 +324,14 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 12px 24px;
 }
-#form-producto .form-group, #form-evento .form-group, #form-proveedor .form-group {
+#form-producto .form-group, #form-evento .form-group, #form-cliente .form-group, #form-proveedor .form-group {
     margin-bottom: 0.2rem;
 }
 #form-proveedor .form-group.full-width {
     grid-column: 1 / -1;
 }
 @media (max-width: 1100px) {
-  #form-producto, #form-evento {
+  #form-producto, #form-evento, #form-cliente {
     grid-template-columns: repeat(2, 1fr);
   }
   #form-proveedor {
@@ -269,134 +345,305 @@
   }
 }
 
-#modal-cliente .modal-content,
-#modal-nuevo-pedido .modal-content {
+#modal-cliente .modal-content {
     background: rgba(255,255,255,0.85);
     border-radius: 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.18);
     padding: 2.2rem 2.5rem 2rem 2.5rem;
     position: relative;
     margin: 40px auto;
-    max-width: 500px;
+    max-width: 850px;
     width: 100%;
     min-width: 320px;
     animation: modalFadeIn 0.25s;
 }
-#modal-nuevo-pedido h2 {
-  margin-top: 0;
-  margin-bottom: 1.2rem;
-  font-size: 2rem;
-  color: #2d3a4a;
-  letter-spacing: 0.5px;
+
+/* ====== ESTILOS ESPECÍFICOS PARA MODAL HISTORIAL CLIENTE (COMPACTO) ====== */
+#modal-historial-cliente .historial-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
 }
-#modal-nuevo-pedido .form-group {
-  margin-bottom: 1.2rem;
+
+#modal-historial-cliente .stat-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
 }
-#modal-nuevo-pedido label {
-  font-weight: 600;
-  color: #3a3a3a;
-  margin-bottom: 0.3rem;
-  display: block;
+
+#modal-historial-cliente .stat-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.2rem;
 }
-#modal-nuevo-pedido select,
-#modal-nuevo-pedido input[type="date"],
-#modal-nuevo-pedido textarea {
+
+#modal-historial-cliente .stat-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+#modal-historial-cliente .historial-table {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+#modal-historial-cliente .historial-table table {
   width: 100%;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-  margin-top: 0.2rem;
+  border-collapse: collapse;
+}
+
+#modal-historial-cliente .historial-table th,
+#modal-historial-cliente .historial-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+#modal-historial-cliente .historial-table th {
   background: #f8fafc;
-  transition: border 0.2s;
-  pointer-events: all !important;
+  font-weight: 600;
+  color: #374151;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
-#modal-nuevo-pedido select:focus,
-#modal-nuevo-pedido input[type="date"]:focus,
-#modal-nuevo-pedido textarea:focus {
-  border-color: #7c3aed;
-  outline: none;
+
+#modal-historial-cliente .historial-table tr:hover {
+  background-color: #f9fafb;
 }
+
+/* Ajustes generales para el modal historial compacto */
+#modal-historial-cliente .modal-content {
+  max-width: 650px;
+}
+
+#modal-historial-cliente .modal-header {
+  padding: 1.2rem 1.8rem 0.8rem 1.8rem;
+}
+
+#modal-historial-cliente .modal-body {
+  padding: 1rem 1.8rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+#modal-historial-cliente .modal-footer {
+  padding: 0.8rem 1.8rem 1.2rem 1.8rem;
+}
+
+#modal-historial-cliente .modal-title-pro {
+  font-size: 1.5rem;
+  margin-bottom: 0.2rem;
+}
+
+#modal-historial-cliente .modal-subtitle-pro {
+  font-size: 0.85rem;
+}
+
+#modal-historial-cliente .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* ====== BOTONES DE CERRAR UNIFICADOS ====== */
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  line-height: 1;
+  padding: 0.2rem;
+  z-index: 10;
+}
+
+.modal-close:hover {
+  color: #374151;
+}
+
+.modal-close:active {
+  color: #1f2937;
+}
+
+/* ====== ESTILOS ESPECÍFICOS PARA MODAL DINÁMICO NUEVO PEDIDO (COMPACTO) ====== */
 #modal-nuevo-pedido .pedido-producto-row {
-  background: #f3f4f6;
-  border-radius: 6px;
-  padding: 0.5rem 0.7rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 6px 8px;
+  display: flex;
   align-items: center;
-  margin-bottom: 0.4rem;
+  gap: 8px;
+  margin-bottom: 6px;
+  border: 1px solid #e9ecef;
 }
+
 #modal-nuevo-pedido .pedido-producto-select {
+  flex: 2;
   min-width: 120px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
 }
+
 #modal-nuevo-pedido .pedido-producto-cantidad {
   width: 60px;
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 0.4rem;
+  font-size: 0.85rem;
   border-radius: 4px;
   border: 1px solid #d1d5db;
   background: #fff;
-  margin-left: 4px;
 }
+
 #modal-nuevo-pedido .btn-quitar-producto {
-  margin-left: 8px;
-  background: #f87171;
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  line-height: 1;
+}
+
+#modal-nuevo-pedido .btn-quitar-producto:hover {
+  background: #c82333;
+}
+
+#modal-nuevo-pedido .btn-agregar-producto {
+  background: #007bff;
   color: #fff;
   border: none;
   border-radius: 4px;
-  padding: 0.3rem 0.7rem;
-  font-size: 0.95rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.2s;
 }
-#modal-nuevo-pedido .btn-quitar-producto:hover {
-  background: #dc2626;
+
+#modal-nuevo-pedido .btn-agregar-producto:hover {
+  background: #0056b3;
 }
-#modal-nuevo-pedido .btn-primary {
-  background: #7c3aed;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 1.1rem;
-  font-size: 1rem;
-  margin-top: 0.5rem;
-  cursor: pointer;
-  transition: background 0.2s;
+
+/* Información del cliente preseleccionado compacta */
+#modal-nuevo-pedido .cliente-info-display {
+  background: #e8f5e8;
+  border: 1px solid #4CAF50;
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  line-height: 1.3;
 }
-#modal-nuevo-pedido .btn-primary:hover {
-  background: #5b21b6;
+
+#modal-nuevo-pedido .cliente-info-display strong {
+  color: #2d5016;
+  display: inline;
 }
-#modal-nuevo-pedido .btn-success {
-  background: #22c55e;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 1.1rem;
-  font-size: 1rem;
-  margin-left: 0.5rem;
-  cursor: pointer;
-  transition: background 0.2s;
+
+/* Ajustes generales para el modal compacto */
+#modal-nuevo-pedido .modal-content {
+  max-width: 600px;
 }
-#modal-nuevo-pedido .btn-success:hover {
-  background: #15803d;
+
+#modal-nuevo-pedido .modal-header {
+  padding: 1.5rem 2rem 1rem 2rem;
+  position: relative;
 }
-#modal-nuevo-pedido .btn-secondary {
-  background: #64748b;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 1.1rem;
-  font-size: 1rem;
-  margin-right: 0.5rem;
-  cursor: pointer;
-  transition: background 0.2s;
+
+#modal-nuevo-pedido .modal-body {
+  padding: 1rem 2rem;
+  max-height: 65vh;
 }
-#modal-nuevo-pedido .btn-secondary:hover {
-  background: #334155;
+
+#modal-nuevo-pedido .modal-footer {
+  padding: 1rem 2rem 1.5rem 2rem;
 }
+
+#modal-nuevo-pedido .form-group {
+  margin-bottom: 1rem;
+}
+
+#modal-nuevo-pedido label {
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+}
+
+#modal-nuevo-pedido .form-input {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+#modal-nuevo-pedido .modal-title-pro {
+  font-size: 1.6rem;
+  margin-bottom: 0.3rem;
+}
+
+#modal-nuevo-pedido .modal-subtitle-pro {
+  font-size: 0.9rem;
+}
+
+#modal-nuevo-pedido .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* ====== BOTÓN DE CERRAR SIMPLE PARA MODAL DINÁMICO ====== */
+.btn-close-simple:hover {
+  color: #374151 !important;
+  background: rgba(107, 114, 128, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+.btn-close-simple:active {
+  color: #1f2937 !important;
+  background: rgba(107, 114, 128, 0.2) !important;
+}
+
+/* ====== BOTONES DE CERRAR UNIFICADOS PARA AMBOS MODALES ====== */
+#modal-historial-cliente .modal-close,
 #modal-nuevo-pedido .modal-close {
-  color: #64748b;
-  transition: color 0.2s;
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  line-height: 1;
+  padding: 0.2rem;
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
 }
+
+#modal-historial-cliente .modal-close:hover,
 #modal-nuevo-pedido .modal-close:hover {
-  color: #dc2626;
+  color: #374151;
+  background: rgba(107, 114, 128, 0.1);
+}
+
+#modal-historial-cliente .modal-close:active,
+#modal-nuevo-pedido .modal-close:active {
+  color: #1f2937;
+  background: rgba(107, 114, 128, 0.2);
 }
 
 /* Quitar borde solo al botón editar en productos y clientes */
@@ -4957,7 +5204,10 @@ body::after {
     padding: 1.5rem;
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    margin-bottom: 1.5rem;
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0  !important;
 }
 
 .producto-info h3 {
@@ -6064,5 +6314,304 @@ body::after {
     
     #modal-provider-orders .right-column .orders-container-pro {
         max-height: 300px !important;
+    }
+}
+
+/* ========== ESTILOS PARA HISTORIAL DE CLIENTE ========== */
+
+.cliente-info-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.cliente-avatar {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.cliente-details h3 {
+    margin: 0 0 0.5rem 0;
+    color: #1f2937;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.cliente-details p {
+    margin: 0 0 1rem 0;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.cliente-stats {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    color: #4b5563;
+    font-size: 0.9rem;
+}
+
+.stat-item strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.historial-filtros {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.filtro-grupo label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.filtro-grupo select {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: white;
+}
+
+.historial-lista {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+}
+
+.pedido-item {
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease;
+}
+
+.pedido-item:hover {
+    background: #f9fafb;
+}
+
+.pedido-item:last-child {
+    border-bottom: none;
+}
+
+.pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.pedido-info {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.pedido-numero {
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 1rem;
+}
+
+.pedido-fecha {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.estado-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.estado-badge.pendiente {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.estado-badge.confirmado {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.estado-badge.en_preparacion {
+    background: #fde68a;
+    color: #92400e;
+}
+
+.estado-badge.listo {
+    background: #bbf7d0;
+    color: #166534;
+}
+
+.estado-badge.entregado {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.estado-badge.cancelado {
+    background: #fecaca;
+    color: #dc2626;
+}
+
+.pedido-detalles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    color: #4b5563;
+    font-size: 0.9rem;
+}
+
+.pedido-total {
+    color: #1f2937;
+    font-size: 1rem;
+}
+
+.pedido-notas {
+    background: #f3f4f6;
+    padding: 0.6rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #4b5563;
+    margin-bottom: 0.8rem;
+}
+
+.pedido-acciones {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.no-pedidos {
+    padding: 2rem;
+    text-align: center;
+}
+
+.empty-state {
+    color: #6b7280;
+    padding: 1rem !important;
+    min-height: auto !important;
+}
+
+.empty-icon {
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+    opacity: 0.5;
+}
+
+.no-pedidos {
+    padding: 1rem !important;
+    min-height: auto !important;
+}
+
+.empty-state h3 {
+    margin: 0 0 0.5rem 0;
+    color: #4b5563;
+    font-size: 0.9rem !important;
+}
+
+.empty-state p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.8rem !important;
+}
+
+.loading-historial {
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+/* Estilos para el modal de nuevo pedido */
+.cliente-selected {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.cliente-info-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.cliente-nombre {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.cliente-email {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+#modal-nuevo-pedido .modal-content {
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .cliente-info-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .cliente-stats {
+        justify-content: center;
+    }
+    
+    .historial-filtros {
+        flex-direction: column;
+    }
+    
+    .pedido-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .pedido-detalles {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 }

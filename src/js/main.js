@@ -457,7 +457,7 @@ class FlowerShopApp {
             modal.id = 'modal-pedido-detalles';
             modal.className = 'modal';
             modal.innerHTML = `
-                <div class="modal-content" style="max-width:600px">
+                <div class="modal-content" style="max-width:950px">
                     <span class="modal-close" style="float:right;cursor:pointer;font-size:1.5rem">&times;</span>
                     <h2>Detalles del Pedido #<span id="detalle-numero-pedido"></span></h2>
                     <div id="detalle-pedido-body"></div>
@@ -1625,10 +1625,22 @@ class FlowerShopApp {
 
     // Clientes
     async nuevoCliente() {
-        console.log('➕ Nuevo cliente');
+        console.log('➕ Nuevo cliente - Iniciando función');
         try {
+            console.log('🔍 Buscando formulario form-cliente...');
+            const form = document.getElementById('form-cliente');
+            console.log('📝 Formulario encontrado:', form);
+            
+            console.log('🧹 Limpiando formulario...');
             this.clearForm('form-cliente');
+            
+            console.log('🔍 Buscando modal modal-cliente...');
+            const modal = document.getElementById('modal-cliente');
+            console.log('🗖️ Modal encontrado:', modal);
+            
+            console.log('🚀 Abriendo modal...');
             this.showModal('modal-cliente');
+            console.log('✅ Modal abierto exitosamente');
         } catch (error) {
             console.error('❌ Error abriendo modal de cliente:', error);
             this.showNotification('Error abriendo formulario', 'error');
@@ -1636,26 +1648,60 @@ class FlowerShopApp {
     }
 
     async editarCliente(id) {
-        console.log('✏️ Editar cliente:', id);
+        console.log('✏️ Editar cliente - Iniciando función con ID:', id);
         try {
+            console.log('🔍 Obteniendo lista de clientes...');
             // Obtener todos los clientes y buscar el que corresponde
             const clientes = await window.flowerShopAPI.getClientes();
+            console.log('📋 Clientes obtenidos:', clientes.length);
+            
+            console.log('🔎 Buscando cliente con ID:', id);
             const cliente = clientes.find(c => c.id === id);
+            console.log('👤 Cliente encontrado:', cliente);
+            
             if (!cliente) {
+                console.error('❌ No se encontró el cliente con ID:', id);
                 this.showNotification('No se encontró el cliente', 'error');
                 return;
             }
+            
+            console.log('🔍 Buscando formulario form-cliente...');
             // Rellenar el formulario compacto
             const form = document.getElementById('form-cliente');
-            if (!form) return;
+            console.log('📝 Formulario encontrado:', form);
+            
+            if (!form) {
+                console.error('❌ No se encontró el formulario form-cliente');
+                return;
+            }
+            
+            console.log('🧹 Limpiando formulario...');
             form.reset();
+            
+            console.log('🏷️ Estableciendo ID de edición:', id);
             form.setAttribute('data-edit-id', id);
+            
+            console.log('📝 Rellenando campos del formulario...');
             document.getElementById('cliente-nombre-completo').value = cliente.nombre || '';
+            document.getElementById('cliente-email').value = cliente.email || '';
             document.getElementById('cliente-telefono').value = cliente.telefono || '';
             document.getElementById('cliente-direccion').value = cliente.direccion || '';
+            document.getElementById('cliente-fecha-nacimiento').value = cliente.fecha_nacimiento || '';
             document.getElementById('cliente-tipo').value = cliente.tipo_cliente || 'nuevo';
+            document.getElementById('cliente-preferencias').value = cliente.preferencias || '';
+            document.getElementById('cliente-presupuesto-habitual').value = cliente.presupuesto_habitual || '';
+            document.getElementById('cliente-ocasiones-importantes').value = cliente.ocasiones_importantes || '';
             document.getElementById('cliente-notas').value = cliente.notas || '';
+            
+            console.log('✅ Campos del formulario rellenados correctamente');
+            
+            console.log('🔍 Buscando modal modal-cliente...');
+            const modal = document.getElementById('modal-cliente');
+            console.log('🗖️ Modal encontrado:', modal);
+            
+            console.log('🚀 Abriendo modal...');
             this.showModal('modal-cliente');
+            console.log('✅ Modal de edición abierto exitosamente');
         } catch (error) {
             console.error('❌ Error editando cliente:', error);
             this.showNotification('Error abriendo editor', 'error');
@@ -1663,13 +1709,261 @@ class FlowerShopApp {
     }
 
     async verCliente(id) {
-        console.log('👁️ Ver cliente:', id);
-        this.showNotification('Vista de historial en desarrollo', 'info');
+        try {
+            console.log('👁️ Cargando historial del cliente:', id);
+            console.log('🔍 Verificando modal historial...');
+            
+            const modal = document.getElementById('modal-historial-cliente');
+            if (!modal) {
+                console.error('❌ Modal historial-cliente no encontrado en el DOM');
+                this.showNotification('Error: Modal de historial no encontrado', 'error');
+                return;
+            }
+            
+            // Obtener datos del cliente
+            const clientes = await window.flowerShopAPI.getClientes();
+            const cliente = clientes.find(c => c.id === parseInt(id));
+            
+            if (!cliente) {
+                this.showNotification('Cliente no encontrado', 'error');
+                return;
+            }
+
+            console.log('👤 Cliente encontrado:', cliente);
+
+            // Obtener historial de pedidos del cliente
+            const pedidos = await window.flowerShopAPI.getPedidos();
+            const pedidosCliente = pedidos.filter(p => p.cliente_id === parseInt(id));
+
+            console.log('📋 Pedidos del cliente:', pedidosCliente);
+
+            // Calcular estadísticas
+            const totalPedidos = pedidosCliente.length;
+            const totalGastado = pedidosCliente.reduce((sum, p) => sum + (p.total || 0), 0);
+            const fechaRegistro = cliente.created_at ? new Date(cliente.created_at).getFullYear() : new Date().getFullYear();
+
+            // Rellenar modal con información del cliente
+            document.getElementById('historial-cliente-nombre').textContent = `${cliente.nombre} ${cliente.apellidos || ''}`;
+            document.getElementById('historial-cliente-email').textContent = cliente.email || 'Sin email';
+            
+            // Actualizar estadísticas usando los IDs específicos del HTML
+            console.log('🔍 Depurando estadísticas del cliente...');
+            console.log('Total pedidos:', totalPedidos);
+            console.log('Total gastado:', totalGastado);
+            console.log('Fecha registro:', fechaRegistro);
+            
+            // Usar los IDs específicos para actualizar cada estadística
+            const statPedidos = document.getElementById('stat-pedidos');
+            const statGastado = document.getElementById('stat-gastado');
+            const statFecha = document.getElementById('stat-fecha');
+            
+            console.log('📋 Elementos encontrados:');
+            console.log('statPedidos:', statPedidos);
+            console.log('statGastado:', statGastado);
+            console.log('statFecha:', statFecha);
+            
+            if (statPedidos && statGastado && statFecha) {
+                console.log('✅ Actualizando estadísticas con IDs específicos...');
+                statPedidos.innerHTML = `<strong>${totalPedidos}</strong> pedidos`;
+                statGastado.innerHTML = `<strong>${window.flowerShopAPI.formatCurrency(totalGastado)}</strong> gastado`;
+                statFecha.innerHTML = `Desde <strong>${fechaRegistro}</strong>`;
+                
+                console.log('📊 Estadística 1 aplicada:', statPedidos.innerHTML);
+                console.log('📊 Estadística 2 aplicada:', statGastado.innerHTML);
+                console.log('📊 Estadística 3 aplicada:', statFecha.innerHTML);
+            } else {
+                console.warn('⚠️ No se encontraron elementos con IDs específicos');
+                console.log('Intentando con selector general...');
+                
+                // Fallback: usar selector de clases como en el editor del usuario
+                const statItems = document.querySelectorAll('.cliente-stats .stat-item');
+                console.log('📊 Elementos stat-item encontrados:', statItems.length);
+                
+                if (statItems.length >= 3) {
+                    console.log('✅ Usando fallback con selectores de clase...');
+                    statItems[0].innerHTML = `<strong>${totalPedidos}</strong> pedidos`;
+                    statItems[1].innerHTML = `<strong>${window.flowerShopAPI.formatCurrency(totalGastado)}</strong> gastado`;
+                    statItems[2].innerHTML = `Desde <strong>${fechaRegistro}</strong>`;
+                    
+                    console.log('📊 Fallback aplicado correctamente');
+                } else {
+                    console.error('❌ No se pudieron encontrar elementos de estadísticas');
+                }
+            }
+
+            // Mostrar lista de pedidos
+            this.mostrarHistorialPedidos(pedidosCliente);
+
+            console.log('🔄 Abriendo modal historial...');
+            // Mostrar modal
+            this.showModal('modal-historial-cliente');
+            
+        } catch (error) {
+            console.error('❌ Error cargando historial del cliente:', error);
+            this.showNotification('Error cargando historial del cliente', 'error');
+        }
+    }
+
+    mostrarHistorialPedidos(pedidos) {
+        const container = document.getElementById('historial-pedidos-lista');
+        
+        if (pedidos.length === 0) {
+            container.innerHTML = `
+                <div class="no-pedidos" style="padding: 1rem; min-height: auto;">
+                    <div class="empty-state" style="padding: 1rem; text-align: center; max-width: 300px; margin: 0 auto;">
+                        <div class="empty-icon" style="font-size: 1.5rem; margin-bottom: 0.5rem;">📋</div>
+                        <h3 style="font-size: 0.9rem !important; margin: 0.25rem 0 !important; font-weight: 600 !important;">Sin pedidos aún</h3>
+                        <p style="font-size: 0.8rem !important; color: #6b7280 !important; margin: 0 !important; line-height: 1.4 !important;">Este cliente no ha realizado ningún pedido todavía.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // Ordenar pedidos por fecha (más recientes primero)
+        const pedidosOrdenados = pedidos.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        container.innerHTML = pedidosOrdenados.map(pedido => `
+            <div class="pedido-item" data-pedido-id="${pedido.id}">
+                <div class="pedido-header">
+                    <div class="pedido-info">
+                        <span class="pedido-numero">#${pedido.numero_pedido}</span>
+                        <span class="pedido-fecha">${window.flowerShopAPI.formatDate(pedido.created_at)}</span>
+                    </div>
+                    <div class="pedido-estado">
+                        <span class="estado-badge ${pedido.estado}">${pedido.estado}</span>
+                    </div>
+                </div>
+                <div class="pedido-detalles">
+                    <div class="pedido-productos">
+                        <strong>Entrega:</strong> ${pedido.fecha_entrega ? window.flowerShopAPI.formatDate(pedido.fecha_entrega) : 'Sin fecha'}
+                    </div>
+                    <div class="pedido-total">
+                        <strong>Total: ${window.flowerShopAPI.formatCurrency(pedido.total || 0)}</strong>
+                    </div>
+                </div>
+                ${pedido.notas ? `<div class="pedido-notas">📝 ${pedido.notas}</div>` : ''}
+                <div class="pedido-acciones">
+                    <button class="btn btn-sm btn-secondary" onclick="app.verDetallePedido(${pedido.id})" title="Ver detalles">
+                        👁️ Ver detalles
+                    </button>
+                </div>
+            </div>
+        `).join('');
     }
 
     async nuevoPedidoCliente(id) {
-        console.log('📋 Nuevo pedido para cliente:', id);
-        this.showNotification('Funcionalidad de pedidos en desarrollo', 'info');
+        try {
+            console.log('📋 Nuevo pedido para cliente:', id);
+            
+            // Obtener datos del cliente
+            const clientes = await window.flowerShopAPI.getClientes();
+            const cliente = clientes.find(c => c.id === parseInt(id));
+            
+            if (!cliente) {
+                this.showNotification('Cliente no encontrado', 'error');
+                return;
+            }
+
+            console.log('👤 Cliente encontrado:', cliente);
+
+            // Usar la función existente nuevoPedido() indicando que viene desde cliente
+            await this.nuevoPedido(true);
+            
+            // Esperar un poco para que el modal se renderice completamente y LUEGO preseleccionar
+            setTimeout(() => {
+                console.log('🎯 Iniciando preselección del cliente...');
+                this.preseleccionarClienteEnModal(cliente, id);
+            }, 200);
+            
+            console.log('✅ Modal de nuevo pedido abierto');
+            
+        } catch (error) {
+            console.error('❌ Error abriendo formulario de pedido:', error);
+            this.showNotification('Error abriendo formulario de pedido', 'error');
+        }
+    }
+
+    preseleccionarClienteEnModal(cliente, id) {
+        console.log('🎯 Preseleccionando cliente:', cliente.nombre, 'ID:', id);
+        
+        // Preseleccionar el cliente en el modal creado dinámicamente
+        const clienteSelect = document.getElementById('pedido-cliente');
+        
+        if (!clienteSelect) {
+            console.error('❌ No se encontró el select de cliente');
+            return;
+        }
+        
+        console.log('✅ Select de cliente encontrado, opciones disponibles:', clienteSelect.options.length);
+        
+        // Verificar que el cliente esté en las opciones
+        const opcionCliente = Array.from(clienteSelect.options).find(option => option.value == id);
+        if (!opcionCliente) {
+            console.error('❌ Cliente no encontrado en las opciones del select');
+            return;
+        }
+        
+        console.log('✅ Opción de cliente encontrada:', opcionCliente.text);
+        
+        // Preseleccionar el cliente
+        clienteSelect.value = id;
+        clienteSelect.disabled = true; // Bloquear la selección de cliente
+        
+        // Agregar estilo visual para indicar que está bloqueado
+        clienteSelect.style.cssText = `
+            background-color: #f0f8f0 !important;
+            cursor: not-allowed;
+            border: 2px solid #4CAF50;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.9rem;
+        `;
+        
+        // Mostrar información del cliente preseleccionado (más compacta)
+        const clienteInfo = document.createElement('div');
+        clienteInfo.style.cssText = `
+            margin-top: 4px;
+            padding: 6px 8px;
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        `;
+        
+        // Construir información del cliente solo con datos disponibles
+        let infoTexto = `<strong style="color: #2d5016;">✅ ${cliente.nombre} ${cliente.apellidos || ''}</strong>`;
+        
+        const infoAdicional = [];
+        if (cliente.telefono && cliente.telefono.trim()) {
+            infoAdicional.push(`📞 ${cliente.telefono.trim()}`);
+        }
+        if (cliente.email && cliente.email.trim()) {
+            infoAdicional.push(`✉️ ${cliente.email.trim()}`);
+        }
+        
+        if (infoAdicional.length > 0) {
+            infoTexto += `<br><span style="color: #2d5016;">${infoAdicional.join(' | ')}</span>`;
+        }
+        
+        clienteInfo.innerHTML = infoTexto;
+        
+        // Insertar después del select
+        clienteSelect.parentNode.insertBefore(clienteInfo, clienteSelect.nextSibling);
+        
+        console.log('✅ Cliente preseleccionado correctamente');
+    }
+
+    // Función auxiliar para ver detalles de un pedido desde el historial
+    async verDetallePedido(pedidoId) {
+        console.log('👁️ Ver detalles del pedido:', pedidoId);
+        this.showNotification('Vista de detalles del pedido en desarrollo', 'info');
+    }
+
+    // Función para exportar historial del cliente
+    async exportarHistorialCliente() {
+        console.log('📄 Exportar historial del cliente');
+        this.showNotification('Exportación de PDF en desarrollo', 'info');
     }
 
     // Eventos
@@ -1733,7 +2027,7 @@ class FlowerShopApp {
         this.showNotification('Gestión de stock en desarrollo', 'info');
     }
 
-    async nuevoPedido() {
+    async nuevoPedido(desdeCliente = false) {
         try {
             // Crear modal si no existe
             let modal = document.getElementById('modal-nuevo-pedido');
@@ -1742,39 +2036,59 @@ class FlowerShopApp {
                 modal.id = 'modal-nuevo-pedido';
                 modal.className = 'modal';
                 modal.innerHTML = `
-                    <div class="modal-content" style="max-width:650px">
-                        <span class="modal-close" style="float:right;cursor:pointer;font-size:1.5rem">&times;</span>
-                        <h2>Nuevo Pedido</h2>
+                    <div class="modal-content" style="max-width: 950px;">
+                        <div class="modal-header" style="padding: 1.5rem 2rem 1rem 2rem;">
+                            <div>
+                                <h2 class="modal-title-pro" style="font-size: 1.6rem; margin-bottom: 0.3rem;">📋 Nuevo Pedido</h2>
+                                <p class="modal-subtitle-pro" style="font-size: 0.9rem;">Crear pedido con productos seleccionados</p>
+                            </div>
+                            <span class="close modal-close" style="
+                                position: absolute;
+                                top: 15px;
+                                right: 20px;
+                                color: #aaa;
+                                float: right;
+                                font-size: 28px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                line-height: 1;
+                                user-select: none;
+                            ">&times;</span>
+                        </div>
                         <form id="form-nuevo-pedido">
-                            <div class="form-group">
-                                <label>Cliente</label>
-                                <select id="pedido-cliente" name="cliente_id" required style="width:100%"></select>
+                            <div class="modal-body" style="padding: 1rem 2rem;">
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="pedido-cliente" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Cliente *</label>
+                                    <select id="pedido-cliente" name="cliente_id" required class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.9rem;"></select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="pedido-productos-list" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Productos *</label>
+                                    <div id="pedido-productos-list" style="margin-bottom: 0.5rem;"></div>
+                                    <button type="button" id="btn-agregar-producto-pedido" class="btn-agregar-producto" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                        ➕ Agregar
+                                    </button>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="pedido-entrega" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Fecha de entrega *</label>
+                                    <input type="date" id="pedido-entrega" name="entrega" required class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.9rem;" />
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0.5rem;">
+                                    <label for="pedido-notas" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Notas</label>
+                                    <textarea id="pedido-notas" name="notas" rows="2" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.9rem; resize: vertical;" placeholder="Instrucciones especiales..."></textarea>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Productos</label>
-                                <div id="pedido-productos-list"></div>
-                                <button type="button" id="btn-agregar-producto-pedido" class="btn btn-sm btn-primary" style="margin-top:5px">Agregar producto</button>
-                            </div>
-                            <div class="form-group">
-                                <label>Fecha de entrega</label>
-                                <input type="date" id="pedido-entrega" name="entrega" required />
-                            </div>
-                            <div class="form-group">
-                                <label>Notas</label>
-                                <textarea id="pedido-notas" name="notas" rows="2"></textarea>
-                            </div>
-                            <div style="text-align:right">
-                                <button type="button" class="btn btn-cancelar modal-close"><span style='font-size:1.1em;vertical-align:middle;'>❌</span> <span style='vertical-align:middle;'>Cancelar</span></button>
-                                <button type="submit" class="btn btn-guardar"><span style='font-size:1.1em;vertical-align:middle;'>💾</span> <span style='vertical-align:middle;'>Guardar</span></button>
+                            <div class="modal-footer" style="padding: 1rem 2rem 1.5rem 2rem;">
+                                <button type="submit" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-left: auto;">
+                                    💾 Crear
+                                </button>
                             </div>
                         </form>
                     </div>
                 `;
                 document.body.appendChild(modal);
                 // Cerrar modal
-                modal.querySelector('.modal-close').onclick = () => this.hideModal('modal-nuevo-pedido');
-                modal.querySelector('.btn-cancelar').onclick = () => this.hideModal('modal-nuevo-pedido');
-                modal.addEventListener('click', (e) => { if (e.target === modal) this.hideModal('modal-nuevo-pedido'); });
+                modal.querySelector('.close').onclick = () => this.limpiarYCerrarModalPedido();
+                modal.addEventListener('click', (e) => { if (e.target === modal) this.limpiarYCerrarModalPedido(); });
                 // Evento submit
                 modal.querySelector('#form-nuevo-pedido').onsubmit = (e) => this.handleNuevoPedidoSubmit(e);
                 // Agregar producto
@@ -1783,8 +2097,15 @@ class FlowerShopApp {
             // Cargar clientes y productos
             await this.cargarClientesEnPedido();
             await this.cargarProductosEnPedido();
-            // Limpiar productos seleccionados
-            document.getElementById('pedido-productos-list').innerHTML = '';
+            
+            // Solo limpiar si NO viene desde un cliente específico
+            if (!desdeCliente) {
+                // Limpiar formulario completamente DESPUÉS de cargar datos
+                setTimeout(() => {
+                    this.limpiarFormularioPedido();
+                }, 100);
+            }
+            
             // Mostrar modal
             this.showModal('modal-nuevo-pedido');
         } catch (error) {
@@ -1796,8 +2117,28 @@ class FlowerShopApp {
         const select = document.getElementById('pedido-cliente');
         if (!select) return;
         const clientes = await window.flowerShopAPI.getClientes();
-        select.innerHTML = '<option value="">Seleccionar cliente</option>' +
-            clientes.map(c => `<option value="${c.id}">${c.nombre} ${c.apellidos || ''}</option>`).join('');
+        
+        // Mejorar visualización del cliente mostrando solo datos disponibles
+        const opcionesClientes = clientes.map(c => {
+            let textoCliente = `${c.nombre} ${c.apellidos || ''}`.trim();
+            
+            // Agregar información adicional disponible
+            const infoAdicional = [];
+            if (c.telefono && c.telefono.trim()) {
+                infoAdicional.push(`📞 ${c.telefono.trim()}`);
+            }
+            if (c.email && c.email.trim()) {
+                infoAdicional.push(`✉️ ${c.email.trim()}`);
+            }
+            
+            if (infoAdicional.length > 0) {
+                textoCliente += ` - ${infoAdicional.join(' | ')}`;
+            }
+            
+            return `<option value="${c.id}">${textoCliente}</option>`;
+        }).join('');
+        
+        select.innerHTML = '<option value="">Seleccionar cliente</option>' + opcionesClientes;
     }
 
     async cargarProductosEnPedido() {
@@ -1805,25 +2146,102 @@ class FlowerShopApp {
         this._productosParaPedido = await window.flowerShopAPI.getProductos();
     }
 
+    limpiarFormularioPedido() {
+        console.log('🧹 Limpiando formulario de pedido...');
+        
+        // Limpiar todos los campos del formulario
+        const clienteSelect = document.getElementById('pedido-cliente');
+        const fechaEntrega = document.getElementById('pedido-entrega');
+        const notas = document.getElementById('pedido-notas');
+        const productosList = document.getElementById('pedido-productos-list');
+        
+        if (clienteSelect) {
+            console.log('🧹 Limpiando campo cliente...');
+            clienteSelect.value = '';
+            clienteSelect.disabled = false;
+            clienteSelect.style.cssText = 'padding: 0.4rem 0.6rem; font-size: 0.9rem;';
+            
+            // Eliminar TODAS las div de información del cliente que puedan existir
+            const parentNode = clienteSelect.parentNode;
+            if (parentNode) {
+                // Buscar todas las divs que contienen información del cliente
+                const clienteInfoDivs = parentNode.querySelectorAll('div[style*="background: #e8f5e8"], div[style*="#e8f5e8"], div[style*="color: #2d5016"]');
+                clienteInfoDivs.forEach(div => {
+                    console.log('🗑️ Eliminando div de info cliente:', div);
+                    div.remove();
+                });
+                
+                // También buscar por contenido específico
+                const allDivs = parentNode.querySelectorAll('div');
+                allDivs.forEach(div => {
+                    if (div.innerHTML && (div.innerHTML.includes('✅') || div.innerHTML.includes('📞') || div.innerHTML.includes('✉️'))) {
+                        console.log('🗑️ Eliminando div con iconos cliente:', div);
+                        div.remove();
+                    }
+                });
+            }
+        }
+        
+        if (fechaEntrega) {
+            console.log('🧹 Limpiando fecha de entrega...');
+            fechaEntrega.value = '';
+        }
+        
+        if (notas) {
+            console.log('🧹 Limpiando notas...');
+            notas.value = '';
+        }
+        
+        if (productosList) {
+            console.log('🧹 Limpiando lista de productos...');
+            productosList.innerHTML = '';
+        }
+        
+        console.log('✅ Formulario de pedido limpiado completamente');
+    }
+
+    limpiarYCerrarModalPedido() {
+        this.limpiarFormularioPedido();
+        this.hideModal('modal-nuevo-pedido');
+    }
+
     agregarProductoAlPedido() {
         const productos = this._productosParaPedido || [];
         const list = document.getElementById('pedido-productos-list');
         if (!list) return;
-        // Crear fila de selección
-        const idx = list.children.length;
+        
+        // Crear fila de selección compacta
         const row = document.createElement('div');
         row.className = 'pedido-producto-row';
-        row.style.display = 'flex';
-        row.style.gap = '8px';
-        row.style.marginBottom = '4px';
-        row.innerHTML = `
-            <select class="pedido-producto-select" required style="flex:2">
-                <option value="">Producto</option>
-                ${productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
-            </select>
-            <input type="number" class="pedido-producto-cantidad" min="1" value="1" required style="width:60px" />
-            <button type="button" class="btn btn-danger btn-sm btn-quitar-producto">Quitar</button>
+        row.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            padding: 6px 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
         `;
+        row.innerHTML = `
+            <select class="pedido-producto-select form-input" required style="flex: 2; padding: 0.3rem 0.5rem; font-size: 0.85rem;">
+                <option value="">Seleccionar producto...</option>
+                ${productos.map(p => `<option value="${p.id}">${p.nombre} - €${p.precio_venta}</option>`).join('')}
+            </select>
+            <input type="number" class="pedido-producto-cantidad form-input" min="1" value="1" required 
+                   style="width: 60px; padding: 0.3rem 0.4rem; font-size: 0.85rem;" placeholder="1" />
+            <button type="button" class="btn-quitar-producto" style="
+                background: #dc3545;
+                color: white;
+                border: none;
+                border-radius: 3px;
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+                cursor: pointer;
+                line-height: 1;
+            ">✕</button>
+        `;
+        
         // Quitar producto
         row.querySelector('.btn-quitar-producto').onclick = () => row.remove();
         list.appendChild(row);
@@ -1896,7 +2314,7 @@ class FlowerShopApp {
             };
             await window.flowerShopAPI.crearPedido(pedido);
             this.showNotification('Pedido creado correctamente', 'success');
-            this.hideModal('modal-nuevo-pedido');
+            this.limpiarYCerrarModalPedido();
             await this.loadPedidosData();
         } catch (error) {
             this.showNotification('Error guardando pedido', 'error');
@@ -1925,7 +2343,12 @@ class FlowerShopApp {
             if (e.key === 'Escape') {
                 const activeModal = document.querySelector('.modal[style*="block"]');
                 if (activeModal) {
-                    this.hideModal(activeModal.id);
+                    // Si es el modal de pedidos, usar la función de limpieza
+                    if (activeModal.id === 'modal-nuevo-pedido') {
+                        this.limpiarYCerrarModalPedido();
+                    } else {
+                        this.hideModal(activeModal.id);
+                    }
                 }
             }
         });
@@ -2009,13 +2432,22 @@ class FlowerShopApp {
 
     async handleClienteSubmit(e) {
         try {
-            const formData = new FormData(e.target);
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const editId = form.getAttribute('data-edit-id');
+            
             const nombreCompleto = formData.get('nombre_completo')?.trim() || '';
             const cliente = {
                 nombre: nombreCompleto,
+                email: formData.get('email'),
                 telefono: formData.get('telefono'),
                 direccion: formData.get('direccion'),
+                fecha_nacimiento: formData.get('fecha_nacimiento'),
                 tipo_cliente: formData.get('tipo_cliente') || 'nuevo',
+                preferencias: formData.get('preferencias'),
+                presupuesto_habitual: formData.get('presupuesto_habitual') ? parseFloat(formData.get('presupuesto_habitual')) : null,
+                ocasiones_importantes: formData.get('ocasiones_importantes'),
                 notas: formData.get('notas')
             };
 
@@ -2026,11 +2458,23 @@ class FlowerShopApp {
                 return;
             }
 
-            // Llamar a la API
-            await window.flowerShopAPI.crearCliente(cliente);
+            // Validar email si se proporciona
+            if (cliente.email && !cliente.email.includes('@')) {
+                this.showNotification('El formato del email no es válido', 'warning');
+                return;
+            }
+
+            if (editId) {
+                console.log('✏️ Actualizando cliente existente con ID:', editId);
+                await window.flowerShopAPI.actualizarCliente(editId, cliente);
+                this.showNotification('Cliente actualizado correctamente', 'success');
+            } else {
+                console.log('➕ Creando nuevo cliente');
+                await window.flowerShopAPI.crearCliente(cliente);
+                this.showNotification('Cliente creado correctamente', 'success');
+            }
             
             this.hideModal('modal-cliente');
-            this.showNotification('Cliente guardado correctamente', 'success');
             await this.loadClientesData();
 
         } catch (error) {
@@ -3846,18 +4290,6 @@ class FlowerShopApp {
         }
     }
 
-    async editarCliente(id) {
-        this.showNotification(`Editando cliente ${id}`, 'info');
-    }
-
-    async verCliente(id) {
-        this.showNotification(`Viendo cliente ${id}`, 'info');
-    }
-
-    async nuevoPedidoCliente(id) {
-        this.showNotification(`Nuevo pedido para cliente ${id}`, 'info');
-    }
-
     async editarEvento(id) {
         this.showNotification(`Editando evento ${id}`, 'info');
     }
@@ -3873,14 +4305,6 @@ class FlowerShopApp {
     }
 
     // Funciones auxiliares para nuevos elementos
-    async nuevoCliente() {
-        this.showNotification('Abriendo formulario de nuevo cliente', 'info');
-    }
-
-    async nuevoEvento() {
-        this.showNotification('Abriendo formulario de nuevo evento', 'info');
-    }
-
     async loadConfiguracionData() {
         console.log('⚙️ Cargando configuración...');
         this.showNotification('Configuración cargada', 'info');
