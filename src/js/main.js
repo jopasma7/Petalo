@@ -2036,7 +2036,7 @@ class FlowerShopApp {
                 modal.id = 'modal-nuevo-pedido';
                 modal.className = 'modal';
                 modal.innerHTML = `
-                    <div class="modal-content" style="max-width: 950px;">
+                    <div class="modal-content" style="max-width: 950px; padding-top: 0; padding-bottom: 0;">
                         <div class="modal-header" style="padding: 1.5rem 2rem 1rem 2rem;">
                             <div>
                                 <h2 class="modal-title-pro" style="font-size: 1.6rem; margin-bottom: 0.3rem;">📋 Nuevo Pedido</h2>
@@ -2077,9 +2077,9 @@ class FlowerShopApp {
                                     <textarea id="pedido-notas" name="notas" rows="2" class="form-input" style="padding: 0.4rem 0.6rem; font-size: 0.9rem; resize: vertical;" placeholder="Instrucciones especiales..."></textarea>
                                 </div>
                             </div>
-                            <div class="modal-footer" style="padding: 1rem 2rem 1.5rem 2rem;">
-                                <button type="submit" class="btn btn-success" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-left: auto;">
-                                    💾 Crear
+                            <div class="modal-footer" style="padding: 0.5rem 2rem 0.8rem 2rem; margin: 0; display: flex; justify-content: flex-end;">
+                                <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+                                    💾 Guardar Pedido
                                 </button>
                             </div>
                         </form>
