@@ -981,6 +981,16 @@ class FlowerShopDatabase {
         return ordenesCreadas;
     }
 
+    async crearOrdenDirecta({ proveedor_id, fecha_orden, estado = 'pendiente', notas = null }) {
+        const numeroOrden = 'OC-' + Date.now();
+        const result = await this.runQuery(`
+            INSERT INTO ordenes_compra (
+                numero_orden, proveedor_id, fecha_orden, subtotal, total, estado, notas, created_by
+            ) VALUES (?, ?, ?, 0, 0, ?, ?, 'Sistema')
+        `, [numeroOrden, proveedor_id, fecha_orden, estado, notas]);
+        return { id: result.id, numero_orden: numeroOrden };
+    }
+
     // Obtener órdenes de compra
     async getOrdenesCompra() {
         return this.allQuery(`
@@ -1091,6 +1101,24 @@ class FlowerShopDatabase {
 
     // Registrar movimiento de inventario
     async registrarMovimientoInventario(movimiento) {
+        // Obtener stock actual real desde la BD
+        const prod = await this.getQuery('SELECT stock_actual FROM productos WHERE id = ?', [movimiento.producto_id]);
+        if (!prod) throw new Error('Producto no encontrado');
+
+        const stockAnterior = prod.stock_actual;
+        const tipo = (movimiento.tipo_movimiento || '').toLowerCase();
+        let delta = movimiento.cantidad;
+        if (tipo === 'salida') delta = -Math.abs(delta);
+        else if (tipo === 'entrada' || tipo === 'devolucion') delta = Math.abs(delta);
+        // ajuste: usa el valor tal cual (puede ser negativo)
+
+        const stockNuevo = Math.max(0, stockAnterior + delta);
+
+        await this.runQuery(
+            'UPDATE productos SET stock_actual = ? WHERE id = ?',
+            [stockNuevo, movimiento.producto_id]
+        );
+
         return this.runQuery(`
             INSERT INTO inventario_movimientos (
                 producto_id, tipo_movimiento, cantidad, stock_anterior, stock_nuevo,
@@ -1098,8 +1126,8 @@ class FlowerShopDatabase {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             movimiento.producto_id, movimiento.tipo_movimiento,
-            movimiento.cantidad, movimiento.stock_anterior || 0, movimiento.stock_nuevo || 0,
-            movimiento.motivo, movimiento.referencia, movimiento.usuario
+            movimiento.cantidad, stockAnterior, stockNuevo,
+            movimiento.motivo, movimiento.referencia, movimiento.usuario || 'Usuario'
         ]);
     }
 
@@ -1215,6 +1243,15 @@ class FlowerShopDatabase {
             LEFT JOIN eventos e ON p.evento_id = e.id
             ORDER BY p.fecha_pedido DESC
         `);
+    }
+
+    async getDetallesPedido(pedidoId) {
+        return this.allQuery(`
+            SELECT pd.*, pr.nombre as nombre, pr.nombre as producto_nombre
+            FROM pedido_detalles pd
+            LEFT JOIN productos pr ON pd.producto_id = pr.id
+            WHERE pd.pedido_id = ?
+        `, [pedidoId]);
     }
 
     async getEstadisticasGenerales() {

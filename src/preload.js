@@ -7,8 +7,12 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     getClientes: () => ipcRenderer.invoke('get-clientes'),
     getEventos: () => ipcRenderer.invoke('get-eventos'),
     getPedidos: () => ipcRenderer.invoke('get-pedidos'),
+    getDetallesPedido: (pedidoId) => ipcRenderer.invoke('get-detalles-pedido', pedidoId),
     getEstadisticas: () => ipcRenderer.invoke('get-estadisticas'),
     getCategorias: () => ipcRenderer.invoke('get-categorias'),
+    crearCategoria: (categoria) => ipcRenderer.invoke('crear-categoria', categoria),
+    actualizarCategoria: (id, categoria) => ipcRenderer.invoke('actualizar-categoria', id, categoria),
+    eliminarCategoria: (id) => ipcRenderer.invoke('eliminar-categoria', id),
     
     // Métodos de creación
     crearProducto: (producto) => ipcRenderer.invoke('crear-producto', producto),
@@ -21,6 +25,9 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     actualizarCliente: (id, cliente) => ipcRenderer.invoke('actualizar-cliente', id, cliente),
     actualizarEvento: (id, evento) => ipcRenderer.invoke('actualizar-evento', id, evento),
     
+    // Métodos de estado de pedidos
+    actualizarEstadoPedido: (id, estado) => ipcRenderer.invoke('actualizar-estado-pedido', id, estado),
+
     // Métodos de eliminación
     eliminarProducto: (id) => ipcRenderer.invoke('eliminar-producto', id),
     eliminarCliente: (id) => ipcRenderer.invoke('eliminar-cliente', id),
@@ -44,6 +51,7 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     eliminarProveedor: (id) => ipcRenderer.invoke('eliminar-proveedor', id),
     getProductosVencimiento: (dias) => ipcRenderer.invoke('get-productos-vencimiento', dias),
     generarOrdenCompra: (productos) => ipcRenderer.invoke('generar-orden-compra', productos),
+    crearOrdenDirecta: (orden) => ipcRenderer.invoke('crear-orden-directa', orden),
     getOrdenesCompra: () => ipcRenderer.invoke('get-ordenes-compra'),
     getOrdenesCompraByProveedor: (proveedorId) => ipcRenderer.invoke('get-ordenes-compra-by-proveedor', proveedorId),
     actualizarOrdenCompra: (id, estado) => ipcRenderer.invoke('actualizar-orden-compra', id, estado),

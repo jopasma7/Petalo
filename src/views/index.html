@@ -3,1092 +3,1339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌸 Gestión de Floristería</title>
+    <title>Gestión de Floristería</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../styles/main.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Floating Action Button -->
-        <div class="fab-container">
-            <button class="fab main-fab" id="main-fab">
-                <span class="fab-icon">➕</span>
-            </button>
-            <div class="fab-menu" id="fab-menu">
-                <button class="fab fab-secondary" data-action="nuevo-producto" title="Nuevo Producto">
-                    🌺
-                </button>
-                <button class="fab fab-secondary" data-action="nuevo-cliente" title="Nuevo Cliente">
-                    👥
-                </button>
-                <button class="fab fab-secondary" data-action="nuevo-evento" title="Nuevo Evento">
-                    🎉
-                </button>
-                <button class="fab fab-secondary" data-action="nuevo-pedido" title="Nuevo Pedido">
-                    📋
-                </button>
+<div class="app-container">
+
+    <!-- FAB -->
+    <div class="fab-container">
+        <button class="fab main-fab" id="main-fab"><i data-lucide="plus"></i></button>
+        <div class="fab-menu" id="fab-menu">
+            <button class="fab fab-secondary" data-action="nuevo-producto" title="Nuevo Producto"><i data-lucide="box"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-cliente"  title="Nuevo Cliente"><i data-lucide="user-plus"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-evento"   title="Nuevo Evento"><i data-lucide="calendar-plus"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-pedido"   title="Nuevo Pedido"><i data-lucide="clipboard-list"></i></button>
+        </div>
+    </div>
+
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo-container">
+                <div class="logo-icon">✿</div>
+                <div class="logo-text">
+                    <span class="brand-name">Floristería</span>
+                    <span class="brand-subtitle">Manager Pro</span>
+                </div>
             </div>
         </div>
 
-        <!-- Top Navigation Bar -->
-        <nav class="top-nav">
-            <div class="nav-left">
-                <div class="logo-container">
-                    <div class="logo-icon">🌸</div>
-                    <div class="logo-text">
-                        <span class="brand-name">Floristería</span>
-                        <span class="brand-subtitle">Manager Pro</span>
+        <div class="nav-right">
+            <div class="nav-actions">
+                <button class="nav-action-btn" title="Notificaciones">
+                    <i data-lucide="bell"></i>
+                    <span class="badge" id="badge-notificaciones" style="display:none;"></span>
+                </button>
+                <button class="nav-action-btn" title="Configuración">
+                    <i data-lucide="settings"></i>
+                </button>
+                <div class="user-menu">
+                    <div class="user-avatar-placeholder">A</div>
+                    <span class="user-name">Admin</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="modern-sidebar">
+        <div class="sidebar-content">
+            <div class="nav-sections">
+                <div class="nav-section">
+                    <h3 class="section-title">Principal</h3>
+                    <nav class="nav-links">
+                        <a href="#" class="nav-link active" data-section="dashboard">
+                            <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Gestión</h3>
+                    <nav class="nav-links">
+                        <a href="#" class="nav-link" data-section="productos">
+                            <span class="nav-icon"><i data-lucide="box"></i></span>
+                            <span class="nav-text">Productos</span>
+                            <span class="nav-badge" id="badge-productos"></span>
+                        </a>
+                        <a href="#" class="nav-link" data-section="clientes">
+                            <span class="nav-icon"><i data-lucide="users"></i></span>
+                            <span class="nav-text">Clientes</span>
+                            <span class="nav-badge" id="badge-clientes"></span>
+                        </a>
+                        <a href="#" class="nav-link" data-section="eventos">
+                            <span class="nav-icon"><i data-lucide="calendar"></i></span>
+                            <span class="nav-text">Eventos</span>
+                            <span class="nav-badge" id="badge-eventos"></span>
+                        </a>
+                        <a href="#" class="nav-link" data-section="pedidos">
+                            <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
+                            <span class="nav-text">Encargos</span>
+                            <span class="nav-badge" id="badge-pedidos"></span>
+                        </a>
+                    </nav>
+                </div>
+                <div class="nav-section">
+                    <h3 class="section-title">Análisis</h3>
+                    <nav class="nav-links">
+                        <a href="#" class="nav-link" data-section="inventario">
+                            <span class="nav-icon"><i data-lucide="archive"></i></span>
+                            <span class="nav-text">Inventario</span>
+                        </a>
+                        <a href="#" class="nav-link" data-section="reportes">
+                            <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
+                            <span class="nav-text">Reportes</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            <div class="sidebar-tpv-wrap">
+                <button class="sidebar-tpv-btn" onclick="app.ventaRapida()">
+                    <i data-lucide="zap" style="width:18px;height:18px"></i>
+                    <span>Venta Rápida</span>
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Ventas Hoy</span>
+                        <span class="stat-value" id="sidebar-ventas-hoy">—</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Stock Bajo</span>
+                        <span class="stat-value warning" id="sidebar-stock-bajo">—</span>
                     </div>
                 </div>
             </div>
-            
-            <div class="nav-center">
-                <div class="search-global">
-                    <input type="text" placeholder="Buscar en toda la aplicación..." class="global-search-input">
-                    <button class="search-btn">🔍</button>
-                </div>
-            </div>
-            
-            <div class="nav-right">
-                <div class="nav-actions">
-                    <button class="nav-action-btn" title="Notificaciones">
-                        <span class="icon">🔔</span>
-                        <span class="badge">3</span>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="modern-main-content">
+        <div class="content-wrapper">
+
+            <!-- ═══════════════════════════════════════════════ DASHBOARD -->
+            <section id="dashboard-section" class="content-section" style="display:block;">
+
+                <!-- Saludo + fecha -->
+                <div class="dash-greeting">
+                    <div>
+                        <h2 class="dash-greeting-title" id="dash-greeting-text">Buenos días</h2>
+                        <p class="dash-greeting-sub" id="dash-fecha-hoy"></p>
+                    </div>
+                    <button class="btn btn-primary btn-tpv" onclick="app.ventaRapida()">
+                        <i data-lucide="zap" style="width:16px;height:16px;margin-right:6px"></i>Venta Rápida
                     </button>
-                    <button class="nav-action-btn" title="Configuración">
-                        <span class="icon">⚙️</span>
-                    </button>
-                    <div class="user-menu">
-                        <img src="https://via.placeholder.com/32x32/4f46e5/white?text=U" alt="Usuario" class="user-avatar">
-                        <span class="user-name">Admin</span>
-                    </div>
                 </div>
-            </div>
-        </nav>
 
-        <!-- Sidebar Navigation -->
-        <aside class="modern-sidebar">
-            <div class="sidebar-content">
-                <div class="nav-sections">
-                    <div class="nav-section">
-                        <h3 class="section-title">Principal</h3>
-                        <nav class="nav-links">
-                            <a href="#" class="nav-link active" data-section="dashboard">
-                                <span class="nav-icon">📊</span>
-                                <span class="nav-text">Dashboard</span>
-                                <span class="nav-indicator"></span>
-                            </a>
-                        </nav>
+                <!-- KPIs -->
+                <div class="stats-grid">
+                    <div class="stat-card warning dashboard-link" data-section="pedidos">
+                        <div class="stat-icon"><i data-lucide="clock"></i></div>
+                        <div class="stat-content">
+                            <h3>Pedidos Pendientes</h3>
+                            <div class="stat-number" id="pedidos-pendientes">0</div>
+                            <div class="stat-sub" id="dash-pedidos-hoy">0 para hoy</div>
+                        </div>
                     </div>
-
-                    <div class="nav-section">
-                        <h3 class="section-title">Gestión</h3>
-                        <nav class="nav-links">
-                            <a href="#" class="nav-link" data-section="productos">
-                                <span class="nav-icon">🌺</span>
-                                <span class="nav-text">Productos</span>
-                                <span class="nav-badge" id="badge-productos"></span>
-                            </a>
-                            <a href="#" class="nav-link" data-section="clientes">
-                                <span class="nav-icon">👥</span>
-                                <span class="nav-text">Clientes</span>
-                                <span class="nav-badge" id="badge-clientes"></span>
-                            </a>
-                            <a href="#" class="nav-link" data-section="eventos">
-                                <span class="nav-icon">🎉</span>
-                                <span class="nav-text">Eventos</span>
-                                <span class="nav-badge" id="badge-eventos"></span>
-                            </a>
-                            <a href="#" class="nav-link" data-section="pedidos">
-                                <span class="nav-icon">📋</span>
-                                <span class="nav-text">Pedidos</span>
-                                <span class="nav-badge" id="badge-pedidos"></span>
-                            </a>
-                        </nav>
+                    <div class="stat-card primary dashboard-link" data-section="pedidos">
+                        <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+                        <div class="stat-content">
+                            <h3>Ventas del Mes</h3>
+                            <div class="stat-number" id="ventas-mes">0,00 €</div>
+                            <div class="stat-sub" id="dash-ventas-sub">este mes</div>
+                        </div>
                     </div>
-
-                    <div class="nav-section">
-                        <h3 class="section-title">Análisis</h3>
-                        <nav class="nav-links">
-                            <a href="#" class="nav-link" data-section="inventario">
-                                <span class="nav-icon">📦</span>
-                                <span class="nav-text">Inventario</span>
-                            </a>
-                            <a href="#" class="nav-link" data-section="reportes">
-                                <span class="nav-icon">📈</span>
-                                <span class="nav-text">Reportes</span>
-                            </a>
-                        </nav>
+                    <div class="stat-card success dashboard-link" data-section="clientes">
+                        <div class="stat-icon"><i data-lucide="users"></i></div>
+                        <div class="stat-content">
+                            <h3>Total Clientes</h3>
+                            <div class="stat-number" id="total-clientes">0</div>
+                            <div class="stat-sub" id="dash-clientes-sub">registrados</div>
+                        </div>
+                    </div>
+                    <div class="stat-card primary dashboard-link" data-section="inventario">
+                        <div class="stat-icon"><i data-lucide="alert-triangle"></i></div>
+                        <div class="stat-content">
+                            <h3>Alertas Stock</h3>
+                            <div class="stat-number" id="total-productos">0</div>
+                            <div class="stat-sub">productos bajos</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="sidebar-footer">
-                    <div class="quick-stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Ventas Hoy</span>
-                            <span class="stat-value">€1,250</span>
+                <!-- Contenido principal -->
+                <div class="dashboard-content">
+                    <div class="dashboard-main" style="display:flex;flex-direction:column;gap:var(--sp-5)">
+
+                        <!-- Pedidos de hoy -->
+                        <div class="card">
+                            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                                <div>
+                                    <h3 class="card-title">Pedidos de hoy</h3>
+                                    <p class="card-subtitle">Entregas programadas para hoy</p>
+                                </div>
+                                <button class="btn btn-sm btn-secondary" onclick="app.showSection('pedidos')">Ver todos</button>
+                            </div>
+                            <div class="card-body" style="padding:0">
+                                <div id="dash-pedidos-hoy-lista"></div>
+                            </div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Stock Bajo</span>
-                            <span class="stat-value warning">3</span>
+
+                        <!-- Acciones rápidas -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Acciones rápidas</h3>
+                                <p class="card-subtitle">Tareas frecuentes del día</p>
+                            </div>
+                            <div class="card-body">
+                                <div class="dash-quick-actions">
+                                    <button class="dash-quick-btn dash-quick-btn--primary" onclick="app.ventaRapida()">
+                                        <div class="dash-quick-icon" style="background:#dcfce7"><i data-lucide="zap" style="color:#16a34a"></i></div>
+                                        <span>Venta Rápida</span>
+                                    </button>
+                                    <button class="dash-quick-btn" onclick="app.nuevoPedido()">
+                                        <div class="dash-quick-icon" style="background:#f3e8ff"><i data-lucide="clipboard-list" style="color:#7c3aed"></i></div>
+                                        <span>Nuevo Encargo</span>
+                                    </button>
+                                    <button class="dash-quick-btn" onclick="app.nuevoCliente()">
+                                        <div class="dash-quick-icon" style="background:#dbeafe"><i data-lucide="user-plus" style="color:#1d4ed8"></i></div>
+                                        <span>Nuevo Cliente</span>
+                                    </button>
+                                    <button class="dash-quick-btn" onclick="app.showSection('inventario')">
+                                        <div class="dash-quick-icon" style="background:#fef3c7"><i data-lucide="package" style="color:#d97706"></i></div>
+                                        <span>Ver Inventario</span>
+                                    </button>
+                                    <button class="dash-quick-btn" onclick="app.nuevoEvento()">
+                                        <div class="dash-quick-icon" style="background:#fce7f3"><i data-lucide="calendar-plus" style="color:#be185d"></i></div>
+                                        <span>Nuevo Evento</span>
+                                    </button>
+                                    <button class="dash-quick-btn" onclick="app.showSection('reportes')">
+                                        <div class="dash-quick-icon" style="background:#f0fdf4"><i data-lucide="bar-chart-2" style="color:#15803d"></i></div>
+                                        <span>Ver Reportes</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-sidebar" style="display:flex;flex-direction:column;gap:var(--sp-5)">
+
+                        <!-- Alertas urgentes -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Alertas</h3>
+                                <p class="card-subtitle">Requieren atención</p>
+                            </div>
+                            <div class="card-body" style="padding:0">
+                                <div id="dash-alertas-lista"></div>
+                            </div>
+                        </div>
+
+                        <!-- Próximos eventos -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Próximos Eventos</h3>
+                                <p class="card-subtitle">Esta semana</p>
+                            </div>
+                            <div class="card-body" style="padding:0">
+                                <div id="proximos-eventos"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stock bajo -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Stock Bajo</h3>
+                                <p class="card-subtitle">Productos a reponer</p>
+                            </div>
+                            <div class="card-body" style="padding:0">
+                                <div id="stock-bajo-list" class="stock-list"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </aside>
+            </section>
 
-        <!-- Main Content Area -->
-        <main class="modern-main-content">
-            <!-- Dynamic Breadcrumbs -->
-
-
-            <div class="content-wrapper">
-                <!-- Dashboard Section -->
-                <section id="dashboard-section" class="content-section" style="display: block;">
-                    <div class="stats-grid">
-                        <div class="stat-card primary dashboard-link" data-section="productos" title="Ver productos">
-                            <div class="stat-icon">🌺</div>
-                            <div class="stat-content">
-                                <h3>Total Productos</h3>
-                                <div class="stat-number" id="total-productos">0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card success dashboard-link" data-section="clientes" title="Ver clientes">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-content">
-                                <h3>Total Clientes</h3>
-                                <div class="stat-number" id="total-clientes">0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card warning dashboard-link" data-section="pedidos" title="Ver pedidos">
-                            <div class="stat-icon">📋</div>
-                            <div class="stat-content">
-                                <h3>Pedidos Pendientes</h3>
-                                <div class="stat-number" id="pedidos-pendientes">0</div>
-                            </div>
-                        </div>
-                        <div class="stat-card primary dashboard-link" data-section="eventos" title="Ver eventos">
-                            <div class="stat-icon">🎉</div>
-                            <div class="stat-content">
-                                <h3>Eventos Activos</h3>
-                                <div class="stat-number" id="eventos-activos">0</div>
-                            </div>
+            <!-- ═══════════════════════════════════════════════ PRODUCTOS -->
+            <section id="productos-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon"><i data-lucide="box"></i></div>
+                        <div class="page-header-title">
+                            <h2>Productos</h2>
+                            <p class="page-subtitle">Catálogo completo de flores y artículos</p>
                         </div>
                     </div>
-                    <div class="dashboard-content">
-                        <div class="dashboard-main">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">💰 Ventas del Mes</h3>
-                                    <p class="card-subtitle">Rendimiento financiero actual</p>
-                                </div>
-                                <div class="card-body">
-                                    <div class="sales-amount" id="ventas-mes" style="font-size: 2rem; font-weight: 700; color: var(--success-600); margin-bottom: 1rem;">€0.00</div>
-                                    <div class="sales-trend" style="color: var(--gray-600); font-size: 0.875rem;">📈 Comparado con el mes anterior</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="dashboard-sidebar">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">⚠️ Stock Bajo</h3>
-                                    <p class="card-subtitle">Productos que requieren atención</p>
-                                </div>
-                                <div class="card-body">
-                                    <div id="stock-bajo-list" class="stock-list">
-                                        <p class="text-success">✅ Todos los productos tienen stock suficiente</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">📅 Próximos Eventos</h3>
-                                    <p class="card-subtitle">Eventos programados</p>
-                                </div>
-                                <div class="card-body">
-                                    <div id="proximos-eventos">
-                                        <p>📅 No hay eventos próximos programados</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <!-- Notificaciones Section -->
-                <section id="notificaciones-section" class="content-section" style="display: none;">
-                    <h2>🔔 Notificaciones</h2>
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Tus notificaciones</h3>
-                        </div>
-                        <div class="card-body">
-                            <ul id="notificaciones-list" class="notifications-list">
-                                <li>✅ No tienes notificaciones nuevas.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Perfil Section -->
-                <section id="perfil-section" class="content-section" style="display: none;">
-                    <h2>👤 Perfil de Usuario</h2>
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Información de tu perfil</h3>
-                        </div>
-                        <div class="card-body">
-                            <form id="perfil-form" class="form">
-                                <div class="form-group">
-                                    <label>Nombre de usuario</label>
-                                    <input type="text" id="perfil-nombre" class="form-control" value="Admin" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label>Email</label>
-                                    <input type="email" id="perfil-email" class="form-control" value="admin@floristeria.com" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label>Rol</label>
-                                    <input type="text" id="perfil-rol" class="form-control" value="Administrador" readonly>
-                                </div>
-                                <button type="button" class="btn btn-secondary" disabled>Editar Perfil (próximamente)</button>
-                            </form>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Productos Section -->
-                <section id="productos-section" class="content-section" style="display: none;">
-                    <h2>🌺 Gestión de Productos</h2>
-                    <div class="card">
-                        <div class="table-header">
-                            <h3 class="table-title">Lista de Productos</h3>
-                            <div class="table-actions">
-                                <div class="search-input">
-                                    <input type="text" id="search-productos" placeholder="Buscar productos..." class="form-input">
-                                </div>
-                                <select id="filter-categoria" class="form-select" style="width: auto;">
-                                    <option value="">Todas las categorías</option>
-                                </select>
-                                <button id="btn-nuevo-producto" class="btn btn-primary">
-                                    ➕ Nuevo Producto
-                                </button>
-                            </div>
-                        </div>
-                        <div id="tabla-productos-wrapper">
-                          <div class="table-container">
-                            <table class="table" id="productos-table">
-                                <thead>
-                                    <tr>
-                                        <th>Código</th>
-                                        <th>Nombre</th>
-                                        <th>Categoría</th>
-                                        <th>Stock</th>
-                                        <th>Precio Venta</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="7" class="text-center">Cargando productos...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                          </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Clientes Section -->
-                <section id="clientes-section" class="content-section" style="display: none;">
-                    <h2>👥 Gestión de Clientes</h2>
-                    <div class="card">
-                        <div class="table-header">
-                            <h3 class="table-title">Lista de Clientes</h3>
-                            <div class="table-actions">
-                                <div class="search-input">
-                                    <input type="text" id="search-clientes" placeholder="Buscar clientes..." class="form-input">
-                                </div>
-                                <button id="btn-nuevo-cliente" class="btn btn-primary">
-                                    ➕ Nuevo Cliente
-                                </button>
-                            </div>
-                        </div>
-                        <div class="table-container">
-                            <table class="table" id="clientes-table">
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Teléfono</th>
-                                        <th>Email</th>
-                                        <th>Tipo</th>
-                                        <th>Total Compras</th>
-                                        <th>Última Compra</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="7" class="text-center">Cargando clientes...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Eventos Section -->
-                <section id="eventos-section" class="content-section" style="display: none;">
-                    <div class="card">
-                        <div class="table-header">
-                            <h3 class="table-title">🎉 Gestión de Eventos</h3>
-                            <div class="table-actions">
-                                <button id="btn-nuevo-evento" class="btn btn-success">
-                                    <span style="font-size:1.1em;vertical-align:middle;">➕</span> <span style="vertical-align:middle;">Nuevo Evento</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="eventos-grid" id="eventos-grid">
-                            <p class="text-center">Cargando eventos...</p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Pedidos Section -->
-                <section id="pedidos-section" class="content-section" style="display: none;">
-                    <h2>📋 Gestión de Pedidos</h2>
-                    <div class="card">
-                        <div class="table-header">
-                            <h3 class="table-title">Lista de Pedidos</h3>
-                            <div class="table-actions">
-                                <div class="filters-row">
-                                    <select id="filter-estado" class="form-select">
-                                        <option value="">Todos los estados</option>
-                                        <option value="pendiente">Pendiente</option>
-                                        <option value="confirmado">Confirmado</option>
-                                        <option value="preparando">Preparando</option>
-                                        <option value="listo">Listo</option>
-                                        <option value="entregado">Entregado</option>
-                                        <option value="cancelado">Cancelado</option>
-                                    </select>
-                                    <input type="date" id="filter-fecha" class="form-input">
-                                </div>
-                                <button id="btn-nuevo-pedido-section" class="btn btn-primary">
-                                    ➕ Nuevo Pedido
-                                </button>
-                            </div>
-                        </div>
-                        <div class="table-container">
-                            <table class="table" id="pedidos-table">
-                                <thead>
-                                    <tr>
-                                        <th>Número</th>
-                                        <th>Cliente</th>
-                                        <th>Fecha</th>
-                                        <th>Entrega</th>
-                                        <th>Estado</th>
-                                        <th>Total</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="7" class="text-center">Cargando pedidos...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Inventario Avanzado Section -->
-                <section id="inventario-section" class="content-section" style="display: none;">
-                    <!-- Navegación de pestañas de inventario -->
-                    <div class="inventory-tabs">
-                        <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
-                        <button class="tab-btn" data-tab="alertas">⚠️ Alertas</button>
-                        <button class="tab-btn" data-tab="prediccion">📈 Predicción</button>
-                        <button class="tab-btn" data-tab="proveedores">🏪 Proveedores</button>
-                        <button class="tab-btn" data-tab="ordenes">📋 Órdenes</button>
-                        <button class="tab-btn" data-tab="movimientos">📦 Movimientos</button>
-                    </div>
-
-                    <!-- Tab: Dashboard de Inventario -->
-                    <div id="tab-dashboard" class="tab-content active">
-                        <!-- KPIs de Inventario -->
-                        <div class="inventory-kpis">
-                            <div class="kpi-card">
-                                <div class="kpi-icon">📦</div>
-                                <div class="kpi-content">
-                                    <h3 id="inventario-total-productos">-</h3>
-                                    <p>Total Productos</p>
-                                    <span class="kpi-trend" id="trend-productos">+0%</span>
-                                </div>
-                            </div>
-                            <div class="kpi-card">
-                                <div class="kpi-icon">⚠️</div>
-                                <div class="kpi-content">
-                                    <h3 id="inventario-stock-bajo">-</h3>
-                                    <p>Stock Bajo</p>
-                                    <span class="kpi-trend negative" id="trend-stock">0 críticos</span>
-                                </div>
-                            </div>
-                            <div class="kpi-card">
-                                <div class="kpi-icon">💰</div>
-                                <div class="kpi-content">
-                                    <h3 id="inventario-valor-inventario">-</h3>
-                                    <p>Valor Inventario</p>
-                                    <span class="kpi-trend positive" id="trend-valor">+0%</span>
-                                </div>
-                            </div>
-                            <div class="kpi-card">
-                                <div class="kpi-icon">🔄</div>
-                                <div class="kpi-content">
-                                    <h3 id="inventario-rotacion-promedio">-</h3>
-                                    <p>Rotación Promedio</p>
-                                    <span class="kpi-trend" id="trend-rotacion">días</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Gráficos de Análisis -->
-                        <div class="inventory-charts">
-                            <div class="chart-card">
-                                <h3>📊 Análisis de Rotación</h3>
-                                <div class="chart-container">
-                                    <canvas id="rotation-analysis-chart"></canvas>
-                                </div>
-                                <div class="chart-legend">
-                                    <div class="legend-item">
-                                        <span class="legend-color" style="background-color: #22c55e;"></span>
-                                        <div class="legend-text">
-                                            <strong>Rotación Rápida:</strong> Productos con stock alto (&gt;30 uds)<br>
-                                            <small>Se consideran populares y con buena demanda</small>
-                                        </div>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-color" style="background-color: #f59e0b;"></span>
-                                        <div class="legend-text">
-                                            <strong>Rotación Lenta:</strong> Productos con stock medio (10-30 uds)<br>
-                                            <small>Venta moderada, requieren seguimiento</small>
-                                        </div>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-color" style="background-color: #ef4444;"></span>
-                                        <div class="legend-text">
-                                            <strong>Stock Bajo:</strong> Productos con stock crítico (&lt;10 uds)<br>
-                                            <small>Necesitan reabastecimiento urgente</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="chart-card">
-                                <h3>📈 Productos Sin Movimiento</h3>
-                                <div class="ranking-list" id="productos-sin-movimiento">
-                                    <div class="ranking-loading">Cargando análisis...</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tab: Alertas de Stock -->
-                    <div id="tab-alertas" class="tab-content">
-                        <div class="alerts-header">
-                            <h3>⚠️ Alertas de Stock Activas</h3>
-                            <div class="alert-filters">
-                                <select id="filter-nivel-alerta">
-                                    <option value="">Todos los niveles</option>
-                                    <option value="sin_stock">Sin Stock</option>
-                                    <option value="critico">Crítico</option>
-                                    <option value="bajo">Bajo</option>
-                                </select>
-                                <button class="btn btn-primary" id="btn-generar-orden-auto">🛒 Generar Orden Auto</button>
-                            </div>
-                        </div>
-                        <div class="alerts-grid" id="alertas-stock-grid">
-                            <div class="loading-message">Cargando alertas de stock...</div>
-                        </div>
-                    </div>
-
-                    <!-- Tab: Predicción de Demanda -->
-                    <div id="tab-prediccion" class="tab-content">
-                        <div class="prediction-header">
-                            <h3>📈 Predicción de Demanda</h3>
-                        </div>
-                        <div class="prediction-content">
-                            <div class="prediction-chart">
-                                <canvas id="demand-prediction-chart"></canvas>
-                            </div>
-                            <div class="prediction-table">
-                                <table class="table" id="prediction-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Producto</th>
-                                            <th>Stock Actual</th>
-                                            <th>Demanda Prevista</th>
-                                            <th>Stock Proyectado</th>
-                                            <th>Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td colspan="5" class="text-center">Cargando predicciones...</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tab: Gestión de Proveedores -->
-                    <div id="tab-proveedores" class="tab-content">
-                        <div class="providers-header">
-                            <h3>🏪 Gestión de Proveedores</h3>
-                            <button class="btn btn-primary" onclick="app.nuevoProveedor()">➕ Nuevo Proveedor</button>
-                        </div>
-                        <div class="providers-grid" id="proveedores-grid">
-                            <div class="loading-message">Cargando proveedores...</div>
-                        </div>
-                    </div>
-
-                    <!-- Tab: Órdenes de Compra -->
-                    <div id="tab-ordenes" class="tab-content">
-                        <div class="orders-header">
-                            <h3>📋 Órdenes de Compra</h3>
-                            <div class="orders-actions">
-                                <select id="filter-estado-orden">
-                                    <option value="">Todos los estados</option>
-                                    <option value="pendiente">Pendiente</option>
-                                    <option value="enviada">Enviada</option>
-                                    <option value="recibida">Recibida</option>
-                                    <option value="cancelada">Cancelada</option>
-                                </select>
-                                <button class="btn btn-primary" id="btn-nueva-orden">📋 Nueva Orden</button>
-                            </div>
-                        </div>
-                        <div class="orders-table">
-                            <table class="table" id="ordenes-table">
-                                <thead>
-                                    <tr>
-                                        <th>Número</th>
-                                        <th>Proveedor</th>
-                                        <th>Fecha</th>
-                                        <th>Items</th>
-                                        <th>Total</th>
-                                        <th>Estado</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="7" class="text-center">Cargando órdenes...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Tab: Movimientos de Inventario -->
-                    <div id="tab-movimientos" class="tab-content">
-                        <div class="movements-header">
-                            <h3>📦 Movimientos de Inventario</h3>
-                            <div class="movements-filters">
-                                <input type="date" id="filter-fecha-desde" class="form-control">
-                                <input type="date" id="filter-fecha-hasta" class="form-control">
-                                <select id="filter-tipo-movimiento">
-                                    <option value="">Todos los tipos</option>
-                                    <option value="entrada">Entrada</option>
-                                    <option value="salida">Salida</option>
-                                    <option value="ajuste">Ajuste</option>
-                                    <option value="devolucion">Devolución</option>
-                                </select>
-                                <button class="btn btn-secondary" id="btn-filtrar-movimientos">🔍 Filtrar</button>
-                                <button class="btn btn-primary" id="btn-nuevo-movimiento">➕ Registrar Movimiento</button>
-                            </div>
-                        </div>
-                        <div class="movements-table">
-                            <table class="table" id="movimientos-table">
-                                <thead>
-                                    <tr>
-                                        <th>Fecha</th>
-                                        <th>Producto</th>
-                                        <th>Tipo</th>
-                                        <th>Cantidad</th>
-                                        <th>Stock</th>
-                                        <th>Motivo</th>
-                                        <th>Referencia</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td colspan="7" class="text-center">Cargando movimientos...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Reportes Section -->
-                <section id="reportes-section" class="content-section" style="display: none;">
-                    <h2>� Reportes y Análisis</h2>
-                    <div class="reports-grid">
-                        <div class="report-card">
-                            <h3>💰 Ventas por Período</h3>
-                            <canvas id="sales-chart"></canvas>
-                        </div>
-                        <div class="report-card">
-                            <h3>🌺 Productos Más Vendidos</h3>
-                            <div id="top-products"></div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Configuración Section -->
-                <section id="configuracion-section" class="content-section" style="display: none;">
-                    <h2>⚙️ Configuración</h2>
-                    <div class="config-grid">
-                        <div class="config-card">
-                            <h3>🏢 Datos de la Empresa</h3>
-                            <form id="empresa-form">
-                                <div class="form-group">
-                                    <label>Nombre de la Empresa</label>
-                                    <input type="text" id="empresa-nombre" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label>Dirección</label>
-                                    <input type="text" id="empresa-direccion" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label>Teléfono</label>
-                                    <input type="text" id="empresa-telefono" class="form-control">
-                                </div>
-                                <button type="submit" class="btn btn-primary">💾 Guardar</button>
-                            </form>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modales -->
-    <!-- Modal Producto -->
-    <div id="modal-producto" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 950px; padding: 0;">
-            <div class="modal-header" style="padding: 1.5rem 2rem 1rem 2rem; background: transparent; border: none;">
-                <div>
-                    <h2 class="modal-title-pro" style="font-size: 1.6rem; margin-bottom: 0.3rem; background: transparent; padding: 0; border: none; color: #1f2937;">🌸 Alta de Producto</h2>
-                    <p class="modal-subtitle-pro" style="font-size: 0.9rem; background: transparent; padding: 0; border: none; color: #6b7280;">Completa los datos para registrar un nuevo producto en tu inventario</p>
-                </div>
-                <span class="close modal-close" style="
-                    position: absolute;
-                    top: 15px;
-                    right: 20px;
-                    color: #aaa;
-                    float: right;
-                    font-size: 28px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    line-height: 1;
-                    user-select: none;
-                ">&times;</span>
-            </div>
-            <div class="modal-body" style="padding: 1rem 2rem;">
-                <form id="form-producto" class="form">
-                    <div class="form-group">
-                        <label for="producto-nombre">Nombre *</label>
-                        <input type="text" id="producto-nombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="producto-codigo">Código de Producto</label>
-<input type="text" id="producto-codigo" name="codigo_producto" readonly style="background:#f3f4f6;cursor:not-allowed;" value="">
-<script>
-// Generar código de producto tipo XX-001 según el nombre y que no coincida con productos existentes
-async function generarCodigoProducto(nombre) {
-  if (!nombre) return '';
-  // Obtener iniciales (primeras letras de cada palabra, máx 2)
-  const palabras = nombre.trim().split(/\s+/);
-  let iniciales = palabras.map(p => p[0].toUpperCase()).join('');
-  iniciales = iniciales.slice(0,2);
-  // Si termina en guion, lo quitamos
-  iniciales = iniciales.replace(/-+$/,'');
-  // Obtener productos existentes (window.flowerShopAPI)
-  let usados = [];
-  if (window.flowerShopAPI && window.flowerShopAPI.getProductos) {
-    try {
-      const productos = await window.flowerShopAPI.getProductos();
-      usados = productos.map(p => (p.codigo_producto || '').toUpperCase());
-    } catch {}
-  }
-  // Buscar el primer número libre
-  let n = 1;
-  let codigo = '';
-  do {
-    codigo = `${iniciales}-${String(n).padStart(3,'0')}`;
-    n++;
-  } while (usados.includes(codigo));
-  return codigo;
-}
-document.addEventListener('DOMContentLoaded', function() {
-  const inputNombre = document.getElementById('producto-nombre');
-  const inputCodigo = document.getElementById('producto-codigo');
-  // Generar código al escribir el nombre
-  if (inputNombre && inputCodigo) {
-    inputNombre.addEventListener('input', async function() {
-      const nombre = inputNombre.value;
-      if (nombre.length > 0) {
-        inputCodigo.value = '...';
-        const codigo = await generarCodigoProducto(nombre);
-        inputCodigo.value = codigo;
-      } else {
-        inputCodigo.value = '';
-      }
-    });
-  }
-  // Al abrir el modal, si hay nombre, generar código
-  const btn = document.getElementById('btn-nuevo-producto');
-  if (btn && inputNombre && inputCodigo) {
-    btn.addEventListener('click', function() {
-      setTimeout(async function() {
-        if (inputNombre.value.length > 0) {
-          inputCodigo.value = '...';
-          const codigo = await generarCodigoProducto(inputNombre.value);
-          inputCodigo.value = codigo;
-        } else {
-          inputCodigo.value = '';
-        }
-      }, 100);
-    });
-  }
-});
-</script>
-                    </div>
-                    <div class="form-group">
-                        <label for="producto-categoria">Categoría *</label>
-                        <select id="producto-categoria" name="categoria_id" required>
-                            <option value="">Seleccionar...</option>
+                    <div class="page-header-actions">
+                        <input type="text" id="search-productos" placeholder="Buscar productos…" class="form-input search-input">
+                        <select id="filter-categoria" class="form-select">
+                            <option value="">Todas las categorías</option>
                         </select>
+                        <button id="btn-nuevo-producto" class="btn btn-primary">Nuevo Producto</button>
                     </div>
-                    <div class="form-group">
-                        <label for="producto-temporada">Temporada</label>
-                        <select id="producto-temporada" name="temporada">
-                            <option value="todo_año">Todo el año</option>
-                            <option value="primavera">Primavera</option>
-                            <option value="verano">Verano</option>
-                            <option value="otoño">Otoño</option>
-                            <option value="invierno">Invierno</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="producto-precio-compra">Precio Compra (€)</label>
-                        <input type="number" id="producto-precio-compra" name="precio_compra" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="producto-precio-venta">Precio Venta (€) *</label>
-                        <input type="number" id="producto-precio-venta" name="precio_venta" step="0.01" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="producto-stock">Stock Actual</label>
-                        <input type="number" id="producto-stock" name="stock_actual" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="producto-stock-minimo">Stock Mínimo</label>
-                        <input type="number" id="producto-stock-minimo" name="stock_minimo" value="5">
-                    </div>
-                    <div class="form-group" style="flex-basis:100%">
-                        <label for="producto-descripcion">Descripción</label>
-                        <textarea id="producto-descripcion" name="descripcion" rows="3"></textarea>
-                    </div>
-                    <div class="form-actions" style="flex-basis:100%; padding: 0.3rem 2rem 0.5rem 2rem; margin: 0; display: flex; justify-content: flex-end;">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
-                            💾 Guardar Producto
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Cliente -->
-    <div id="modal-cliente" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 950px; padding: 0;">
-            <div class="modal-header" style="padding: 1.5rem 2rem 1rem 2rem; background: transparent; border: none;">
-                <div>
-                    <h2 class="modal-title-pro" style="font-size: 1.6rem; margin-bottom: 0.3rem; background: transparent; padding: 0; border: none; color: #1f2937;">👤 Gestión de Cliente</h2>
-                    <p class="modal-subtitle-pro" style="font-size: 0.9rem; background: transparent; padding: 0; border: none; color: #6b7280;">Completa los datos para registrar o actualizar la información del cliente</p>
                 </div>
-                <span class="close modal-close" style="
-                    position: absolute;
-                    top: 15px;
-                    right: 20px;
-                    color: #aaa;
-                    float: right;
-                    font-size: 28px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    line-height: 1;
-                    user-select: none;
-                ">&times;</span>
-            </div>
-            <div class="modal-body" style="padding: 1rem 2rem;">
-                <form id="form-cliente" class="form">
-                    <!-- Primera fila: Información básica -->
-                    <div class="form-group">
-                        <label for="cliente-nombre-completo">Nombre Completo *</label>
-                        <input type="text" id="cliente-nombre-completo" name="nombre_completo" required placeholder="Ingrese el nombre completo del cliente">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cliente-email">Email</label>
-                        <input type="email" id="cliente-email" name="email" placeholder="ejemplo@correo.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cliente-telefono">Teléfono</label>
-                        <input type="tel" id="cliente-telefono" name="telefono" placeholder="+34 600 000 000">
-                    </div>
-                    
-                    <!-- Segunda fila: Información de contacto y personal -->
-                    <div class="form-group">
-                        <label for="cliente-direccion">Dirección Completa</label>
-                        <input type="text" id="cliente-direccion" name="direccion" placeholder="Calle, número, ciudad, código postal">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cliente-fecha-nacimiento">Fecha de Nacimiento</label>
-                        <input type="date" id="cliente-fecha-nacimiento" name="fecha_nacimiento">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cliente-tipo">Tipo de Cliente</label>
-                        <select id="cliente-tipo" name="tipo_cliente">
-                            <option value="nuevo">🆕 Nuevo Cliente</option>
-                            <option value="regular">👥 Cliente Regular</option>
-                            <option value="frecuente">⭐ Cliente Frecuente</option>
-                            <option value="vip">💎 Cliente VIP</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Tercera fila: Preferencias y datos comerciales -->
-                    <div class="form-group">
-                        <label for="cliente-preferencias">Preferencias Florales</label>
-                        <input type="text" id="cliente-preferencias" name="preferencias" placeholder="Ej: Rosas rojas, Tulipanes, Sin perfume fuerte...">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cliente-presupuesto-habitual">Presupuesto Habitual (€)</label>
-                        <input type="number" id="cliente-presupuesto-habitual" name="presupuesto_habitual" step="0.01" placeholder="0.00">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cliente-ocasiones-importantes">Ocasiones Importantes</label>
-                        <input type="text" id="cliente-ocasiones-importantes" name="ocasiones_importantes" placeholder="Aniversario, cumpleaños, fechas especiales...">
-                    </div>
-                    
-                    <!-- Cuarta fila: Notas (ancho completo) -->
-                    <div class="form-group" style="flex-basis:100%">
-                        <label for="cliente-notas">Notas Adicionales</label>
-                        <textarea id="cliente-notas" name="notas" rows="3" placeholder="Información relevante sobre el cliente, historial, observaciones..."></textarea>
-                    </div>
-                    
-                    <div class="form-actions" style="flex-basis:100%; padding: 0.3rem 2rem 0.5rem 2rem; margin: 0; display: flex; justify-content: flex-end;">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
-                            💾 Guardar Cliente
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Evento -->
-    <div id="modal-evento" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 950px; padding: 0;">
-            <div class="modal-header" style="padding: 1.5rem 2rem 1rem 2rem; background: transparent; border: none;">
-                <div>
-                    <h2 class="modal-title-pro" style="font-size: 1.6rem; margin-bottom: 0.3rem; background: transparent; padding: 0; border: none; color: #1f2937;">🎉 Gestión de Evento</h2>
-                    <p class="modal-subtitle-pro" style="font-size: 0.9rem; background: transparent; padding: 0; border: none; color: #6b7280;">Completa los datos para registrar o actualizar un evento especial</p>
+                <div class="table-container">
+                    <table class="table" id="productos-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th>Precio Venta</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="text-center">Cargando productos…</td></tr>
+                        </tbody>
+                    </table>
                 </div>
-                <span class="close modal-close" style="
-                    position: absolute;
-                    top: 15px;
-                    right: 20px;
-                    color: #aaa;
-                    float: right;
-                    font-size: 28px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    line-height: 1;
-                    user-select: none;
-                ">&times;</span>
-            </div>
-            <div class="modal-body" style="padding: 1rem 2rem;">
-                <form id="form-evento" class="form">
-                    <div class="form-group">
-                        <label for="evento-nombre">Nombre del Evento *</label>
-                        <input type="text" id="evento-nombre" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="evento-fecha-inicio">Fecha Inicio *</label>
-                        <input type="date" id="evento-fecha-inicio" name="fecha_inicio" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="evento-fecha-fin">Fecha Fin *</label>
-                        <input type="date" id="evento-fecha-fin" name="fecha_fin" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="evento-tipo">Tipo de Evento</label>
-                        <select id="evento-tipo" name="tipo_evento">
-                            <option value="temporal">Temporal</option>
-                            <option value="religioso">Religioso</option>
-                            <option value="comercial">Comercial</option>
-                            <option value="personalizado">Personalizado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="evento-demanda">Demanda Esperada</label>
-                        <select id="evento-demanda" name="demanda_esperada">
-                            <option value="baja">Baja</option>
-                            <option value="media">Media</option>
-                            <option value="alta">Alta</option>
-                            <option value="extrema">Extrema</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="evento-descuento">Descuento Especial (%)</label>
-                        <input type="number" id="evento-descuento" name="descuento_especial" min="0" max="100" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="evento-preparacion">Días de Preparación</label>
-                        <input type="number" id="evento-preparacion" name="preparacion_dias" value="7">
-                    </div>
-                    <div class="form-group" style="flex-basis:100%">
-                        <label for="evento-descripcion">Descripción</label>
-                        <textarea id="evento-descripcion" name="descripcion" rows="3"></textarea>
-                    </div>
-                    <div class="form-actions" style="flex-basis:100%; padding: 0.3rem 2rem 0.5rem 2rem; margin: 0; display: flex; justify-content: flex-end;">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
-                            💾 Guardar Evento
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+            </section>
 
-    <!-- Modal Historial de Cliente -->
-    <div id="modal-historial-cliente" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 650px;">
-            <div class="modal-header" style="padding: 1.2rem 1.8rem 0.8rem 1.8rem;">
-                <div>
-                    <h2 class="modal-title-pro" style="font-size: 1.5rem; margin-bottom: 0.2rem;">📊 Historial de Compras</h2>
-                    <p class="modal-subtitle-pro" style="font-size: 0.85rem;">Registro de pedidos del cliente</p>
-                </div>
-                <button type="button" class="modal-close" onclick="app.hideModal('modal-historial-cliente')" style="
-                    position: absolute;
-                    top: 1rem;
-                    right: 1.2rem;
-                    background: none;
-                    border: none;
-                    font-size: 1.8rem;
-                    cursor: pointer;
-                    color: #6b7280;
-                    transition: color 0.2s;
-                    line-height: 1;
-                    padding: 0.2rem;
-                ">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1rem 1.8rem; max-height: 60vh; overflow-y: auto;">
-                <div class="cliente-info-header" style="
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    margin-bottom: 1rem;
-                    padding: 0.8rem;
-                    background: #f8fafc;
-                    border-radius: 6px;
-                    border: 1px solid #e2e8f0;
-                ">
-                    <div class="cliente-avatar" style="
-                        width: 40px;
-                        height: 40px;
-                        background: #e2e8f0;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 1.2rem;
-                    ">👤</div>
-                    <div class="cliente-details" style="flex: 1;">
-                        <h3 id="historial-cliente-nombre" style="font-size: 1rem; margin: 0 0 0.2rem 0; color: #1f2937;">Nombre del Cliente</h3>
-                        <p id="historial-cliente-email" style="font-size: 0.8rem; margin: 0 0 0.3rem 0; color: #6b7280;">email@ejemplo.com</p>
-                        <div class="cliente-stats" style="display: flex; gap: 1rem; font-size: 0.75rem;">
-                            <span class="stat-item" id="stat-pedidos">
-                                <strong>0</strong> pedidos
-                            </span>
-                            <span class="stat-item" id="stat-gastado">
-                                <strong>€0.00</strong> gastado
-                            </span>
-                            <span class="stat-item" id="stat-fecha">
-                                Desde <strong>2024</strong>
-                            </span>
+            <!-- ═══════════════════════════════════════════════ CLIENTES -->
+            <section id="clientes-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon"><i data-lucide="users"></i></div>
+                        <div class="page-header-title">
+                            <h2>Clientes</h2>
+                            <p class="page-subtitle">Directorio y fidelización de clientes</p>
                         </div>
                     </div>
-                </div>
-                
-                <div class="historial-filtros" style="
-                    display: flex;
-                    gap: 1rem;
-                    margin-bottom: 1rem;
-                    padding: 0.6rem;
-                    background: #f9fafb;
-                    border-radius: 4px;
-                ">
-                    <div class="filtro-grupo" style="flex: 1;">
-                        <label style="font-size: 0.8rem; color: #374151; margin-bottom: 0.2rem; display: block;">Período:</label>
-                        <select id="filtro-periodo" style="width: 100%; padding: 0.3rem; font-size: 0.8rem; border: 1px solid #d1d5db; border-radius: 4px;">
-                            <option value="todos">Todos</option>
-                            <option value="30">30 días</option>
-                            <option value="90">3 meses</option>
-                            <option value="365">1 año</option>
-                        </select>
+                    <div class="page-header-actions">
+                        <input type="text" id="search-clientes" placeholder="Buscar clientes…" class="form-input search-input">
+                        <button id="btn-nuevo-cliente" class="btn btn-primary">Nuevo Cliente</button>
                     </div>
-                    <div class="filtro-grupo" style="flex: 1;">
-                        <label style="font-size: 0.8rem; color: #374151; margin-bottom: 0.2rem; display: block;">Estado:</label>
-                        <select id="filtro-estado" style="width: 100%; padding: 0.3rem; font-size: 0.8rem; border: 1px solid #d1d5db; border-radius: 4px;">
-                            <option value="todos">Todos</option>
-                            <option value="completado">Completado</option>
+                </div>
+                <div class="table-container">
+                    <table class="table" id="clientes-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Email</th>
+                                <th>Tipo</th>
+                                <th>Total Compras</th>
+                                <th>Última Compra</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="text-center">Cargando clientes…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════ EVENTOS -->
+            <section id="eventos-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon"><i data-lucide="calendar"></i></div>
+                        <div class="page-header-title">
+                            <h2>Eventos</h2>
+                            <p class="page-subtitle">Planificación y gestión de eventos especiales</p>
+                        </div>
+                    </div>
+                    <div class="page-header-actions">
+                        <button id="btn-nuevo-evento" class="btn btn-primary">Nuevo Evento</button>
+                    </div>
+                </div>
+                <div class="eventos-grid" id="eventos-grid">
+                    <p class="no-data">Cargando eventos…</p>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════ PEDIDOS -->
+            <section id="pedidos-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon"><i data-lucide="clipboard-list"></i></div>
+                        <div class="page-header-title">
+                            <h2>Encargos</h2>
+                            <p class="page-subtitle">Pedidos especiales y entregas programadas</p>
+                        </div>
+                    </div>
+                    <div class="page-header-actions">
+                        <select id="filter-estado" class="form-select">
+                            <option value="">Todos los estados</option>
                             <option value="pendiente">Pendiente</option>
+                            <option value="confirmado">Confirmado</option>
+                            <option value="preparando">Preparando</option>
+                            <option value="listo">Listo</option>
+                            <option value="entregado">Entregado</option>
                             <option value="cancelado">Cancelado</option>
                         </select>
+                        <input type="date" id="filter-fecha" class="form-input">
+                        <button id="btn-nuevo-pedido-section" class="btn btn-primary">Nuevo Encargo</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="table" id="pedidos-table">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Cliente</th>
+                                <th>Fecha</th>
+                                <th>Entrega</th>
+                                <th>Estado</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="text-center">Cargando pedidos…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════ INVENTARIO -->
+            <section id="inventario-section" class="content-section" style="display:none;">
+
+                <div class="inventory-tabs">
+                    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                    <button class="tab-btn" data-tab="alertas">Alertas</button>
+                    <button class="tab-btn" data-tab="prediccion">Predicción</button>
+                    <button class="tab-btn" data-tab="proveedores">Proveedores</button>
+                    <button class="tab-btn" data-tab="ordenes">Órdenes</button>
+                    <button class="tab-btn" data-tab="movimientos">Movimientos</button>
+                </div>
+
+                <!-- Tab Dashboard -->
+                <div id="tab-dashboard" class="tab-content active">
+                    <div class="inventory-kpis">
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="archive"></i></div>
+                            <div class="kpi-content">
+                                <h3 id="inventario-total-productos">—</h3>
+                                <p>Total Productos</p>
+                                <span class="kpi-trend" id="trend-productos">+0%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="alert-triangle"></i></div>
+                            <div class="kpi-content">
+                                <h3 id="inventario-stock-bajo">—</h3>
+                                <p>Stock Bajo</p>
+                                <span class="kpi-trend negative" id="trend-stock">0 críticos</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="dollar-sign"></i></div>
+                            <div class="kpi-content">
+                                <h3 id="inventario-valor-inventario">—</h3>
+                                <p>Valor Inventario</p>
+                                <span class="kpi-trend positive" id="trend-valor">+0%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon"><i data-lucide="refresh-cw"></i></div>
+                            <div class="kpi-content">
+                                <h3 id="inventario-rotacion-promedio">—</h3>
+                                <p>Rotación Promedio</p>
+                                <span class="kpi-trend" id="trend-rotacion">días</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inventory-charts">
+                        <div class="chart-card">
+                            <h3>Análisis de Rotación</h3>
+                            <div class="chart-container"><canvas id="rotation-analysis-chart"></canvas></div>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color legend-green"></span>
+                                    <div class="legend-text"><strong>Rotación Rápida:</strong> Stock alto (&gt;30 uds)</div>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color legend-yellow"></span>
+                                    <div class="legend-text"><strong>Rotación Lenta:</strong> Stock medio (10-30 uds)</div>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color legend-red"></span>
+                                    <div class="legend-text"><strong>Stock Bajo:</strong> Stock crítico (&lt;10 uds)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Productos Sin Movimiento</h3>
+                            <div class="ranking-list" id="productos-sin-movimiento">
+                                <div class="no-data">Cargando análisis…</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="historial-lista" id="historial-pedidos-lista" style="
-                    border: 1px solid #e5e7eb;
-                    border-radius: 6px;
-                    max-height: 300px;
-                    overflow-y: auto;
-                ">
-                    <div class="loading-historial" style="padding: 1.5rem; text-align: center; color: #6b7280; font-size: 0.9rem;">Cargando historial...</div>
+                <!-- Tab Alertas -->
+                <div id="tab-alertas" class="tab-content">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <div class="page-header-icon icon-red"><i data-lucide="alert-triangle"></i></div>
+                            <div class="page-header-title">
+                                <h2>Alertas de Stock</h2>
+                                <p class="page-subtitle">Productos que requieren reposición urgente</p>
+                            </div>
+                        </div>
+                        <div class="page-header-actions">
+                            <select id="filter-nivel-alerta" class="form-select">
+                                <option value="">Todos los niveles</option>
+                                <option value="sin_stock">Sin Stock</option>
+                                <option value="critico">Crítico</option>
+                                <option value="bajo">Bajo</option>
+                            </select>
+                            <button class="btn btn-primary" id="btn-generar-orden-auto">Generar Orden</button>
+                        </div>
+                    </div>
+                    <div class="alerts-grid" id="alertas-stock-grid">
+                        <div class="no-data">Cargando alertas de stock…</div>
+                    </div>
+                </div>
+
+                <!-- Tab Predicción -->
+                <div id="tab-prediccion" class="tab-content">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <div class="page-header-icon"><i data-lucide="trending-up"></i></div>
+                            <div class="page-header-title">
+                                <h2>Predicción de Demanda</h2>
+                                <p class="page-subtitle">Análisis predictivo de ventas futuras</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="prediction-content">
+                        <div class="prediction-chart">
+                            <canvas id="demand-prediction-chart"></canvas>
+                        </div>
+                        <div class="table-container">
+                            <table class="table" id="prediction-table">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Stock Actual</th>
+                                        <th>Demanda Prevista</th>
+                                        <th>Stock Proyectado</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td colspan="5" class="text-center">Cargando predicciones…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Proveedores -->
+                <div id="tab-proveedores" class="tab-content">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <div class="page-header-icon"><i data-lucide="building-2"></i></div>
+                            <div class="page-header-title">
+                                <h2>Proveedores</h2>
+                                <p class="page-subtitle">Gestión de proveedores y contactos</p>
+                            </div>
+                        </div>
+                        <div class="page-header-actions">
+                            <button class="btn btn-primary" onclick="app.nuevoProveedor()">Nuevo Proveedor</button>
+                        </div>
+                    </div>
+                    <div class="providers-grid" id="proveedores-grid">
+                        <div class="no-data">Cargando proveedores…</div>
+                    </div>
+                </div>
+
+                <!-- Tab Órdenes -->
+                <div id="tab-ordenes" class="tab-content">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <div class="page-header-icon"><i data-lucide="file-text"></i></div>
+                            <div class="page-header-title">
+                                <h2>Órdenes de Compra</h2>
+                                <p class="page-subtitle">Historial y control de compras a proveedores</p>
+                            </div>
+                        </div>
+                        <div class="page-header-actions">
+                            <select id="filter-estado-orden" class="form-select">
+                                <option value="">Todos los estados</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="enviada">Enviada</option>
+                                <option value="recibida">Recibida</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                            <button class="btn btn-primary" id="btn-nueva-orden">Nueva Orden</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="ordenes-table">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Proveedor</th>
+                                    <th>Fecha</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="7" class="text-center">Cargando órdenes…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab Movimientos -->
+                <div id="tab-movimientos" class="tab-content">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <div class="page-header-icon"><i data-lucide="activity"></i></div>
+                            <div class="page-header-title">
+                                <h2>Movimientos de Inventario</h2>
+                                <p class="page-subtitle">Registro de entradas, salidas y ajustes</p>
+                            </div>
+                        </div>
+                        <div class="page-header-actions">
+                            <input type="date" id="filter-fecha-desde" class="form-input" title="Desde">
+                            <input type="date" id="filter-fecha-hasta" class="form-input" title="Hasta">
+                            <select id="filter-tipo-movimiento" class="form-select">
+                                <option value="">Todos los tipos</option>
+                                <option value="entrada">Entrada</option>
+                                <option value="salida">Salida</option>
+                                <option value="ajuste">Ajuste</option>
+                                <option value="devolucion">Devolución</option>
+                            </select>
+                            <button class="btn btn-secondary" id="btn-filtrar-movimientos">Filtrar</button>
+                            <button class="btn btn-primary" id="btn-nuevo-movimiento">Registrar</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" id="movimientos-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Producto</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Motivo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6" class="text-center">Cargando movimientos…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ═══════════════════════════════════════════════ REPORTES -->
+            <section id="reportes-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon"><i data-lucide="bar-chart-2"></i></div>
+                        <div class="page-header-title">
+                            <h2>Reportes y Análisis</h2>
+                            <p class="page-subtitle">Métricas y estadísticas del negocio</p>
+                        </div>
+                    </div>
+                    <div class="page-header-actions">
+                        <select id="report-period" class="form-select">
+                            <option value="7">Últimos 7 días</option>
+                            <option value="30" selected>Últimos 30 días</option>
+                            <option value="90">Últimos 90 días</option>
+                            <option value="365">Último año</option>
+                        </select>
+                        <button class="btn btn-secondary" id="btn-export-reports">Exportar</button>
+                    </div>
+                </div>
+
+                <div class="reports-kpis">
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i data-lucide="trending-up"></i></div>
+                        <div class="kpi-content">
+                            <h3 id="kpi-total-ventas">0,00 €</h3>
+                            <p>Total Ventas</p>
+                            <span class="kpi-trend neutral" id="kpi-ventas-trend">+0.0%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i data-lucide="shopping-cart"></i></div>
+                        <div class="kpi-content">
+                            <h3 id="kpi-total-pedidos">0</h3>
+                            <p>Total Pedidos</p>
+                            <span class="kpi-trend neutral" id="kpi-pedidos-trend">+0.0%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i data-lucide="users"></i></div>
+                        <div class="kpi-content">
+                            <h3 id="kpi-clientes-activos">0</h3>
+                            <p>Clientes Activos</p>
+                            <span class="kpi-trend neutral" id="kpi-clientes-trend">+0.0%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon"><i data-lucide="target"></i></div>
+                        <div class="kpi-content">
+                            <h3 id="kpi-ticket-promedio">0,00 €</h3>
+                            <p>Ticket Promedio</p>
+                            <span class="kpi-trend neutral" id="kpi-ticket-trend">+0.0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reports-grid">
+                    <div class="report-card report-card-wide">
+                        <div class="report-card-header">
+                            <h3>Ventas por Período</h3>
+                            <div class="chart-controls">
+                                <button class="chart-btn active" data-chart="ventas" data-type="diario">Diario</button>
+                                <button class="chart-btn" data-chart="ventas" data-type="semanal">Semanal</button>
+                            </div>
+                        </div>
+                        <div class="chart-container chart-lg">
+                            <canvas id="sales-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="report-card">
+                        <h3>Estados de Pedidos</h3>
+                        <div class="chart-container chart-md">
+                            <canvas id="orders-status-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="report-card">
+                        <h3>Rotación por Categoría</h3>
+                        <div class="chart-container chart-md">
+                            <canvas id="inventory-rotation-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="reports-rankings">
+                    <div class="ranking-card">
+                        <h3>Productos Más Vendidos</h3>
+                        <div id="top-products" class="ranking-list"></div>
+                    </div>
+                    <div class="ranking-card">
+                        <h3>Segmentación de Clientes</h3>
+                        <div id="clients-type" class="segment-list"></div>
+                    </div>
+                    <div class="ranking-card">
+                        <h3>Eventos Más Rentables</h3>
+                        <div id="top-events" class="ranking-list"></div>
+                    </div>
+                </div>
+
+                <div class="page-header page-header-sub">
+                    <div class="page-header-title">
+                        <h2>Detalle de Ventas</h2>
+                    </div>
+                    <div class="page-header-actions">
+                        <input type="text" id="search-sales" placeholder="Buscar venta…" class="form-input search-input">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="table" id="sales-detail-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Número</th>
+                                <th>Cliente</th>
+                                <th>Productos</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Margen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="text-center">Cargando ventas…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════ CONFIGURACIÓN -->
+            <section id="configuracion-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon"><i data-lucide="settings"></i></div>
+                        <div class="page-header-title">
+                            <h2>Configuración</h2>
+                            <p class="page-subtitle">Ajustes generales de la aplicación</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-grid">
+                    <div class="config-card">
+                        <h3>Datos de la Empresa</h3>
+                        <form id="empresa-form">
+                            <div class="form-group">
+                                <label>Nombre de la Empresa</label>
+                                <input type="text" id="empresa-nombre" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Dirección</label>
+                                <input type="text" id="empresa-direccion" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="text" id="empresa-telefono" class="form-input">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════ PERFIL -->
+            <section id="perfil-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon"><i data-lucide="user"></i></div>
+                        <div class="page-header-title">
+                            <h2>Perfil de Usuario</h2>
+                            <p class="page-subtitle">Información y ajustes de la cuenta</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatar + datos básicos -->
+                <div class="perfil-hero card">
+                    <div class="perfil-avatar-wrap">
+                        <div class="perfil-avatar" id="perfil-avatar-circle">A</div>
+                        <button class="perfil-avatar-edit" onclick="app.cambiarAvatar()" title="Cambiar color"><i data-lucide="pencil"></i></button>
+                    </div>
+                    <div class="perfil-hero-info">
+                        <h3 id="perfil-hero-nombre">Admin</h3>
+                        <span class="estado-badge confirmado">Administrador</span>
+                        <p id="perfil-hero-email" style="font-size:0.85rem;color:var(--text-muted);margin-top:var(--sp-1)">admin@floristeria.com</p>
+                    </div>
+                    <div class="perfil-hero-stats">
+                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-pedidos">—</span><span class="perfil-stat-lbl">Pedidos gestionados</span></div>
+                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-clientes">—</span><span class="perfil-stat-lbl">Clientes registrados</span></div>
+                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-productos">—</span><span class="perfil-stat-lbl">Productos en catálogo</span></div>
+                    </div>
+                </div>
+
+                <div class="perfil-grid">
+                    <!-- Información personal -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-section-title"><span class="form-section-dot"></span>Información personal</div>
+                            <div class="form-group">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" id="perfil-nombre" class="form-input" value="Admin" placeholder="Tu nombre">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="perfil-email" class="form-input" value="admin@floristeria.com" placeholder="tu@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Teléfono</label>
+                                <input type="tel" id="perfil-telefono" class="form-input" placeholder="+34 600 000 000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Rol</label>
+                                <input type="text" id="perfil-rol" class="form-input" value="Administrador" readonly style="background:var(--s-50);color:var(--text-muted)">
+                            </div>
+                            <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.guardarPerfil()">Guardar cambios</button>
+                        </div>
+                    </div>
+
+                    <!-- Seguridad -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-section-title"><span class="form-section-dot"></span>Cambiar contraseña</div>
+                            <div class="form-group">
+                                <label class="form-label">Contraseña actual</label>
+                                <input type="password" id="perfil-pass-actual" class="form-input" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Nueva contraseña</label>
+                                <input type="password" id="perfil-pass-nueva" class="form-input" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Confirmar contraseña</label>
+                                <input type="password" id="perfil-pass-confirm" class="form-input" placeholder="••••••••">
+                            </div>
+                            <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.cambiarPassword()">Actualizar contraseña</button>
+                        </div>
+                    </div>
+
+                    <!-- Preferencias -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-section-title"><span class="form-section-dot"></span>Preferencias de la app</div>
+                            <div class="form-group">
+                                <label class="form-label">Moneda</label>
+                                <select id="pref-moneda" class="form-select">
+                                    <option value="EUR" selected>Euro (€)</option>
+                                    <option value="USD">Dólar ($)</option>
+                                    <option value="GBP">Libra (£)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Formato de fecha</label>
+                                <select id="pref-fecha" class="form-select">
+                                    <option value="es-ES" selected>DD/MM/AAAA</option>
+                                    <option value="en-US">MM/DD/YYYY</option>
+                                    <option value="iso">AAAA-MM-DD</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Idioma</label>
+                                <select id="pref-idioma" class="form-select">
+                                    <option value="es" selected>Español</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)">
+                                <label class="form-label" style="margin:0">Notificaciones de stock bajo</label>
+                                <label class="perfil-toggle">
+                                    <input type="checkbox" id="pref-notif-stock" checked>
+                                    <span class="perfil-toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)">
+                                <label class="form-label" style="margin:0">Sonido de notificaciones</label>
+                                <label class="perfil-toggle">
+                                    <input type="checkbox" id="pref-notif-sonido">
+                                    <span class="perfil-toggle-slider"></span>
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.guardarPreferencias()">Guardar preferencias</button>
+                        </div>
+                    </div>
+
+                    <!-- Sistema -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="form-section-title"><span class="form-section-dot"></span>Información del sistema</div>
+                            <div class="perfil-sys-grid">
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Versión de la app</span><span class="perfil-sys-val">1.0.0</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Base de datos</span><span class="perfil-sys-val">SQLite local</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Último acceso</span><span class="perfil-sys-val" id="pstat-ultimo-acceso">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Pedidos hoy</span><span class="perfil-sys-val" id="pstat-hoy">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Movimientos esta semana</span><span class="perfil-sys-val" id="pstat-semana">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Plataforma</span><span class="perfil-sys-val">Electron · Windows</span></div>
+                            </div>
+                            <div style="margin-top:var(--sp-4);display:flex;gap:var(--sp-2)">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="app.exportarDatos()">Exportar datos</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="app.limpiarCache()">Limpiar caché</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════ NOTIFICACIONES -->
+            <section id="notificaciones-section" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon icon-amber"><i data-lucide="bell"></i></div>
+                        <div class="page-header-title">
+                            <h2>Notificaciones</h2>
+                            <p class="page-subtitle">Alertas y avisos del sistema</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <ul id="notificaciones-list" class="notifications-list">
+                            <li class="no-data">No tienes notificaciones nuevas.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+        </div><!-- /content-wrapper -->
+    </main>
+</div><!-- /app-container -->
+
+<!-- ═══════════════════════════════════════════════════════════ MODALES -->
+
+<!-- Modal Producto -->
+<div id="modal-producto" class="modal" style="display:none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="box"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Producto</h2>
+                    <p class="modal-subtitle-pro">Registra o actualiza un artículo del catálogo</p>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 0.8rem 1.8rem 1.2rem 1.8rem;">
-                <button type="button" class="btn btn-secondary" onclick="app.hideModal('modal-historial-cliente')" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                    Cerrar
-                </button>
-                <button type="button" class="btn btn-primary" onclick="app.exportarHistorialCliente()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                    📄 Exportar PDF
-                </button>
+            <button class="modal-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form-producto" class="form">
+                <div class="form-section-title"><span class="form-section-dot"></span>Identificación</div>
+                <div class="form-group">
+                    <label for="producto-nombre">Nombre *</label>
+                    <input type="text" id="producto-nombre" name="nombre" class="form-input" required placeholder="Nombre del producto">
+                </div>
+                <div class="form-group">
+                    <label for="producto-codigo">Código</label>
+                    <input type="text" id="producto-codigo" name="codigo_producto" class="form-input form-input-readonly" readonly placeholder="Generado automáticamente">
+                </div>
+                <div class="form-group">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-1)">
+                        <label for="producto-categoria" style="margin:0">Categoría *</label>
+                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarCategorias()">+ Gestionar</button>
+                    </div>
+                    <select id="producto-categoria" name="categoria_id" class="form-select" required>
+                        <option value="">Seleccionar categoría…</option>
+                    </select>
+                </div>
+                <div class="form-section-title"><span class="form-section-dot"></span>Precios</div>
+                <div class="form-group">
+                    <label for="producto-precio-compra">Precio Compra (€)</label>
+                    <input type="number" id="producto-precio-compra" name="precio_compra" class="form-input" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="producto-precio-venta">Precio Venta (€) *</label>
+                    <input type="number" id="producto-precio-venta" name="precio_venta" class="form-input" step="0.01" min="0" required placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="producto-temporada">Temporada</label>
+                    <select id="producto-temporada" name="temporada" class="form-select">
+                        <option value="todo_año">Todo el año</option>
+                        <option value="primavera">Primavera</option>
+                        <option value="verano">Verano</option>
+                        <option value="otoño">Otoño</option>
+                        <option value="invierno">Invierno</option>
+                    </select>
+                </div>
+                <div class="form-section-title"><span class="form-section-dot"></span>Inventario</div>
+                <div class="form-group">
+                    <label for="producto-stock">Stock Actual</label>
+                    <input type="number" id="producto-stock" name="stock_actual" class="form-input" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="producto-stock-minimo">Stock Mínimo</label>
+                    <input type="number" id="producto-stock-minimo" name="stock_minimo" class="form-input" value="5" min="0">
+                </div>
+                <div class="form-group form-group-full">
+                    <label for="producto-descripcion">Descripción</label>
+                    <textarea id="producto-descripcion" name="descripcion" class="form-input" rows="3" placeholder="Descripción opcional del producto…"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+            <button type="submit" form="form-producto" class="btn btn-primary">Guardar Producto</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Cliente -->
+<div id="modal-cliente" class="modal" style="display:none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="user-round"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Cliente</h2>
+                    <p class="modal-subtitle-pro">Registra o actualiza la ficha del cliente</p>
+                </div>
+            </div>
+            <button class="modal-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form-cliente" class="form">
+                <div class="form-section-title"><span class="form-section-dot"></span>Datos Personales</div>
+                <div class="form-group">
+                    <label for="cliente-nombre-completo">Nombre Completo *</label>
+                    <input type="text" id="cliente-nombre-completo" name="nombre_completo" class="form-input" required placeholder="Nombre completo del cliente">
+                </div>
+                <div class="form-group">
+                    <label for="cliente-email">Email</label>
+                    <input type="email" id="cliente-email" name="email" class="form-input" placeholder="ejemplo@correo.com">
+                </div>
+                <div class="form-group">
+                    <label for="cliente-telefono">Teléfono</label>
+                    <input type="tel" id="cliente-telefono" name="telefono" class="form-input" placeholder="+34 600 000 000">
+                </div>
+                <div class="form-group">
+                    <label for="cliente-direccion">Dirección</label>
+                    <input type="text" id="cliente-direccion" name="direccion" class="form-input" placeholder="Calle, número, ciudad…">
+                </div>
+                <div class="form-group">
+                    <label for="cliente-fecha-nacimiento">Fecha de Nacimiento</label>
+                    <input type="date" id="cliente-fecha-nacimiento" name="fecha_nacimiento" class="form-input">
+                </div>
+                <div class="form-section-title"><span class="form-section-dot"></span>Perfil Comercial</div>
+                <div class="form-group">
+                    <label for="cliente-tipo">Tipo de Cliente</label>
+                    <select id="cliente-tipo" name="tipo_cliente" class="form-select">
+                        <option value="nuevo">Nuevo</option>
+                        <option value="regular">Regular</option>
+                        <option value="frecuente">Frecuente</option>
+                        <option value="vip">VIP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cliente-presupuesto-habitual">Presupuesto Habitual (€)</label>
+                    <input type="number" id="cliente-presupuesto-habitual" name="presupuesto_habitual" class="form-input" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="cliente-preferencias">Preferencias Florales</label>
+                    <input type="text" id="cliente-preferencias" name="preferencias" class="form-input" placeholder="Rosas, Tulipanes, Sin perfume…">
+                </div>
+                <div class="form-group">
+                    <label for="cliente-ocasiones-importantes">Ocasiones Importantes</label>
+                    <input type="text" id="cliente-ocasiones-importantes" name="ocasiones_importantes" class="form-input" placeholder="Aniversario, cumpleaños…">
+                </div>
+                <div class="form-group form-group-full">
+                    <label for="cliente-notas">Notas</label>
+                    <textarea id="cliente-notas" name="notas" class="form-input" rows="3" placeholder="Observaciones sobre el cliente…"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+            <button type="submit" form="form-cliente" class="btn btn-primary">Guardar Cliente</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Evento -->
+<div id="modal-evento" class="modal" style="display:none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="calendar"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Evento</h2>
+                    <p class="modal-subtitle-pro">Registra o actualiza un evento especial</p>
+                </div>
+            </div>
+            <button class="modal-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="form-evento" class="form">
+                <div class="form-section-title"><span class="form-section-dot"></span>Información del Evento</div>
+                <div class="form-group">
+                    <label for="evento-nombre">Nombre del Evento *</label>
+                    <input type="text" id="evento-nombre" name="nombre" class="form-input" required placeholder="Nombre del evento">
+                </div>
+                <div class="form-group">
+                    <label for="evento-tipo">Tipo de Evento</label>
+                    <select id="evento-tipo" name="tipo_evento" class="form-select">
+                        <option value="temporal">Temporal</option>
+                        <option value="religioso">Religioso</option>
+                        <option value="comercial">Comercial</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="evento-demanda">Demanda Esperada</label>
+                    <select id="evento-demanda" name="demanda_esperada" class="form-select">
+                        <option value="baja">Baja</option>
+                        <option value="media">Media</option>
+                        <option value="alta">Alta</option>
+                        <option value="extrema">Extrema</option>
+                    </select>
+                </div>
+                <div class="form-section-title"><span class="form-section-dot"></span>Fechas y Condiciones</div>
+                <div class="form-group">
+                    <label for="evento-fecha-inicio">Fecha Inicio *</label>
+                    <input type="date" id="evento-fecha-inicio" name="fecha_inicio" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="evento-fecha-fin">Fecha Fin *</label>
+                    <input type="date" id="evento-fecha-fin" name="fecha_fin" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="evento-descuento">Descuento (%)</label>
+                    <input type="number" id="evento-descuento" name="descuento_especial" class="form-input" min="0" max="100" step="0.01" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="evento-preparacion">Días de Preparación</label>
+                    <input type="number" id="evento-preparacion" name="preparacion_dias" class="form-input" value="7" min="0">
+                </div>
+                <div class="form-group form-group-full">
+                    <label for="evento-descripcion">Descripción</label>
+                    <textarea id="evento-descripcion" name="descripcion" class="form-input" rows="3" placeholder="Descripción del evento…"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+            <button type="submit" form="form-evento" class="btn btn-primary">Guardar Evento</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Historial de Cliente -->
+<div id="modal-historial-cliente" class="modal" style="display:none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="clock"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Historial de Compras</h2>
+                    <p class="modal-subtitle-pro">Registro de pedidos del cliente</p>
+                </div>
+            </div>
+            <button class="modal-close" onclick="app.hideModal('modal-historial-cliente')" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:var(--sp-4) var(--sp-6)">
+            <div style="display:flex;align-items:center;gap:var(--sp-3);padding-bottom:var(--sp-3);border-bottom:1px solid var(--s-100);margin-bottom:var(--sp-3)">
+                <div style="width:36px;height:36px;border-radius:50%;background:var(--p-100);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <i data-lucide="user" style="width:18px;height:18px;color:var(--p-600)"></i>
+                </div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:0.95rem;color:var(--text-primary)" id="historial-cliente-nombre">—</div>
+                    <div style="font-size:0.78rem;color:var(--text-muted)" id="historial-cliente-email">—</div>
+                </div>
+                <div style="display:flex;gap:var(--sp-4);flex-shrink:0;font-size:0.78rem;color:var(--text-muted);text-align:center">
+                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-pedidos-num">0</div><div>pedidos</div></div>
+                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-gastado-num">0 €</div><div>gastado</div></div>
+                </div>
+            </div>
+            <div style="display:flex;gap:var(--sp-3);margin-bottom:var(--sp-3)">
+                <select id="filtro-periodo" class="form-select form-select-sm" style="flex:1">
+                    <option value="todos">Todos los períodos</option>
+                    <option value="30">Últimos 30 días</option>
+                    <option value="90">Últimos 3 meses</option>
+                    <option value="365">Último año</option>
+                </select>
+                <select id="filtro-estado" class="form-select form-select-sm" style="flex:1">
+                    <option value="todos">Todos los estados</option>
+                    <option value="completado">Completado</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+            <div class="historial-lista" id="historial-pedidos-lista">
+                <div class="no-data">Cargando historial…</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="app.hideModal('modal-historial-cliente')">Cerrar</button>
+            <button type="button" class="btn btn-primary" onclick="app.exportarHistorialCliente()">Exportar PDF</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL CATEGORÍAS ═══ -->
+<div id="modal-categorias" class="modal" style="display:none;">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="tag"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Categorías</h2>
+                    <p class="modal-subtitle-pro">Gestiona las categorías de productos</p>
+                </div>
+            </div>
+            <button class="modal-close" onclick="app.hideModal('modal-categorias')" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-2);align-items:center">
+                <button type="button" id="btn-icono-selector" class="cat-icono-btn" onclick="app.toggleEmojiPicker()" title="Elegir icono">🌿</button>
+                <input type="hidden" id="nueva-categoria-icono" value="🌿">
+                <input type="text" id="nueva-categoria-nombre" class="form-input" placeholder="Nombre de categoría" style="flex:1">
+                <button class="btn btn-primary" onclick="app.crearCategoria()">Añadir</button>
+            </div>
+            <div id="emoji-picker" class="cat-emoji-picker" style="display:none">
+                <div class="cat-emoji-grid" id="emoji-grid"></div>
+            </div>
+            <div id="categorias-lista" style="display:flex;flex-direction:column;gap:var(--sp-2);max-height:260px;overflow-y:auto;margin-top:var(--sp-3)"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-categorias')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL TPV / VENTA RÁPIDA ═══ -->
+<div id="modal-tpv" class="modal" style="display:none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon" style="background:linear-gradient(135deg,#16a34a,#15803d)"><i data-lucide="zap"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Venta Rápida</h2>
+                    <p class="modal-subtitle-pro">Cobro en mostrador · sin registro obligatorio</p>
+                </div>
+            </div>
+            <button class="modal-close" onclick="app.hideModal('modal-tpv')" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body" style="padding:0;overflow:hidden">
+            <div class="tpv-layout">
+                <!-- Panel izquierdo: catálogo -->
+                <div class="tpv-catalog">
+                    <div class="tpv-search-bar">
+                        <i data-lucide="search" style="width:16px;height:16px;color:var(--s-400);flex-shrink:0"></i>
+                        <input type="text" id="tpv-busqueda" class="tpv-search-input" placeholder="Buscar producto…" oninput="app.filtrarCatalogoTPV(this.value)">
+                    </div>
+                    <div id="tpv-catalogo" class="tpv-catalogo-grid"></div>
+                </div>
+                <!-- Panel derecho: ticket -->
+                <div class="tpv-ticket">
+                    <div class="tpv-ticket-header">
+                        <span style="font-weight:700;font-size:0.95rem;color:var(--s-900)">Ticket</span>
+                        <button class="btn btn-sm btn-ghost" onclick="app.limpiarTPV()" style="font-size:0.75rem;color:var(--s-500)">Vaciar</button>
+                    </div>
+                    <div id="tpv-ticket-lista" class="tpv-ticket-lista"></div>
+                    <div class="tpv-totales">
+                        <div class="tpv-total-row"><span>Subtotal</span><span id="tpv-subtotal">0,00 €</span></div>
+                        <div class="tpv-total-row tpv-total-main"><span>TOTAL</span><span id="tpv-total">0,00 €</span></div>
+                    </div>
+                    <div class="tpv-cliente-row">
+                        <label style="font-size:0.78rem;color:var(--s-500);display:block;margin-bottom:4px">Cliente <span style="color:var(--s-400)">(opcional)</span></label>
+                        <select id="tpv-cliente" class="form-select form-select-sm">
+                            <option value="">— Cliente ocasional —</option>
+                        </select>
+                    </div>
+                    <div class="tpv-pago-row">
+                        <label style="font-size:0.78rem;color:var(--s-500);display:block;margin-bottom:4px">Método de pago</label>
+                        <div class="tpv-pago-btns">
+                            <button class="tpv-pago-btn active" data-metodo="efectivo" onclick="app.seleccionarPagoTPV(this)"><i data-lucide="banknote" style="width:16px;height:16px"></i>Efectivo</button>
+                            <button class="tpv-pago-btn" data-metodo="tarjeta" onclick="app.seleccionarPagoTPV(this)"><i data-lucide="credit-card" style="width:16px;height:16px"></i>Tarjeta</button>
+                        </div>
+                    </div>
+                    <div class="tpv-cobrar-row">
+                        <button type="button" id="btn-cobrar-tpv" class="tpv-cobrar-btn" onclick="app.cobrarTPV()">
+                            <i data-lucide="check-circle" style="width:20px;height:20px"></i>Cobrar
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-            </div> <!-- Close content-wrapper -->
-        </main> <!-- Close modern-main-content -->
-    </div> <!-- Close app-container -->
-
-    <script src="../js/main.js"></script>
+<script src="../js/main.js"></script>
+<script>
+    // Initialize Lucide icons after DOM and JS app are ready
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+</script>
 </body>
 </html>

@@ -36,14 +36,9 @@ function createMainWindow() {
         mainWindow = null;
     });
 
-    // Solo abrir DevTools en modo desarrollo
-    // Forzar apertura de DevTools temporalmente
-    mainWindow.webContents.openDevTools();
-    
-    // Condición original comentada temporalmente
-    // if (process.env.NODE_ENV === 'development') {
-    //     mainWindow.webContents.openDevTools();
-    // }
+    if (process.env.NODE_ENV === 'development') {
+        mainWindow.webContents.openDevTools();
+    }
 }
 
 // Crear menú de la aplicación
@@ -195,6 +190,15 @@ ipcMain.handle('get-pedidos', async () => {
     }
 });
 
+ipcMain.handle('get-detalles-pedido', async (event, pedidoId) => {
+    try {
+        return await dbManager.getDetallesPedido(pedidoId);
+    } catch (error) {
+        console.error('Error obteniendo detalles del pedido:', error);
+        throw error;
+    }
+});
+
 ipcMain.handle('get-estadisticas', async () => {
     try {
         return await dbManager.getEstadisticasGenerales();
@@ -209,6 +213,41 @@ ipcMain.handle('get-categorias', async () => {
         return await dbManager.allQuery('SELECT * FROM categorias ORDER BY nombre');
     } catch (error) {
         console.error('Error obteniendo categorías:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('crear-categoria', async (event, categoria) => {
+    try {
+        return await dbManager.runQuery(
+            'INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)',
+            [categoria.nombre, categoria.descripcion || '', categoria.icono || '🌿']
+        );
+    } catch (error) {
+        console.error('Error creando categoría:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('actualizar-categoria', async (event, id, categoria) => {
+    try {
+        return await dbManager.runQuery(
+            'UPDATE categorias SET nombre = ?, icono = ? WHERE id = ?',
+            [categoria.nombre, categoria.icono, id]
+        );
+    } catch (error) {
+        console.error('Error actualizando categoría:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('eliminar-categoria', async (event, id) => {
+    try {
+        const enUso = await dbManager.getQuery('SELECT COUNT(*) as n FROM productos WHERE categoria_id = ?', [id]);
+        if (enUso.n > 0) throw new Error('La categoría tiene productos asociados');
+        return await dbManager.runQuery('DELETE FROM categorias WHERE id = ?', [id]);
+    } catch (error) {
+        console.error('Error eliminando categoría:', error);
         throw error;
     }
 });
@@ -363,6 +402,19 @@ ipcMain.handle('crear-evento', async (event, evento) => {
         return result;
     } catch (error) {
         console.error('Error creando evento:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('actualizar-estado-pedido', async (event, id, estado) => {
+    try {
+        const result = await dbManager.runQuery(
+            `UPDATE pedidos SET estado=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+            [estado, id]
+        );
+        return result;
+    } catch (error) {
+        console.error('Error actualizando estado del pedido:', error);
         throw error;
     }
 });
@@ -541,6 +593,15 @@ ipcMain.handle('generar-orden-compra', async (event, productos) => {
         return await dbManager.generarOrdenCompra(productos);
     } catch (error) {
         console.error('Error generando orden de compra:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('crear-orden-directa', async (event, orden) => {
+    try {
+        return await dbManager.crearOrdenDirecta(orden);
+    } catch (error) {
+        console.error('Error creando orden directa:', error);
         throw error;
     }
 });
