@@ -1117,7 +1117,7 @@ class FlowerShopApp {
                         <i data-lucide="circle-help" style="width:20px;height:20px;color:var(--p-500);flex-shrink:0"></i>
                         <h3 class="modal-title-pro">${h.title}</h3>
                     </div>
-                    <button class="modal-close" aria-label="Cerrar">&times;</button>
+                    <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                 </div>
                 <div class="modal-body help-modal-body">${h.body}</div>
             </div>`;
@@ -3108,7 +3108,7 @@ class FlowerShopApp {
                                 <p class="modal-subtitle-pro">${evento.nombre}</p>
                             </div>
                         </div>
-                        <button class="modal-close" aria-label="Cerrar">&times;</button>
+                        <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-section-title"><span class="form-section-dot"></span>Registrar ajuste de stock</div>
@@ -4292,7 +4292,7 @@ class FlowerShopApp {
                 <div class="modal-content ${sizeClass}">
                     <div class="modal-header">
                         <h3 class="modal-title-pro">${title}</h3>
-                        <button class="modal-close" aria-label="Cerrar">&times;</button>
+                        <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body">
                         <p class="modal-subtitle-pro">${message}</p>
@@ -4330,7 +4330,7 @@ class FlowerShopApp {
             <div class="modal-content modal-sm">
                 <div class="modal-header">
                     <h3 class="modal-title-pro">${title}</h3>
-                    <button class="modal-close" aria-label="Cerrar">&times;</button>
+                    <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                 </div>
                 <div class="modal-body">
                     ${content}
@@ -4366,7 +4366,7 @@ class FlowerShopApp {
                 <span class="toast-message">${message}</span>
                 <div class="toast-progress"><div class="toast-bar"></div></div>
             </div>
-            <button class="toast-close" aria-label="Cerrar">×</button>
+            <button class="toast-close" aria-label="${t('common.close')}">×</button>
         `;
 
         container.appendChild(toast);
@@ -4473,7 +4473,7 @@ class FlowerShopApp {
                             <p class="modal-subtitle-pro">${isEdit ? t('inventory.supplier_edit_sub') : t('inventory.supplier_new_sub')}</p>
                         </div>
                     </div>
-                    <button class="modal-close" aria-label="Cerrar">&times;</button>
+                    <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                 </div>
                 <div class="modal-body">
                     <form id="form-proveedor" class="form">
@@ -4645,7 +4645,7 @@ class FlowerShopApp {
                             <p class="modal-subtitle-pro">${t('inventory.movement_sub')}</p>
                         </div>
                     </div>
-                    <button class="modal-close" aria-label="Cerrar">&times;</button>
+                    <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                 </div>
                 <div class="modal-body">
                     <form id="form-movimiento" class="form">
@@ -4891,7 +4891,7 @@ class FlowerShopApp {
                             <p class="modal-subtitle-pro">${isEdit ? t('inventory.order_edit_sub') : t('inventory.order_new_sub')}</p>
                         </div>
                     </div>
-                    <button class="modal-close" aria-label="Cerrar">&times;</button>
+                    <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                 </div>
                 <div class="modal-body">
                     <form id="form-orden" class="form">
@@ -5059,7 +5059,7 @@ class FlowerShopApp {
                                 <p class="modal-subtitle-pro">${window.flowerShopAPI.formatDateTime(movimiento.fecha_movimiento)}</p>
                             </div>
                         </div>
-                        <button class="modal-close" aria-label="Cerrar">&times;</button>
+                        <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
@@ -5088,7 +5088,7 @@ class FlowerShopApp {
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
+                        <button type="button" class="btn btn-secondary modal-close">${t('common.close')}</button>
                     </div>
                 </div>`;
             modal.addEventListener('click', e => { if (e.target === modal) this.closeModal(modal); });
@@ -5462,7 +5462,7 @@ class FlowerShopApp {
                     <div class="modal-content modal-sm">
                         <div class="modal-header">
                             <h3 class="modal-title-pro">Ajustar stock mínimo</h3>
-                            <button class="modal-close" aria-label="Cerrar">&times;</button>
+                            <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                         </div>
                         <div class="modal-body">
                             <div class="form-group form-group-full">
@@ -5714,7 +5714,7 @@ class FlowerShopApp {
                             <p class="modal-subtitle-pro">${t('inventory.provider_orders_title')}</p>
                         </div>
                     </div>
-                    <button class="modal-close" type="button" aria-label="Cerrar">&times;</button>
+                    <button class="modal-close" type="button" aria-label="${t('common.close')}">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="pedido-detalle-grid" style="margin-bottom:var(--sp-4)">
