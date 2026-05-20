@@ -288,6 +288,16 @@
                 registered_by: 'Registrado por', system_user: 'Sistema',
                 time_just_now: 'Ahora mismo', time_ago_prefix: 'Hace',
                 sheet_products: 'Productos', sheet_clients: 'Clientes', sheet_orders: 'Encargos',
+                generate_order_title: 'Generar Orden para Producto', order_btn: 'Ordenar',
+                alerts_ok_msg: 'Todos los productos se encuentran por encima de su stock mínimo.',
+                stock_actual_label: 'Stock actual:', stock_minimo_label: 'Stock mínimo:',
+                pdf_email: 'Email:', pdf_tel: 'Tel:', pdf_type: 'Tipo:', pdf_client_since: 'Cliente desde',
+                event_prefix: 'Evento:',
+            },
+            confirms: {
+                delete_category_confirm: '¿Eliminar "<strong>{name}</strong>"?',
+                delete_category_hint: 'Solo se puede eliminar si no tiene productos asociados.',
+                delete_supplier_confirm: '¿Seguro que quieres eliminar "<strong>{name}</strong>"?',
             },
             reports: {
                 title: 'Reportes y Análisis', subtitle: 'Métricas y estadísticas del negocio',
@@ -934,6 +944,16 @@
                 registered_by: 'Registered by', system_user: 'System',
                 time_just_now: 'Just now', time_ago_prefix: 'Ago',
                 sheet_products: 'Products', sheet_clients: 'Clients', sheet_orders: 'Orders',
+                generate_order_title: 'Generate Order for Product', order_btn: 'Order',
+                alerts_ok_msg: 'All products are above their minimum stock.',
+                stock_actual_label: 'Current stock:', stock_minimo_label: 'Minimum stock:',
+                pdf_email: 'Email:', pdf_tel: 'Phone:', pdf_type: 'Type:', pdf_client_since: 'Client since',
+                event_prefix: 'Event:',
+            },
+            confirms: {
+                delete_category_confirm: 'Delete "<strong>{name}</strong>"?',
+                delete_category_hint: 'Can only be deleted if it has no associated products.',
+                delete_supplier_confirm: 'Are you sure you want to delete "<strong>{name}</strong>"?',
             },
             reports: {
                 title: 'Reports & Analytics', subtitle: 'Business metrics and statistics',

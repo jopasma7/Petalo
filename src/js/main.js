@@ -2576,7 +2576,8 @@ class FlowerShopApp {
     }
 
     async eliminarCategoria(id, nombre) {
-        const ok = await this._confirm(t('confirms.delete_category_title'), `¿Eliminar "<strong>${nombre}</strong>"?<br><small>Solo se puede eliminar si no tiene productos asociados.</small>`, t('confirms.btn_delete'), 'btn-danger');
+        const msg = t('inventory.delete_category_confirm', {name: nombre}) + `<br><small>${t('inventory.delete_category_hint')}</small>`;
+        const ok = await this._confirm(t('confirms.delete_category_title'), msg, t('confirms.btn_delete'), 'btn-danger');
         if (!ok) return;
         try {
             await window.flowerShopAPI.eliminarCategoria(id);
@@ -2882,10 +2883,10 @@ class FlowerShopApp {
             doc.setFontSize(8.5);
             doc.setTextColor(...C.bodyText);
             const filaInfo = [
-                cliente.email        ? `Email: ${cliente.email}`        : null,
-                cliente.telefono     ? `Tel: ${cliente.telefono}`       : null,
-                cliente.tipo_cliente ? `Tipo: ${cliente.tipo_cliente.charAt(0).toUpperCase() + cliente.tipo_cliente.slice(1)}` : null,
-                cliente.created_at   ? `Cliente desde ${new Date(cliente.created_at).getFullYear()}` : null,
+                cliente.email        ? `${t('inventory.pdf_email')} ${cliente.email}`        : null,
+                cliente.telefono     ? `${t('inventory.pdf_tel')} ${cliente.telefono}`       : null,
+                cliente.tipo_cliente ? `${t('inventory.pdf_type')} ${cliente.tipo_cliente.charAt(0).toUpperCase() + cliente.tipo_cliente.slice(1)}` : null,
+                cliente.created_at   ? `${t('inventory.pdf_client_since')} ${new Date(cliente.created_at).getFullYear()}` : null,
             ].filter(Boolean);
             filaInfo.forEach((txt, i) => {
                 doc.text(txt, 22, y + 17 + i * 6);
@@ -3136,7 +3137,7 @@ class FlowerShopApp {
                         <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-section-title"><span class="form-section-dot"></span>Registrar ajuste de stock</div>
+                        <div class="form-section-title"><span class="form-section-dot"></span>${t('inventory.stock_adjust')}</div>
                         <div class="pedido-form-grid" style="margin-bottom:var(--sp-4)">
                             <div class="form-group">
                                 <label>${t('common.product')}</label>
@@ -3173,7 +3174,7 @@ class FlowerShopApp {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary modal-close">${t('common.cancel')}</button>
-                        <button type="button" class="btn btn-primary" id="btn-confirmar-evento-stock">Registrar Movimiento</button>
+                        <button type="button" class="btn btn-primary" id="btn-confirmar-evento-stock">${t('inventory.btn_register_movement')}</button>
                     </div>
                 </div>
             `;
@@ -3186,7 +3187,7 @@ class FlowerShopApp {
                 const productoId = parseInt(selectEl.value);
                 const tipo = modal.querySelector('#evento-stock-tipo').value;
                 const cantidad = parseInt(modal.querySelector('#evento-stock-cantidad').value);
-                const motivo = modal.querySelector('#evento-stock-notas').value || `Evento: ${evento.nombre}`;
+                const motivo = modal.querySelector('#evento-stock-notas').value || `${t('inventory.event_prefix')} ${evento.nombre}`;
                 const stockActual = parseInt(selectEl.selectedOptions[0]?.dataset.stock || 0);
                 const stockNuevo = tipo === 'entrada' ? stockActual + cantidad : stockActual - cantidad;
                 if (!productoId || !cantidad || cantidad < 1) {
@@ -4801,7 +4802,7 @@ class FlowerShopApp {
             // Confirmar eliminación
             const ok = await this._confirm(
                 t('confirms.delete_supplier_title'),
-                `¿Seguro que quieres eliminar "<strong>${proveedor.nombre}</strong>"?<br><br>${t('confirms.delete_supplier')}`
+                `${t('inventory.delete_supplier_confirm', {name: proveedor.nombre})}<br><br>${t('confirms.delete_supplier')}`
             );
             if (ok) {
                 await window.flowerShopAPI.eliminarProveedor(id);
@@ -5145,7 +5146,7 @@ class FlowerShopApp {
             modal.innerHTML = `
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2>📋 Generar Orden para Producto</h2>
+                        <h2>📋 ${t('inventory.generate_order_title')}</h2>
                         <span class="close" onclick="this.closest('.modal').style.display='none'">&times;</span>
                     </div>
                     <div class="modal-body">
@@ -5274,8 +5275,8 @@ class FlowerShopApp {
             grid.innerHTML = `
                 <div class="inv-empty-state">
                     <div class="inv-empty-icon"><i data-lucide="shield-check"></i></div>
-                    <h3>Inventario bajo control</h3>
-                    <p>Todos los productos se encuentran por encima de su stock mínimo.</p>
+                    <h3>${t('inventory.alerts_empty_title')}</h3>
+                    <p>${t('inventory.alerts_ok_msg')}</p>
                 </div>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
@@ -5288,11 +5289,11 @@ class FlowerShopApp {
                     <span class="alert-level">${alerta.nivel.toUpperCase()}</span>
                 </div>
                 <h4>${alerta.producto_nombre}</h4>
-                <p>Stock actual: <strong>${alerta.stock_actual}</strong></p>
-                <p>Stock mínimo: <strong>${alerta.stock_minimo}</strong></p>
+                <p>${t('inventory.stock_actual_label')} <strong>${alerta.stock_actual}</strong></p>
+                <p>${t('inventory.stock_minimo_label')} <strong>${alerta.stock_minimo}</strong></p>
                 <div class="alert-actions">
                     <button class="btn btn-sm btn-primary" onclick="app.generarOrdenProducto(${alerta.producto_id})">
-                        🛒 Ordenar
+                        🛒 ${t('inventory.order_btn')}
                     </button>
                 </div>
             </div>
@@ -5491,7 +5492,7 @@ class FlowerShopApp {
                         </div>
                         <div class="modal-body">
                             <div class="form-group form-group-full">
-                                <p class="modal-subtitle-pro">Producto: <strong>${producto.nombre}</strong></p>
+                                <p class="modal-subtitle-pro">${t('common.product')}: <strong>${producto.nombre}</strong></p>
                                 <label class="form-label">${t('inventory.stock_adjustment_new')}</label>
                                 <input id="_stock-min-input" type="number" min="0" value="${currentMin}" class="form-input">
                             </div>
