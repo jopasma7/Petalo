@@ -29,6 +29,9 @@
                 client: 'Cliente', product: 'Producto', supplier: 'Proveedor',
                 optional_hint: 'Opcional…', out_of_stock: 'Agotado', min_label: 'Mín:',
                 unnamed_client: 'Cliente', all_categories: 'Todas las categorías',
+                select_category: 'Seleccionar categoría…', select_product: 'Seleccionar producto…',
+                select_client: 'Seleccionar cliente…', select_supplier: 'Seleccionar proveedor…',
+                avg_days: 'días promedio', days: 'días', btn_edit: 'Editar', btn_delete: 'Eliminar',
             },
             nav: {
                 principal: 'Principal', gestion: 'Gestión', analisis: 'Análisis',
@@ -254,6 +257,7 @@
                 export_col_type: 'Tipo', export_col_id: 'ID', export_col_date: 'Fecha',
                 export_col_delivery: 'Fecha Entrega', export_col_status: 'Estado', export_col_total: 'Total (€)',
                 supplier_card_city: 'Ciudad', supplier_stat_products: 'Productos', supplier_stat_avg_order: 'Promedio orden',
+                movement_exit_event: 'Salida (reservar para evento)', movement_entry_return: 'Entrada (devolución)',
             },
             reports: {
                 title: 'Reportes y Análisis', subtitle: 'Métricas y estadísticas del negocio',
@@ -635,6 +639,9 @@
                 client: 'Client', product: 'Product', supplier: 'Supplier',
                 optional_hint: 'Optional…', out_of_stock: 'Out of stock', min_label: 'Min:',
                 unnamed_client: 'Client', all_categories: 'All categories',
+                select_category: 'Select category…', select_product: 'Select product…',
+                select_client: 'Select client…', select_supplier: 'Select supplier…',
+                avg_days: 'average days', days: 'days', btn_edit: 'Edit', btn_delete: 'Delete',
             },
             nav: {
                 principal: 'Main', gestion: 'Management', analisis: 'Analytics',
@@ -860,6 +867,7 @@
                 export_col_type: 'Type', export_col_id: 'ID', export_col_date: 'Date',
                 export_col_delivery: 'Delivery Date', export_col_status: 'Status', export_col_total: 'Total (€)',
                 supplier_card_city: 'City', supplier_stat_products: 'Products', supplier_stat_avg_order: 'Average order',
+                movement_exit_event: 'Exit (reserve for event)', movement_entry_return: 'Entry (return)',
             },
             reports: {
                 title: 'Reports & Analytics', subtitle: 'Business metrics and statistics',

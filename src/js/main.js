@@ -966,7 +966,7 @@ class FlowerShopApp {
             }
 
             const trendRotacion = document.getElementById('trend-rotacion');
-            if (trendRotacion) trendRotacion.textContent = 'días promedio';
+            if (trendRotacion) trendRotacion.textContent = t('common.avg_days');
 
             // Gráfico y lista — siempre datos reales
             if (analisisData) {
@@ -1048,7 +1048,7 @@ class FlowerShopApp {
                     <div class="ranking-title">${producto.nombre}</div>
                     <div class="ranking-subtitle">Stock: ${producto.stock_actual} unidades</div>
                 </div>
-                <div class="ranking-value">${Math.floor(Math.random() * 30) + 10} días</div>
+                <div class="ranking-value">${Math.floor(Math.random() * 30) + 10} ${t('common.days')}</div>
             </div>
         `).join('');
     }
@@ -2481,10 +2481,10 @@ class FlowerShopApp {
                 <span class="cat-item-icono">${c.icono || '🌿'}</span>
                 <span class="cat-item-nombre">${c.nombre}</span>
                 <div class="cat-item-actions">
-                    <button class="btn btn-sm btn-ghost" title="Editar" onclick="app.editarCategoria(${c.id}, '${(c.icono||'🌿')}', '${c.nombre.replace(/'/g, "\\'")}')">
+                    <button class="btn btn-sm btn-ghost" title="${t('common.btn_edit')}" onclick="app.editarCategoria(${c.id}, '${(c.icono||'🌿')}', '${c.nombre.replace(/'/g, "\\'")}')">
                         <i data-lucide="pencil" style="width:14px;height:14px"></i>
                     </button>
-                    <button class="btn btn-sm btn-ghost" style="color:var(--error)" title="Eliminar" onclick="app.eliminarCategoria(${c.id}, '${c.nombre.replace(/'/g, "\\'")}')">
+                    <button class="btn btn-sm btn-ghost" style="color:var(--error)" title="${t('common.btn_delete')}" onclick="app.eliminarCategoria(${c.id}, '${c.nombre.replace(/'/g, "\\'")}')">
                         <i data-lucide="trash-2" style="width:14px;height:14px"></i>
                     </button>
                 </div>
@@ -2585,7 +2585,7 @@ class FlowerShopApp {
         if (!sel) return;
         const categorias = await window.flowerShopAPI.getCategorias();
         const val = sel.value;
-        sel.innerHTML = '<option value="">Seleccionar categoría…</option>' +
+        sel.innerHTML = `<option value="">${t('common.select_category')}</option>` +
             categorias.map(c => `<option value="${c.id}">${c.icono || ''} ${c.nombre}</option>`).join('');
         sel.value = val;
     }
@@ -3133,15 +3133,15 @@ class FlowerShopApp {
                             <div class="form-group">
                                 <label>${t('common.product')}</label>
                                 <select id="evento-stock-producto" class="form-select">
-                                    <option value="">Seleccionar producto…</option>
+                                    <option value="">${t('common.select_product')}</option>
                                     ${productos.map(p => `<option value="${p.id}" data-stock="${p.stock_actual}" data-unidad="${p.unidad_medida}">${p.nombre} (${p.stock_actual} ${p.unidad_medida})</option>`).join('')}
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label>${t('inventory.movement_type_label')}</label>
                                 <select id="evento-stock-tipo" class="form-select">
-                                    <option value="salida">Salida (reservar para evento)</option>
-                                    <option value="entrada">Entrada (devolución)</option>
+                                    <option value="salida">${t('inventory.movement_exit_event')}</option>
+                                    <option value="entrada">${t('inventory.movement_entry_return')}</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -3524,7 +3524,7 @@ class FlowerShopApp {
             const extra = c.telefono ? ` — ${c.telefono.trim()}` : '';
             return `<option value="${c.id}">${nombre}${extra}</option>`;
         }).join('');
-        select.innerHTML = '<option value="">Seleccionar cliente…</option>' + opciones;
+        select.innerHTML = `<option value="">${t('common.select_client')}</option>` + opciones;
     }
 
     async cargarProductosEnPedido() {
@@ -5580,12 +5580,12 @@ class FlowerShopApp {
                     <div class="form-group">
                         <label class="form-label">${t('common.supplier')}</label>
                         <select id="_orden-proveedor-sel" class="form-select">
-                            <option value="">Seleccionar proveedor…</option>
+                            <option value="">${t('common.select_supplier')}</option>
                             ${proveedores.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Cantidad</label>
+                        <label class="form-label">${t('common.quantity')}</label>
                         <input type="number" id="_orden-cantidad-inp" class="form-input" value="${cantidad}" min="1">
                     </div>
                 </div>
