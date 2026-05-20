@@ -22,10 +22,10 @@
     <div class="fab-container">
         <button class="fab main-fab" id="main-fab"><i data-lucide="plus"></i></button>
         <div class="fab-menu" id="fab-menu">
-            <button class="fab fab-secondary" data-action="nuevo-producto" title="Nuevo Producto"><i data-lucide="box"></i></button>
-            <button class="fab fab-secondary" data-action="nuevo-cliente"  title="Nuevo Cliente"><i data-lucide="user-plus"></i></button>
-            <button class="fab fab-secondary" data-action="nuevo-evento"   title="Nuevo Evento"><i data-lucide="calendar-plus"></i></button>
-            <button class="fab fab-secondary" data-action="nuevo-pedido"   title="Nuevo Encargo"><i data-lucide="clipboard-list"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-producto" data-i18n-title="products.new"><i data-lucide="box"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-cliente"  data-i18n-title="clients.new"><i data-lucide="user-plus"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-evento"   data-i18n-title="events.new"><i data-lucide="calendar-plus"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-pedido"   data-i18n-title="orders.new"><i data-lucide="clipboard-list"></i></button>
         </div>
     </div>
 
@@ -36,18 +36,18 @@
                 <div class="logo-icon">✿</div>
                 <div class="logo-text">
                     <span class="brand-name">Pétalo</span>
-                    <span class="brand-subtitle">Gestión Floral</span>
+                    <span class="brand-subtitle" data-i18n="common.brand_subtitle"></span>
                 </div>
             </div>
         </div>
 
         <div class="nav-right">
             <div class="nav-actions">
-                <button class="nav-action-btn" title="Notificaciones">
+                <button class="nav-action-btn" data-i18n-title="nav.notifications">
                     <i data-lucide="bell"></i>
                     <span class="badge" id="badge-notificaciones" style="display:none;"></span>
                 </button>
-                <button class="nav-action-btn" title="Configuración">
+                <button class="nav-action-btn" data-i18n-title="nav.config">
                     <i data-lucide="settings"></i>
                 </button>
                 <div class="user-menu">
@@ -63,49 +63,49 @@
         <div class="sidebar-content">
             <div class="nav-sections">
                 <div class="nav-section">
-                    <h3 class="section-title">Principal</h3>
+                    <h3 class="section-title" data-i18n="nav.principal"></h3>
                     <nav class="nav-links">
                         <a href="#" class="nav-link active" data-section="dashboard">
                             <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
-                            <span class="nav-text">Dashboard</span>
+                            <span class="nav-text" data-i18n="nav.dashboard"></span>
                         </a>
                     </nav>
                 </div>
                 <div class="nav-section">
-                    <h3 class="section-title">Gestión</h3>
+                    <h3 class="section-title" data-i18n="nav.gestion"></h3>
                     <nav class="nav-links">
                         <a href="#" class="nav-link" data-section="productos">
                             <span class="nav-icon"><i data-lucide="box"></i></span>
-                            <span class="nav-text">Productos</span>
+                            <span class="nav-text" data-i18n="nav.products"></span>
                             <span class="nav-badge" id="badge-productos"></span>
                         </a>
                         <a href="#" class="nav-link" data-section="clientes">
                             <span class="nav-icon"><i data-lucide="users"></i></span>
-                            <span class="nav-text">Clientes</span>
+                            <span class="nav-text" data-i18n="nav.clients"></span>
                             <span class="nav-badge" id="badge-clientes"></span>
                         </a>
                         <a href="#" class="nav-link" data-section="eventos">
                             <span class="nav-icon"><i data-lucide="calendar"></i></span>
-                            <span class="nav-text">Eventos</span>
+                            <span class="nav-text" data-i18n="nav.events"></span>
                             <span class="nav-badge" id="badge-eventos"></span>
                         </a>
                         <a href="#" class="nav-link" data-section="pedidos">
                             <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
-                            <span class="nav-text">Encargos</span>
+                            <span class="nav-text" data-i18n="nav.orders"></span>
                             <span class="nav-badge" id="badge-pedidos"></span>
                         </a>
                     </nav>
                 </div>
                 <div class="nav-section">
-                    <h3 class="section-title">Análisis</h3>
+                    <h3 class="section-title" data-i18n="nav.analisis"></h3>
                     <nav class="nav-links">
                         <a href="#" class="nav-link" data-section="inventario">
                             <span class="nav-icon"><i data-lucide="archive"></i></span>
-                            <span class="nav-text">Inventario</span>
+                            <span class="nav-text" data-i18n="nav.inventory"></span>
                         </a>
                         <a href="#" class="nav-link" data-section="reportes">
                             <span class="nav-icon"><i data-lucide="bar-chart-2"></i></span>
-                            <span class="nav-text">Reportes</span>
+                            <span class="nav-text" data-i18n="nav.reports"></span>
                         </a>
                     </nav>
                 </div>
@@ -113,21 +113,21 @@
             <div class="sidebar-tpv-wrap">
                 <button class="sidebar-tpv-btn" onclick="app.ventaRapida()">
                     <i data-lucide="zap" style="width:18px;height:18px"></i>
-                    <span>Venta Rápida</span>
+                    <span data-i18n="nav.quick_sale"></span>
                 </button>
             </div>
             <div class="sidebar-footer">
                 <div class="quick-stats">
                     <div class="stat-item">
-                        <span class="stat-label">Ventas Hoy</span>
+                        <span class="stat-label" data-i18n="sidebar.sales_today"></span>
                         <span class="stat-value" id="sidebar-ventas-hoy">—</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Stock Bajo</span>
+                        <span class="stat-label" data-i18n="sidebar.low_stock"></span>
                         <span class="stat-value warning" id="sidebar-stock-bajo">—</span>
                     </div>
                     <div class="stat-item stat-item-link" id="sidebar-entregas-hoy-item" onclick="app._irEntregasHoy()">
-                        <span class="stat-label">Entregas Hoy</span>
+                        <span class="stat-label" data-i18n="sidebar.deliveries_today"></span>
                         <span class="stat-value" id="sidebar-entregas-hoy">—</span>
                     </div>
                 </div>
@@ -147,33 +147,33 @@
                     <div class="stat-card warning dashboard-link" data-section="pedidos">
                         <div class="stat-icon"><i data-lucide="clock"></i></div>
                         <div class="stat-content">
-                            <h3>Encargos Pendientes</h3>
+                            <h3 data-i18n="dashboard.pending_orders"></h3>
                             <div class="stat-number" id="pedidos-pendientes">0</div>
-                            <div class="stat-sub" id="dash-pedidos-hoy">0 para hoy</div>
+                            <div class="stat-sub" id="dash-pedidos-hoy"></div>
                         </div>
                     </div>
                     <div class="stat-card primary dashboard-link" data-section="pedidos">
                         <div class="stat-icon"><i data-lucide="trending-up"></i></div>
                         <div class="stat-content">
-                            <h3>Ventas del Mes</h3>
+                            <h3 data-i18n="dashboard.monthly_sales"></h3>
                             <div class="stat-number" id="ventas-mes">0,00 €</div>
-                            <div class="stat-sub" id="dash-ventas-sub">este mes</div>
+                            <div class="stat-sub" id="dash-ventas-sub" data-i18n="dashboard.this_month"></div>
                         </div>
                     </div>
                     <div class="stat-card success dashboard-link" data-section="clientes">
                         <div class="stat-icon"><i data-lucide="users"></i></div>
                         <div class="stat-content">
-                            <h3>Total Clientes</h3>
+                            <h3 data-i18n="dashboard.total_clients"></h3>
                             <div class="stat-number" id="total-clientes">0</div>
-                            <div class="stat-sub" id="dash-clientes-sub">registrados</div>
+                            <div class="stat-sub" id="dash-clientes-sub" data-i18n="dashboard.registered"></div>
                         </div>
                     </div>
                     <div class="stat-card primary dashboard-link" data-section="inventario">
                         <div class="stat-icon"><i data-lucide="alert-triangle"></i></div>
                         <div class="stat-content">
-                            <h3>Alertas Stock</h3>
+                            <h3 data-i18n="dashboard.stock_alerts"></h3>
                             <div class="stat-number" id="total-productos">0</div>
-                            <div class="stat-sub">productos bajos</div>
+                            <div class="stat-sub" data-i18n="dashboard.low_products"></div>
                         </div>
                     </div>
                 </div>
@@ -186,10 +186,10 @@
                         <div class="card">
                             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
                                 <div>
-                                    <h3 class="card-title">Encargos de hoy</h3>
-                                    <p class="card-subtitle">Entregas aprobadas programadas para hoy</p>
+                                    <h3 class="card-title" data-i18n="dashboard.orders_today"></h3>
+                                    <p class="card-subtitle" data-i18n="dashboard.orders_today_sub"></p>
                                 </div>
-                                <button class="btn btn-sm btn-secondary" onclick="app.showSection('pedidos')">Ver todos</button>
+                                <button class="btn btn-sm btn-secondary" onclick="app.showSection('pedidos')" data-i18n="common.see_all"></button>
                             </div>
                             <div class="card-body" style="padding:0">
                                 <div id="dash-pedidos-hoy-lista"></div>
@@ -199,34 +199,34 @@
                         <!-- Acciones rápidas -->
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title">Acciones rápidas</h3>
-                                <p class="card-subtitle">Tareas frecuentes del día</p>
+                                <h3 class="card-title" data-i18n="dashboard.quick_actions"></h3>
+                                <p class="card-subtitle" data-i18n="dashboard.quick_actions_sub"></p>
                             </div>
                             <div class="card-body">
                                 <div class="dash-quick-actions">
                                     <button class="dash-quick-btn dash-quick-btn--primary" onclick="app.ventaRapida()">
                                         <div class="dash-quick-icon" style="background:#dcfce7"><i data-lucide="zap" style="color:#16a34a"></i></div>
-                                        <span>Venta Rápida</span>
+                                        <span data-i18n="dashboard.quick_sale"></span>
                                     </button>
                                     <button class="dash-quick-btn" onclick="app.nuevoPedido()">
                                         <div class="dash-quick-icon" style="background:#f3e8ff"><i data-lucide="clipboard-list" style="color:#7c3aed"></i></div>
-                                        <span>Nuevo Encargo</span>
+                                        <span data-i18n="dashboard.new_order"></span>
                                     </button>
                                     <button class="dash-quick-btn" onclick="app.nuevoCliente()">
                                         <div class="dash-quick-icon" style="background:#dbeafe"><i data-lucide="user-plus" style="color:#1d4ed8"></i></div>
-                                        <span>Nuevo Cliente</span>
+                                        <span data-i18n="dashboard.new_client"></span>
                                     </button>
                                     <button class="dash-quick-btn" onclick="app.showSection('inventario')">
                                         <div class="dash-quick-icon" style="background:#fef3c7"><i data-lucide="package" style="color:#d97706"></i></div>
-                                        <span>Ver Inventario</span>
+                                        <span data-i18n="dashboard.see_inventory"></span>
                                     </button>
                                     <button class="dash-quick-btn" onclick="app.nuevoEvento()">
                                         <div class="dash-quick-icon" style="background:#fce7f3"><i data-lucide="calendar-plus" style="color:#be185d"></i></div>
-                                        <span>Nuevo Evento</span>
+                                        <span data-i18n="dashboard.new_event"></span>
                                     </button>
                                     <button class="dash-quick-btn" onclick="app.showSection('reportes')">
                                         <div class="dash-quick-icon" style="background:#f0fdf4"><i data-lucide="bar-chart-2" style="color:#15803d"></i></div>
-                                        <span>Ver Reportes</span>
+                                        <span data-i18n="dashboard.see_reports"></span>
                                     </button>
                                 </div>
                             </div>
@@ -238,8 +238,8 @@
                         <!-- Alertas urgentes -->
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title">Alertas</h3>
-                                <p class="card-subtitle">Requieren atención</p>
+                                <h3 class="card-title" data-i18n="dashboard.alerts"></h3>
+                                <p class="card-subtitle" data-i18n="dashboard.alerts_sub"></p>
                             </div>
                             <div class="card-body" style="padding:0">
                                 <div id="dash-alertas-lista"></div>
@@ -249,7 +249,7 @@
                         <!-- Próximos eventos -->
                         <div class="card">
                             <div class="card-header">
-                                <h3 class="card-title">Próximos Eventos</h3>
+                                <h3 class="card-title" data-i18n="dashboard.upcoming_events"></h3>
                                 <p class="card-subtitle" id="proximos-eventos-sub">—</p>
                             </div>
                             <div class="card-body" style="padding:0">
@@ -267,34 +267,34 @@
                     <div class="page-header-left">
                         <div class="page-header-icon"><i data-lucide="box"></i></div>
                         <div class="page-header-title">
-                            <h2>Productos</h2>
-                            <p class="page-subtitle">Catálogo completo de flores y artículos</p>
+                            <h2 data-i18n="products.title"></h2>
+                            <p class="page-subtitle" data-i18n="products.subtitle"></p>
                         </div>
                     </div>
                     <div class="page-header-actions">
-                        <input type="text" id="search-productos" placeholder="Buscar productos…" class="form-input search-input">
+                        <input type="text" id="search-productos" data-i18n-placeholder="products.search" class="form-input search-input">
                         <select id="filter-categoria" class="form-select">
-                            <option value="">Todas las categorías</option>
+                            <option value="" data-i18n="products.all_categories"></option>
                         </select>
-                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('productos')"><i data-lucide="circle-help"></i></button>
-                        <button id="btn-nuevo-producto" class="btn btn-primary">Nuevo Producto</button>
+                        <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('productos')"><i data-lucide="circle-help"></i></button>
+                        <button id="btn-nuevo-producto" class="btn btn-primary" data-i18n="products.new"></button>
                     </div>
                 </div>
                 <div class="table-container">
                     <table class="table" id="productos-table">
                         <thead>
                             <tr>
-                                <th>Código</th>
-                                <th>Nombre</th>
-                                <th>Categoría</th>
-                                <th>Stock</th>
-                                <th>Precio Venta</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
+                                <th data-i18n="products.col_code"></th>
+                                <th data-i18n="products.col_name"></th>
+                                <th data-i18n="products.col_category"></th>
+                                <th data-i18n="products.col_stock"></th>
+                                <th data-i18n="products.col_price"></th>
+                                <th data-i18n="products.col_status"></th>
+                                <th data-i18n="products.col_actions"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="7" class="text-center">Cargando productos…</td></tr>
+                            <tr><td colspan="7" class="text-center" data-i18n="products.loading"></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -306,18 +306,18 @@
                     <div class="page-header-left">
                         <div class="page-header-icon"><i data-lucide="users"></i></div>
                         <div class="page-header-title">
-                            <h2>Clientes</h2>
-                            <p class="page-subtitle">Directorio y fidelización de clientes</p>
+                            <h2 data-i18n="clients.title"></h2>
+                            <p class="page-subtitle" data-i18n="clients.subtitle"></p>
                         </div>
                     </div>
                     <div class="page-header-actions">
-                        <input type="text" id="search-clientes" placeholder="Buscar clientes…" class="form-input search-input">
-                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('clientes')"><i data-lucide="circle-help"></i></button>
-                        <button id="btn-nuevo-cliente" class="btn btn-primary">Nuevo Cliente</button>
+                        <input type="text" id="search-clientes" data-i18n-placeholder="clients.search" class="form-input search-input">
+                        <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('clientes')"><i data-lucide="circle-help"></i></button>
+                        <button id="btn-nuevo-cliente" class="btn btn-primary" data-i18n="clients.new"></button>
                     </div>
                 </div>
                 <div id="clientes-grid" class="clientes-grid">
-                    <p class="no-data">Cargando clientes…</p>
+                    <p class="no-data" data-i18n="clients.loading"></p>
                 </div>
             </section>
 
@@ -327,17 +327,17 @@
                     <div class="page-header-left">
                         <div class="page-header-icon"><i data-lucide="calendar"></i></div>
                         <div class="page-header-title">
-                            <h2>Eventos</h2>
-                            <p class="page-subtitle">Planificación y gestión de eventos especiales</p>
+                            <h2 data-i18n="events.title"></h2>
+                            <p class="page-subtitle" data-i18n="events.subtitle"></p>
                         </div>
                     </div>
                     <div class="page-header-actions">
-                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('eventos')"><i data-lucide="circle-help"></i></button>
-                        <button id="btn-nuevo-evento" class="btn btn-primary">Nuevo Evento</button>
+                        <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('eventos')"><i data-lucide="circle-help"></i></button>
+                        <button id="btn-nuevo-evento" class="btn btn-primary" data-i18n="events.new"></button>
                     </div>
                 </div>
                 <div class="eventos-grid" id="eventos-grid">
-                    <p class="no-data">Cargando eventos…</p>
+                    <p class="no-data" data-i18n="events.loading"></p>
                 </div>
             </section>
 
@@ -347,31 +347,28 @@
                     <div class="page-header-left">
                         <div class="page-header-icon"><i data-lucide="clipboard-list"></i></div>
                         <div class="page-header-title">
-                            <h2>Encargos</h2>
-                            <p class="page-subtitle">Encargos especiales y entregas programadas</p>
+                            <h2 data-i18n="orders.title"></h2>
+                            <p class="page-subtitle" data-i18n="orders.subtitle"></p>
                         </div>
                     </div>
                     <div class="page-header-actions">
-                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('encargos')"><i data-lucide="circle-help"></i></button>
-                        <button id="btn-nuevo-pedido-section" class="btn btn-primary">Nuevo Encargo</button>
+                        <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('encargos')"><i data-lucide="circle-help"></i></button>
+                        <button id="btn-nuevo-pedido-section" class="btn btn-primary" data-i18n="orders.new"></button>
                     </div>
                 </div>
                 <div class="pedidos-tabs">
-                    <button class="pedidos-tab active" data-tab-estado="pendiente">
-                        Pendientes
+                    <button class="pedidos-tab active" data-tab-estado="pendiente" data-i18n="orders.tab_pending">
                         <span class="pedidos-tab-count" id="tab-count-pendiente">0</span>
                     </button>
-                    <button class="pedidos-tab" data-tab-estado="aprobado">
-                        Aprobados
+                    <button class="pedidos-tab" data-tab-estado="aprobado" data-i18n="orders.tab_approved">
                         <span class="pedidos-tab-count" id="tab-count-aprobado">0</span>
                     </button>
-                    <button class="pedidos-tab" data-tab-estado="cancelado">
-                        Cancelados
+                    <button class="pedidos-tab" data-tab-estado="cancelado" data-i18n="orders.tab_cancelled">
                         <span class="pedidos-tab-count" id="tab-count-cancelado">0</span>
                     </button>
                 </div>
                 <div id="pedidos-feed" class="pedidos-feed">
-                    <p class="no-data">Cargando encargos…</p>
+                    <p class="no-data" data-i18n="orders.loading"></p>
                 </div>
             </section>
 
@@ -379,12 +376,12 @@
             <section id="inventario-section" class="content-section" style="display:none;">
 
                 <div class="inventory-tabs">
-                    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-                    <button class="tab-btn" data-tab="alertas">Alertas</button>
-                    <button class="tab-btn" data-tab="prediccion">Predicción</button>
-                    <button class="tab-btn" data-tab="proveedores">Proveedores</button>
-                    <button class="tab-btn" data-tab="ordenes">Órdenes</button>
-                    <button class="tab-btn" data-tab="movimientos">Movimientos</button>
+                    <button class="tab-btn active" data-tab="dashboard" data-i18n="inventory.tab_dashboard"></button>
+                    <button class="tab-btn" data-tab="alertas" data-i18n="inventory.tab_alerts"></button>
+                    <button class="tab-btn" data-tab="prediccion" data-i18n="inventory.tab_prediction"></button>
+                    <button class="tab-btn" data-tab="proveedores" data-i18n="inventory.tab_suppliers"></button>
+                    <button class="tab-btn" data-tab="ordenes" data-i18n="inventory.tab_orders"></button>
+                    <button class="tab-btn" data-tab="movimientos" data-i18n="inventory.tab_movements"></button>
                 </div>
 
                 <!-- Tab Dashboard -->
@@ -457,23 +454,23 @@
                         <div class="page-header-left">
                             <div class="page-header-icon icon-red"><i data-lucide="alert-triangle"></i></div>
                             <div class="page-header-title">
-                                <h2>Alertas de Stock</h2>
-                                <p class="page-subtitle">Productos que requieren reposición urgente</p>
+                                <h2 data-i18n="inventory.alerts_title"></h2>
+                                <p class="page-subtitle" data-i18n="inventory.alerts_subtitle"></p>
                             </div>
                         </div>
                         <div class="page-header-actions">
-                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('alertas')"><i data-lucide="circle-help"></i></button>
+                            <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('alertas')"><i data-lucide="circle-help"></i></button>
                             <select id="filter-nivel-alerta" class="form-select">
-                                <option value="">Todos los niveles</option>
-                                <option value="sin_stock">Sin Stock</option>
-                                <option value="critico">Crítico</option>
-                                <option value="bajo">Bajo</option>
+                                <option value="" data-i18n="inventory.all_levels"></option>
+                                <option value="sin_stock" data-i18n="inventory.no_stock"></option>
+                                <option value="critico" data-i18n="inventory.critical"></option>
+                                <option value="bajo" data-i18n="inventory.low"></option>
                             </select>
-                            <button class="btn btn-primary" id="btn-generar-orden-auto">Generar Orden</button>
+                            <button class="btn btn-primary" id="btn-generar-orden-auto" data-i18n="inventory.generate_order"></button>
                         </div>
                     </div>
                     <div class="alerts-grid" id="alertas-stock-grid">
-                        <div class="no-data">Cargando alertas de stock…</div>
+                        <div class="no-data" data-i18n="inventory.loading"></div>
                     </div>
                 </div>
 
@@ -483,12 +480,12 @@
                         <div class="page-header-left">
                             <div class="page-header-icon"><i data-lucide="trending-up"></i></div>
                             <div class="page-header-title">
-                                <h2>Predicción de Demanda</h2>
-                                <p class="page-subtitle">Análisis predictivo de ventas futuras</p>
+                                <h2 data-i18n="inventory.prediction_title"></h2>
+                                <p class="page-subtitle" data-i18n="inventory.prediction_subtitle"></p>
                             </div>
                         </div>
                         <div class="page-header-actions">
-                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('prediccion')"><i data-lucide="circle-help"></i></button>
+                            <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('prediccion')"><i data-lucide="circle-help"></i></button>
                         </div>
                     </div>
                     <div class="prediction-content">
@@ -499,15 +496,15 @@
                             <table class="table" id="prediction-table">
                                 <thead>
                                     <tr>
-                                        <th>Producto</th>
-                                        <th>Stock Actual</th>
-                                        <th>Demanda Prevista</th>
-                                        <th>Stock Proyectado</th>
-                                        <th>Acción</th>
+                                        <th data-i18n="inventory.col_product"></th>
+                                        <th data-i18n="inventory.col_current_stock"></th>
+                                        <th data-i18n="inventory.col_predicted"></th>
+                                        <th data-i18n="inventory.col_projected"></th>
+                                        <th data-i18n="inventory.col_action"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td colspan="5" class="text-center">Cargando predicciones…</td></tr>
+                                    <tr><td colspan="5" class="text-center" data-i18n="inventory.loading"></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -520,13 +517,13 @@
                         <div class="page-header-left">
                             <div class="page-header-icon"><i data-lucide="building-2"></i></div>
                             <div class="page-header-title">
-                                <h2>Proveedores</h2>
-                                <p class="page-subtitle">Gestión de proveedores y contactos</p>
+                                <h2 data-i18n="inventory.suppliers_title"></h2>
+                                <p class="page-subtitle" data-i18n="inventory.suppliers_subtitle"></p>
                             </div>
                         </div>
                         <div class="page-header-actions">
-                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('proveedores')"><i data-lucide="circle-help"></i></button>
-                            <button class="btn btn-primary" onclick="app.nuevoProveedor()">Nuevo Proveedor</button>
+                            <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('proveedores')"><i data-lucide="circle-help"></i></button>
+                            <button class="btn btn-primary" onclick="app.nuevoProveedor()" data-i18n="inventory.new_supplier"></button>
                         </div>
                     </div>
                     <div class="providers-grid" id="proveedores-grid">
@@ -540,37 +537,37 @@
                         <div class="page-header-left">
                             <div class="page-header-icon"><i data-lucide="file-text"></i></div>
                             <div class="page-header-title">
-                                <h2>Órdenes de Compra</h2>
-                                <p class="page-subtitle">Historial y control de compras a proveedores</p>
+                                <h2 data-i18n="inventory.orders_title"></h2>
+                                <p class="page-subtitle" data-i18n="inventory.orders_subtitle"></p>
                             </div>
                         </div>
                         <div class="page-header-actions">
-                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('ordenes')"><i data-lucide="circle-help"></i></button>
+                            <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('ordenes')"><i data-lucide="circle-help"></i></button>
                             <select id="filter-estado-orden" class="form-select">
-                                <option value="">Todos los estados</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="enviada">Enviada</option>
-                                <option value="recibida">Recibida</option>
-                                <option value="cancelada">Cancelada</option>
+                                <option value="" data-i18n="inventory.all_statuses"></option>
+                                <option value="pendiente" data-i18n="inventory.status_pending"></option>
+                                <option value="enviada" data-i18n="inventory.status_sent"></option>
+                                <option value="recibida" data-i18n="inventory.status_received"></option>
+                                <option value="cancelada" data-i18n="inventory.status_cancelled"></option>
                             </select>
-                            <button class="btn btn-primary" id="btn-nueva-orden">Nueva Orden</button>
+                            <button class="btn btn-primary" id="btn-nueva-orden" data-i18n="inventory.new_order"></button>
                         </div>
                     </div>
                     <div class="table-container">
                         <table class="table" id="ordenes-table">
                             <thead>
                                 <tr>
-                                    <th>Número</th>
-                                    <th>Proveedor</th>
-                                    <th>Fecha</th>
-                                    <th>Items</th>
-                                    <th>Total</th>
-                                    <th>Estado</th>
-                                    <th>Acciones</th>
+                                    <th data-i18n="inventory.col_number"></th>
+                                    <th data-i18n="inventory.col_supplier"></th>
+                                    <th data-i18n="inventory.col_date"></th>
+                                    <th data-i18n="inventory.col_items"></th>
+                                    <th data-i18n="common.total"></th>
+                                    <th data-i18n="common.status"></th>
+                                    <th data-i18n="common.actions"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="7" class="text-center">Cargando órdenes…</td></tr>
+                                <tr><td colspan="7" class="text-center" data-i18n="inventory.loading"></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -582,39 +579,39 @@
                         <div class="page-header-left">
                             <div class="page-header-icon"><i data-lucide="activity"></i></div>
                             <div class="page-header-title">
-                                <h2>Movimientos de Inventario</h2>
-                                <p class="page-subtitle">Registro de entradas, salidas y ajustes</p>
+                                <h2 data-i18n="inventory.movements_title"></h2>
+                                <p class="page-subtitle" data-i18n="inventory.movements_subtitle"></p>
                             </div>
                         </div>
                         <div class="page-header-actions">
-                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('movimientos')"><i data-lucide="circle-help"></i></button>
-                            <input type="date" id="filter-fecha-desde" class="form-input" title="Desde">
-                            <input type="date" id="filter-fecha-hasta" class="form-input" title="Hasta">
+                            <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('movimientos')"><i data-lucide="circle-help"></i></button>
+                            <input type="date" id="filter-fecha-desde" class="form-input" data-i18n-title="common.from">
+                            <input type="date" id="filter-fecha-hasta" class="form-input" data-i18n-title="common.to">
                             <select id="filter-tipo-movimiento" class="form-select">
-                                <option value="">Todos los tipos</option>
-                                <option value="entrada">Entrada</option>
-                                <option value="salida">Salida</option>
-                                <option value="ajuste">Ajuste</option>
-                                <option value="devolucion">Devolución</option>
+                                <option value="" data-i18n="inventory.all_types"></option>
+                                <option value="entrada" data-i18n="inventory.type_entry"></option>
+                                <option value="salida" data-i18n="inventory.type_exit"></option>
+                                <option value="ajuste" data-i18n="inventory.type_adjust"></option>
+                                <option value="devolucion" data-i18n="inventory.type_return"></option>
                             </select>
-                            <button class="btn btn-secondary" id="btn-filtrar-movimientos">Filtrar</button>
-                            <button class="btn btn-primary" id="btn-nuevo-movimiento">Registrar</button>
+                            <button class="btn btn-secondary" id="btn-filtrar-movimientos" data-i18n="inventory.filter"></button>
+                            <button class="btn btn-primary" id="btn-nuevo-movimiento" data-i18n="inventory.register"></button>
                         </div>
                     </div>
                     <div class="table-container">
                         <table class="table" id="movimientos-table">
                             <thead>
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Producto</th>
-                                    <th>Tipo</th>
-                                    <th>Cantidad</th>
-                                    <th>Motivo</th>
-                                    <th>Acciones</th>
+                                    <th data-i18n="common.date"></th>
+                                    <th data-i18n="common.name"></th>
+                                    <th data-i18n="inventory.col_type"></th>
+                                    <th data-i18n="common.quantity"></th>
+                                    <th data-i18n="inventory.col_reason"></th>
+                                    <th data-i18n="common.actions"></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="6" class="text-center">Cargando movimientos…</td></tr>
+                                <tr><td colspan="6" class="text-center" data-i18n="inventory.loading"></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -628,17 +625,17 @@
                     <div class="page-header-left">
                         <div class="page-header-icon"><i data-lucide="bar-chart-2"></i></div>
                         <div class="page-header-title">
-                            <h2>Reportes y Análisis</h2>
-                            <p class="page-subtitle">Métricas y estadísticas del negocio</p>
+                            <h2 data-i18n="reports.title"></h2>
+                            <p class="page-subtitle" data-i18n="reports.subtitle"></p>
                         </div>
                     </div>
                     <div class="page-header-actions">
-                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('reportes')"><i data-lucide="circle-help"></i></button>
+                        <button class="btn-help" data-i18n-title="common.help" onclick="app._showSectionHelp('reportes')"><i data-lucide="circle-help"></i></button>
                         <select id="report-period" class="form-select">
-                            <option value="7">Últimos 7 días</option>
-                            <option value="30" selected>Últimos 30 días</option>
-                            <option value="90">Últimos 90 días</option>
-                            <option value="365">Último año</option>
+                            <option value="7" data-i18n="reports.period_7"></option>
+                            <option value="30" selected data-i18n="reports.period_30"></option>
+                            <option value="90" data-i18n="reports.period_90"></option>
+                            <option value="365" data-i18n="reports.period_365"></option>
                         </select>
                     </div>
                 </div>
@@ -648,7 +645,7 @@
                         <div class="kpi-icon"><i data-lucide="trending-up"></i></div>
                         <div class="kpi-content">
                             <h3 id="kpi-total-ventas">0,00 €</h3>
-                            <p>Total Ventas</p>
+                            <p data-i18n="reports.kpi_sales"></p>
                             <span class="kpi-trend neutral" id="kpi-ventas-trend">+0.0%</span>
                         </div>
                     </div>
@@ -656,7 +653,7 @@
                         <div class="kpi-icon"><i data-lucide="shopping-cart"></i></div>
                         <div class="kpi-content">
                             <h3 id="kpi-total-pedidos">0</h3>
-                            <p>Total Pedidos</p>
+                            <p data-i18n="reports.kpi_orders"></p>
                             <span class="kpi-trend neutral" id="kpi-pedidos-trend">+0.0%</span>
                         </div>
                     </div>
@@ -664,7 +661,7 @@
                         <div class="kpi-icon"><i data-lucide="users"></i></div>
                         <div class="kpi-content">
                             <h3 id="kpi-clientes-activos">0</h3>
-                            <p>Clientes Activos</p>
+                            <p data-i18n="reports.kpi_clients"></p>
                             <span class="kpi-trend neutral" id="kpi-clientes-trend">+0.0%</span>
                         </div>
                     </div>
@@ -672,7 +669,7 @@
                         <div class="kpi-icon"><i data-lucide="target"></i></div>
                         <div class="kpi-content">
                             <h3 id="kpi-ticket-promedio">0,00 €</h3>
-                            <p>Ticket Promedio</p>
+                            <p data-i18n="reports.kpi_ticket"></p>
                             <span class="kpi-trend neutral" id="kpi-ticket-trend">+0.0%</span>
                         </div>
                     </div>
@@ -722,27 +719,27 @@
 
                 <div class="page-header page-header-sub">
                     <div class="page-header-title">
-                        <h2>Detalle de Ventas</h2>
+                        <h2 data-i18n="reports.detail_title"></h2>
                     </div>
                     <div class="page-header-actions">
-                        <input type="text" id="search-sales" placeholder="Buscar venta…" class="form-input search-input">
+                        <input type="text" id="search-sales" data-i18n-placeholder="reports.search_sale" class="form-input search-input">
                     </div>
                 </div>
                 <div class="table-container">
                     <table class="table" id="sales-detail-table">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Número</th>
-                                <th>Cliente</th>
-                                <th>Productos</th>
-                                <th>Total</th>
-                                <th>Estado</th>
-                                <th>Margen</th>
+                                <th data-i18n="reports.col_date"></th>
+                                <th data-i18n="reports.col_number"></th>
+                                <th data-i18n="reports.col_client"></th>
+                                <th data-i18n="reports.col_products"></th>
+                                <th data-i18n="reports.col_total"></th>
+                                <th data-i18n="reports.col_status"></th>
+                                <th data-i18n="reports.col_margin"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="7" class="text-center">Cargando ventas…</td></tr>
+                            <tr><td colspan="7" class="text-center" data-i18n="reports.loading"></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -754,8 +751,8 @@
                     <div class="page-header-left">
                         <div class="page-header-icon"><i data-lucide="settings"></i></div>
                         <div class="page-header-title">
-                            <h2>Configuración</h2>
-                            <p class="page-subtitle">Ajustes generales de la aplicación</p>
+                            <h2 data-i18n="config.title"></h2>
+                            <p class="page-subtitle" data-i18n="config.subtitle"></p>
                         </div>
                     </div>
                 </div>
@@ -764,22 +761,22 @@
                     <div class="config-card">
                         <div class="config-card-header">
                             <div class="config-card-icon"><i data-lucide="building-2"></i></div>
-                            <h3>Datos de la Empresa</h3>
+                            <h3 data-i18n="config.company_title"></h3>
                         </div>
                         <form id="empresa-form">
                             <div class="form-group">
-                                <label>Nombre de la Empresa</label>
-                                <input type="text" id="empresa-nombre" class="form-input" placeholder="Mi Floristería">
+                                <label data-i18n="config.company_name"></label>
+                                <input type="text" id="empresa-nombre" class="form-input" data-i18n-placeholder="common.company_name">
                             </div>
                             <div class="form-group">
-                                <label>Dirección</label>
-                                <input type="text" id="empresa-direccion" class="form-input" placeholder="Calle Mayor, 1">
+                                <label data-i18n="config.company_address"></label>
+                                <input type="text" id="empresa-direccion" class="form-input" data-i18n-placeholder="common.address">
                             </div>
                             <div class="form-group">
-                                <label>Teléfono</label>
-                                <input type="text" id="empresa-telefono" class="form-input" placeholder="600 000 000">
+                                <label data-i18n="config.company_phone"></label>
+                                <input type="text" id="empresa-telefono" class="form-input" data-i18n-placeholder="common.phone">
                             </div>
-                            <button type="submit" class="btn btn-primary config-btn">Guardar cambios</button>
+                            <button type="submit" class="btn btn-primary config-btn" data-i18n="config.save_changes"></button>
                         </form>
                     </div>
 
@@ -787,22 +784,22 @@
                     <div class="config-card">
                         <div class="config-card-header">
                             <div class="config-card-icon"><i data-lucide="shield"></i></div>
-                            <h3>Seguridad</h3>
+                            <h3 data-i18n="config.security_title"></h3>
                         </div>
                         <form onsubmit="event.preventDefault(); app.cambiarPassword();">
                             <div class="form-group">
-                                <label>Contraseña actual</label>
+                                <label data-i18n="config.current_password"></label>
                                 <input type="password" id="perfil-pass-actual" class="form-input" placeholder="••••••••">
                             </div>
                             <div class="form-group">
-                                <label>Nueva contraseña</label>
+                                <label data-i18n="config.new_password"></label>
                                 <input type="password" id="perfil-pass-nueva" class="form-input" placeholder="••••••••">
                             </div>
                             <div class="form-group">
-                                <label>Confirmar contraseña</label>
+                                <label data-i18n="config.confirm_password"></label>
                                 <input type="password" id="perfil-pass-confirm" class="form-input" placeholder="••••••••">
                             </div>
-                            <button type="submit" class="btn btn-primary config-btn">Actualizar contraseña</button>
+                            <button type="submit" class="btn btn-primary config-btn" data-i18n="config.update_password"></button>
                         </form>
                     </div>
 
@@ -810,11 +807,11 @@
                     <div class="config-card">
                         <div class="config-card-header">
                             <div class="config-card-icon"><i data-lucide="sliders-horizontal"></i></div>
-                            <h3>Preferencias</h3>
+                            <h3 data-i18n="config.prefs_title"></h3>
                         </div>
                         <form onsubmit="event.preventDefault(); app.guardarPreferencias();">
                             <div class="form-group">
-                                <label>Moneda</label>
+                                <label data-i18n="config.currency"></label>
                                 <select id="pref-moneda" class="form-select">
                                     <option value="EUR">Euro (€)</option>
                                     <option value="USD">Dólar ($)</option>
@@ -822,7 +819,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Formato de fecha</label>
+                                <label data-i18n="config.date_format"></label>
                                 <select id="pref-fecha" class="form-select">
                                     <option value="es-ES">DD/MM/AAAA</option>
                                     <option value="en-US">MM/DD/YYYY</option>
@@ -830,13 +827,13 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Idioma</label>
+                                <label data-i18n="config.language"></label>
                                 <select id="pref-idioma" class="form-select">
-                                    <option value="es">Español</option>
-                                    <option value="en">English</option>
+                                    <option value="es" data-i18n="common.language_es"></option>
+                                    <option value="en" data-i18n="common.language_en"></option>
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-primary config-btn">Guardar preferencias</button>
+                            <button type="submit" class="btn btn-primary config-btn" data-i18n="config.save_prefs"></button>
                         </form>
                     </div>
 
@@ -844,7 +841,7 @@
                     <div class="config-card">
                         <div class="config-card-header">
                             <div class="config-card-icon"><i data-lucide="info"></i></div>
-                            <h3>Información del sistema</h3>
+                            <h3 data-i18n="config.system_title"></h3>
                         </div>
                         <div class="config-sys-grid">
                             <div class="config-sys-row"><span class="config-sys-lbl">Versión</span><span class="config-sys-val">1.0.0</span></div>
@@ -870,8 +867,8 @@
                     <div class="page-header-left">
                         <div class="page-header-icon"><i data-lucide="user"></i></div>
                         <div class="page-header-title">
-                            <h2>Perfil de Usuario</h2>
-                            <p class="page-subtitle">Información y ajustes de la cuenta</p>
+                            <h2 data-i18n="profile.title"></h2>
+                            <p class="page-subtitle" data-i18n="profile.subtitle"></p>
                         </div>
                     </div>
                 </div>
@@ -879,21 +876,21 @@
                 <!-- Avatar + datos básicos -->
                 <div class="perfil-hero card">
                     <div class="perfil-avatar-wrap">
-                        <div class="perfil-avatar" id="perfil-avatar-circle" onclick="app.cambiarAvatar()" title="Cambiar foto">A</div>
-                        <button class="perfil-avatar-edit" onclick="app.cambiarAvatar()" title="Cambiar foto"><i data-lucide="camera"></i></button>
+                        <div class="perfil-avatar" id="perfil-avatar-circle" onclick="app.cambiarAvatar()" data-i18n-title="profile.change_photo">A</div>
+                        <button class="perfil-avatar-edit" onclick="app.cambiarAvatar()" data-i18n-title="profile.change_photo"><i data-lucide="camera"></i></button>
                         <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
                     </div>
                     <div class="perfil-hero-info">
                         <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap">
                             <h3 id="perfil-hero-nombre" style="margin:0">Admin</h3>
-                            <span style="font-size:0.7rem;font-weight:600;color:var(--p-600);background:var(--p-50);border:1px solid var(--p-200);border-radius:20px;padding:2px 10px;letter-spacing:.04em;text-transform:uppercase">Administrador</span>
+                            <span style="font-size:0.7rem;font-weight:600;color:var(--p-600);background:var(--p-50);border:1px solid var(--p-200);border-radius:20px;padding:2px 10px;letter-spacing:.04em;text-transform:uppercase" data-i18n="profile.role"></span>
                         </div>
                         <p id="perfil-hero-email" style="font-size:0.85rem;color:var(--text-muted);margin-top:var(--sp-1)">admin@floristeria.com</p>
                     </div>
                     <div class="perfil-hero-stats">
-                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-pedidos">—</span><span class="perfil-stat-lbl">Pedidos gestionados</span></div>
-                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-clientes">—</span><span class="perfil-stat-lbl">Clientes registrados</span></div>
-                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-productos">—</span><span class="perfil-stat-lbl">Productos en catálogo</span></div>
+                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-pedidos">—</span><span class="perfil-stat-lbl" data-i18n="profile.orders_managed"></span></div>
+                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-clientes">—</span><span class="perfil-stat-lbl" data-i18n="profile.clients_registered"></span></div>
+                        <div class="perfil-stat"><span class="perfil-stat-num" id="pstat-productos">—</span><span class="perfil-stat-lbl" data-i18n="profile.products_catalog"></span></div>
                     </div>
                 </div>
 
@@ -901,32 +898,32 @@
                     <!-- Información personal -->
                     <div class="card">
                         <div class="card-body">
-                            <div class="form-section-title"><span class="form-section-dot"></span>Información personal</div>
+                            <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="profile.personal_info"></span></div>
                             <div class="form-group">
-                                <label class="form-label">Nombre</label>
-                                <input type="text" id="perfil-nombre" class="form-input" value="Admin" placeholder="Tu nombre">
+                                <label class="form-label" data-i18n="common.name"></label>
+                                <input type="text" id="perfil-nombre" class="form-input" value="Admin" data-i18n-placeholder="profile.your_name">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Email</label>
-                                <input type="email" id="perfil-email" class="form-input" value="admin@floristeria.com" placeholder="tu@email.com">
+                                <label class="form-label" data-i18n="common.email"></label>
+                                <input type="email" id="perfil-email" class="form-input" value="admin@floristeria.com" data-i18n-placeholder="profile.your_email">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Teléfono</label>
-                                <input type="tel" id="perfil-telefono" class="form-input" placeholder="+34 600 000 000">
+                                <label class="form-label" data-i18n="common.phone"></label>
+                                <input type="tel" id="perfil-telefono" class="form-input" data-i18n-placeholder="profile.your_phone">
                             </div>
-                            <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.guardarPerfil()">Guardar cambios</button>
+                            <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.guardarPerfil()" data-i18n="config.save_changes"></button>
                         </div>
                     </div>
 
                     <!-- Actividad -->
                     <div class="card">
                         <div class="card-body">
-                            <div class="form-section-title"><span class="form-section-dot"></span>Actividad de la cuenta</div>
+                            <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="profile.account_activity"></span></div>
                             <div class="perfil-sys-grid" style="margin-top:var(--sp-2)">
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Último acceso</span><span class="perfil-sys-val" id="pstat-ultimo-acceso">—</span></div>
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Encargos gestionados</span><span class="perfil-sys-val" id="pstat-pedidos2">—</span></div>
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Clientes registrados</span><span class="perfil-sys-val" id="pstat-clientes2">—</span></div>
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Productos en catálogo</span><span class="perfil-sys-val" id="pstat-productos2">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl" data-i18n="profile.last_login"></span><span class="perfil-sys-val" id="pstat-ultimo-acceso">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl" data-i18n="profile.orders_managed"></span><span class="perfil-sys-val" id="pstat-pedidos2">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl" data-i18n="profile.clients_registered"></span><span class="perfil-sys-val" id="pstat-clientes2">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl" data-i18n="profile.products_catalog"></span><span class="perfil-sys-val" id="pstat-productos2">—</span></div>
                             </div>
                         </div>
                     </div>
@@ -940,18 +937,18 @@
                     <div class="page-header-left">
                         <div class="page-header-icon icon-amber"><i data-lucide="bell"></i></div>
                         <div class="page-header-title">
-                            <h2>Notificaciones</h2>
-                            <p class="page-subtitle" id="notif-subtitle">Alertas y avisos del sistema</p>
+                            <h2 data-i18n="notif.title"></h2>
+                            <p class="page-subtitle" id="notif-subtitle" data-i18n="notif.subtitle"></p>
                         </div>
                     </div>
                     <div class="page-header-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="app.marcarTodasLeidas()">Marcar todas como leídas</button>
-                        <button class="btn btn-secondary btn-sm" onclick="app.limpiarNotificaciones()">Limpiar leídas</button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.marcarTodasLeidas()" data-i18n="notif.mark_all_read"></button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.limpiarNotificaciones()" data-i18n="notif.clear_read"></button>
                     </div>
                 </div>
                 <div id="notif-tabs" class="pedidos-tabs" style="margin-bottom:var(--sp-4)">
-                    <button class="pedidos-tab active" data-notif-tab="no-leidas">No leídas <span class="pedidos-tab-count" id="ntab-count-noleidas">0</span></button>
-                    <button class="pedidos-tab" data-notif-tab="todas">Todas <span class="pedidos-tab-count" id="ntab-count-todas">0</span></button>
+                    <button class="pedidos-tab active" data-notif-tab="no-leidas" data-i18n="notif.unread"><span class="pedidos-tab-count" id="ntab-count-noleidas">0</span></button>
+                    <button class="pedidos-tab" data-notif-tab="todas" data-i18n="notif.all"><span class="pedidos-tab-count" id="ntab-count-todas">0</span></button>
                 </div>
                 <div id="notificaciones-list"></div>
             </section>
