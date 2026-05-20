@@ -2074,7 +2074,7 @@ class FlowerShopApp {
             const categorias = await window.flowerShopAPI.getCategorias();
             const select = document.getElementById('producto-categoria');
             if (select) {
-                select.innerHTML = '<option value="">${t('products.select_category')}</option>' +
+                select.innerHTML = `<option value="">${t('products.select_category')}</option>` +
                     categorias.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('');
             }
         } catch (error) {
