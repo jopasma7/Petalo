@@ -1862,7 +1862,7 @@ class FlowerShopApp {
             } else if (formato === 'pdf') {
                 const { jsPDF } = window.jspdf;
                 const empresa = await window.flowerShopAPI.getConfiguracion();
-                const nombreEmpresa = empresa?.empresa_nombre || 'Mi Floristería';
+                const nombreEmpresa = empresa?.empresa_nombre || t('common_defaults.company_name');
                 const direccionEmpresa = empresa?.empresa_direccion || '';
                 const telefonoEmpresa = empresa?.empresa_telefono || '';
 
@@ -1932,7 +1932,7 @@ class FlowerShopApp {
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(7);
                     doc.setTextColor(...C.mutedText);
-                    doc.text('Documento generado con Pétalo — Software de Gestión para Floristería', 14, PH - 4);
+                    doc.text(t('common_defaults.pdf_footer'), 14, PH - 4);
                     doc.text(`${fechaLarga}`, PW - 14, PH - 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0);
                 };
@@ -2849,7 +2849,7 @@ class FlowerShopApp {
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(7);
                 doc.setTextColor(...C.mutedText);
-                doc.text('Documento generado con Pétalo — Software de Gestión para Floristería', 14, PH - 4);
+                doc.text(t('common_defaults.pdf_footer'), 14, PH - 4);
                 doc.text(fechaLarga, PW - 14, PH - 4, { align: 'right' });
                 doc.setTextColor(0, 0, 0);
             };

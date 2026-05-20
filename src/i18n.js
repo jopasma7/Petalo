@@ -299,6 +299,10 @@
                 delete_category_hint: 'Solo se puede eliminar si no tiene productos asociados.',
                 delete_supplier_confirm: '¿Seguro que quieres eliminar "<strong>{name}</strong>"?',
             },
+            common_defaults: {
+                company_name: 'Mi Floristería',
+                pdf_footer: 'Documento generado con Pétalo — Software de Gestión para Floristería',
+            },
             reports: {
                 title: 'Reportes y Análisis', subtitle: 'Métricas y estadísticas del negocio',
                 kpi_sales: 'Total Ventas', kpi_orders: 'Total Pedidos',
@@ -954,6 +958,10 @@
                 delete_category_confirm: 'Delete "<strong>{name}</strong>"?',
                 delete_category_hint: 'Can only be deleted if it has no associated products.',
                 delete_supplier_confirm: 'Are you sure you want to delete "<strong>{name}</strong>"?',
+            },
+            common_defaults: {
+                company_name: 'My Flower Shop',
+                pdf_footer: 'Document generated with Pétalo — Flower Shop Management Software',
             },
             reports: {
                 title: 'Reports & Analytics', subtitle: 'Business metrics and statistics',
