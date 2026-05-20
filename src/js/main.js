@@ -2645,7 +2645,7 @@ class FlowerShopApp {
             if (elPed) elPed.textContent = totalPedidos;
             if (elGas) elGas.textContent = window.flowerShopAPI.formatCurrency(totalGastado);
             const elFecha = document.getElementById('stat-fecha');
-            if (elFecha) elFecha.innerHTML = `Desde <strong>${fechaRegistro}</strong>`;
+            if (elFecha) elFecha.innerHTML = `${t('clients.registered_since')} <strong>${fechaRegistro}</strong>`;
 
             // Resetear filtros y guardar pedidos del cliente para filtrado
             const filtroPeriodo = document.getElementById('filtro-periodo');
@@ -2695,11 +2695,11 @@ class FlowerShopApp {
             <table class="historial-table">
                 <thead>
                     <tr>
-                        <th>Pedido</th>
-                        <th>Fecha</th>
-                        <th>Entrega</th>
-                        <th>Estado</th>
-                        <th class="text-right">Total</th>
+                        <th>${t('clients.history_order')}</th>
+                        <th>${t('clients.history_date')}</th>
+                        <th>${t('clients.history_delivery')}</th>
+                        <th>${t('clients.history_status')}</th>
+                        <th class="text-right">${t('clients.history_total')}</th>
                         <th></th>
                     </tr>
                 </thead>
