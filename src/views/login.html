@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pétalo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex; height: 100vh; overflow: hidden;
+  }
+  .brand-side {
+    flex: 1;
+    background: url('../../assets/login.png') center center / cover no-repeat;
+  }
+  .login-panel {
+    width: 300px;
+    background: #0f172a;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 24px;
+    border-left: 1px solid #1e293b;
+  }
+  .login-inner {
+    width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+  }
+  .login-logo { width: 52px; height: 52px; border-radius: 12px; object-fit: contain; }
+  .login-welcome { text-align: center; }
+  .login-welcome h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
+  .login-welcome p  { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .login-form { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .login-form label { font-size: 12px; color: #94a3b8; font-weight: 500; }
+  .login-form input {
+    width: 100%; background: #1e293b; border: 1px solid #334155;
+    border-radius: 8px; color: #f1f5f9; font-size: 14px;
+    padding: 10px 12px; outline: none; transition: border-color .2s;
+  }
+  .login-form input:focus { border-color: #86efac; }
+  .login-error { color: #f87171; font-size: 12px; text-align: center; min-height: 16px; }
+  .btn-login {
+    width: 100%; padding: 10px; border: none; border-radius: 8px;
+    background: #86efac; color: #0f172a;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+  }
+  .btn-login:hover { opacity: .9; }
+  .login-hint { font-size: 11px; color: #475569; text-align: center; line-height: 1.5; }
+  .login-hint strong { color: #94a3b8; }
+  .login-footer { text-align: center; margin-top: 4px; }
+  .login-footer p { font-size: 10px; color: #334155; }
+</style>
+</head>
+<body>
+
+<div class="brand-side"></div>
+
+<div class="login-panel">
+  <div class="login-inner">
+    <img src="../../assets/icon.png" alt="Pétalo" class="login-logo">
+    <div class="login-welcome">
+      <h1>Bienvenido</h1>
+      <p>Introduce tu contraseña para acceder</p>
+    </div>
+    <form class="login-form" id="login-form">
+      <label for="pwd">Contraseña</label>
+      <input type="password" id="pwd" placeholder="••••••••" autofocus autocomplete="off">
+      <div class="login-error" id="login-error"></div>
+      <button type="submit" class="btn-login">Entrar</button>
+      <p class="login-hint">La contraseña por defecto es <strong>1234</strong>.<br>Cámbiala desde Configuración.</p>
+    </form>
+    <div class="login-footer">
+      <p>Pétalo &copy; 2026 — Todos los derechos reservados</p>
+    </div>
+  </div>
+</div>
+
+<script src="../i18n.js"></script>
+<script>
+  // Aplicar idioma guardado
+  if (window.i18n) {
+    window.i18n.initLocale();
+    const T = window.t;
+    document.querySelector('.login-welcome h1').textContent    = T('login.welcome');
+    document.querySelector('.login-welcome p').textContent     = T('login.subtitle');
+    document.querySelector('label[for="pwd"]').textContent    = T('login.password');
+    document.querySelector('.btn-login').textContent           = T('login.enter');
+    document.querySelector('.login-footer p').textContent      = T('login.footer');
+    const hint = document.querySelector('.login-hint');
+    if (hint) hint.innerHTML = `${T('login.hint')} <strong>1234</strong>.<br>${T('login.hint_change')}`;
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pwd = document.getElementById('pwd').value;
+    const result = await window.electronAPI.loginAttempt(pwd);
+    if (!result.ok) {
+      document.getElementById('login-error').textContent = window.t ? window.t('login.wrong') : 'Contraseña incorrecta';
+      document.getElementById('pwd').value = '';
+      document.getElementById('pwd').focus();
+    }
+  });
+</script>
+</body>
+</html>

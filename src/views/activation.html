@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pétalo — Activación</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f172a;
+    color: #f1f5f9;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 40px 36px;
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    object-fit: contain;
+  }
+  .brand { text-align: center; }
+  .brand h1 { font-size: 22px; font-weight: 700; color: #f8fafc; }
+  .brand p  { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+
+  .reason-badge {
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    width: 100%;
+    text-align: center;
+    display: none;
+  }
+  .reason-badge.expired   { background: #fee2e2; color: #991b1b; }
+  .reason-badge.revoked   { background: #fee2e2; color: #991b1b; }
+  .reason-badge.no_internet { background: #fef3c7; color: #92400e; }
+
+  .form { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+  label { font-size: 12px; color: #94a3b8; font-weight: 500; }
+  input {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    color: #f1f5f9;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    letter-spacing: 1px;
+    font-family: monospace;
+    transition: border-color .2s;
+  }
+  input:focus { border-color: #86efac; }
+  input::placeholder { color: #475569; letter-spacing: 0; font-family: inherit; }
+
+  .btn {
+    width: 100%;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-primary { background: #86efac; color: #0f172a; }
+  .btn-primary:hover:not(:disabled) { opacity: .9; }
+
+  .error-msg {
+    color: #f87171;
+    font-size: 12px;
+    text-align: center;
+    min-height: 16px;
+  }
+  .footer {
+    font-size: 11px;
+    color: #475569;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .footer a { color: #86efac; text-decoration: none; }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="card">
+  <img class="logo" id="app-logo" src="../../assets/icon.png" alt="Pétalo">
+
+  <div class="brand">
+    <h1>Pétalo</h1>
+    <p>Introduce tu clave de licencia para continuar</p>
+  </div>
+
+  <div id="reason-badge" class="reason-badge"></div>
+
+  <div class="form">
+    <label for="license-key">Clave de licencia</label>
+    <input id="license-key" type="text" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="64" autocomplete="off" spellcheck="false">
+    <div class="error-msg" id="error-msg"></div>
+    <button class="btn btn-primary" id="activate-btn" onclick="activate()">Activar licencia</button>
+  </div>
+
+  <div class="footer">
+    ¿No tienes licencia? <a href="#" onclick="openExternal(event, 'https://petalo.lemonsqueezy.com/checkout')">Consíguela aquí</a><br>
+    ¿Problemas con tu licencia? <a href="mailto:bblottus@gmail.com">bblottus@gmail.com</a>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') activate(); });
+
+  function showReason(reason) {
+    const badge = document.getElementById('reason-badge');
+    const T = window.t || (k => k);
+    const msgs  = {
+      expired:     T('activation.expired'),
+      revoked:     T('activation.revoked'),
+      no_internet: T('activation.no_internet'),
+      no_license:  ''
+    };
+    const cls = { expired: 'expired', revoked: 'revoked', no_internet: 'no_internet' };
+    if (reason && reason !== 'no_license') {
+      badge.textContent = msgs[reason] || T('activation.invalid');
+      badge.className   = 'reason-badge ' + (cls[reason] || '');
+      badge.style.display = 'block';
+    }
+  }
+
+  async function activate() {
+    const key = document.getElementById('license-key').value.trim();
+    const btn = document.getElementById('activate-btn');
+    const err = document.getElementById('error-msg');
+
+    const T = window.t || (k => k);
+    if (!key) { err.textContent = T('activation.enter_key'); return; }
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner"></span>${T('activation.verifying')}`;
+    err.textContent = '';
+
+    const result = await window.electronAPI.licenseActivate(key);
+
+    if (result.ok) {
+      btn.innerHTML = T('activation.activated');
+      await window.electronAPI.activationSuccess();
+    } else {
+      err.textContent = result.error || T('activation.error');
+      btn.disabled = false;
+      btn.innerHTML = T('activation.activate');
+    }
+  }
+
+  function openExternal(e, url) {
+    e.preventDefault();
+    window.electronAPI && window.electronAPI.openExternal(url);
+  }
+
+  if (window.electronAPI && window.electronAPI.onActivationReason) {
+    window.electronAPI.onActivationReason(showReason);
+  }
+  if (window.electronAPI && window.electronAPI.onActivationIcon) {
+    window.electronAPI.onActivationIcon(url => {
+      document.getElementById('app-logo').src = url;
+    });
+  }
+</script>
+<script src="../i18n.js"></script>
+<script>
+  if (window.i18n) {
+    window.i18n.initLocale();
+    const T = window.t;
+    document.querySelector('.brand p').textContent                   = T('activation.subtitle');
+    document.querySelector('label[for="license-key"]').textContent   = T('activation.key_label');
+    document.getElementById('license-key').placeholder               = 'XXXX-XXXX-XXXX-XXXX';
+    document.getElementById('activate-btn').textContent              = T('activation.activate');
+    const footer = document.querySelector('.footer');
+    if (footer) footer.innerHTML =
+      `${T('activation.no_license')} <a href="#" onclick="openExternal(event,'https://petalo.lemonsqueezy.com/checkout')">${T('activation.get_here')}</a><br>` +
+      `${T('activation.problems')} <a href="mailto:bblottus@gmail.com">bblottus@gmail.com</a>`;
+  }
+</script>
+</body>
+</html>

@@ -1,7 +1,35 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+// License API — usada por activation.html
+contextBridge.exposeInMainWorld('electronAPI', {
+    licenseActivate:     (key) => ipcRenderer.invoke('license-activate', key),
+    licenseCheck:        ()    => ipcRenderer.invoke('license-check'),
+    licenseInfo:         ()    => ipcRenderer.invoke('license-info'),
+    activationSuccess:   ()    => ipcRenderer.invoke('activation-success'),
+    openExternal:        (url) => ipcRenderer.invoke('open-external', url),
+    onActivationReason:  (cb)  => ipcRenderer.on('activation-reason', (_e, r) => cb(r)),
+    onActivationIcon:    (cb)  => ipcRenderer.on('activation-icon', (_e, p) => cb(p)),
+    loginAttempt:        (pwd) => ipcRenderer.invoke('login-attempt', pwd),
+    verifyPassword:      (pwd) => ipcRenderer.invoke('verify-password', pwd),
+    savePassword:        (pwd) => ipcRenderer.invoke('save-password', pwd),
+});
+
 // Exponer APIs seguras al renderer process
 contextBridge.exposeInMainWorld('flowerShopAPI', {
+    // Configuración
+    getConfiguracion: () => ipcRenderer.invoke('get-configuracion'),
+    setConfiguracion: (datos) => ipcRenderer.invoke('set-configuracion', datos),
+
+    // Tipos de cliente
+    getTiposCliente: () => ipcRenderer.invoke('get-tipos-cliente'),
+    crearTipoCliente: (tipo) => ipcRenderer.invoke('crear-tipo-cliente', tipo),
+    actualizarTipoCliente: (id, tipo) => ipcRenderer.invoke('actualizar-tipo-cliente', id, tipo),
+    eliminarTipoCliente: (id) => ipcRenderer.invoke('eliminar-tipo-cliente', id),
+    getTiposEvento: () => ipcRenderer.invoke('get-tipos-evento'),
+    crearTipoEvento: (tipo) => ipcRenderer.invoke('crear-tipo-evento', tipo),
+    actualizarTipoEvento: (id, tipo) => ipcRenderer.invoke('actualizar-tipo-evento', id, tipo),
+    eliminarTipoEvento: (id) => ipcRenderer.invoke('eliminar-tipo-evento', id),
+
     // Métodos de consulta
     getProductos: () => ipcRenderer.invoke('get-productos'),
     getClientes: () => ipcRenderer.invoke('get-clientes'),
@@ -15,6 +43,8 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     eliminarCategoria: (id) => ipcRenderer.invoke('eliminar-categoria', id),
     
     // Métodos de creación
+    getProductoImagen: (id) => ipcRenderer.invoke('get-producto-imagen', id),
+    getClienteImagen:  (id) => ipcRenderer.invoke('get-cliente-imagen', id),
     crearProducto: (producto) => ipcRenderer.invoke('crear-producto', producto),
     crearCliente: (cliente) => ipcRenderer.invoke('crear-cliente', cliente),
     crearEvento: (evento) => ipcRenderer.invoke('crear-evento', evento),
@@ -55,6 +85,7 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     getOrdenesCompra: () => ipcRenderer.invoke('get-ordenes-compra'),
     getOrdenesCompraByProveedor: (proveedorId) => ipcRenderer.invoke('get-ordenes-compra-by-proveedor', proveedorId),
     actualizarOrdenCompra: (id, estado) => ipcRenderer.invoke('actualizar-orden-compra', id, estado),
+    getDetallesOrden: (ordenId) => ipcRenderer.invoke('get-detalles-orden', ordenId),
     getAnalisisInventario: () => ipcRenderer.invoke('get-analisis-inventario'),
     actualizarStockMinimo: (productoId, stockMinimo) => ipcRenderer.invoke('actualizar-stock-minimo', productoId, stockMinimo),
     registrarMovimientoInventario: (movimiento) => ipcRenderer.invoke('registrar-movimiento-inventario', movimiento),
@@ -69,9 +100,11 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     
     // Utilidades
     formatCurrency: (amount) => {
+        const prefs = JSON.parse(localStorage.getItem('perfil_prefs') || '{}');
+        const currency = prefs.moneda || 'EUR';
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
-            currency: 'EUR'
+            currency: currency
         }).format(amount || 0);
     },
     

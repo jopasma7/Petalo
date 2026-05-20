@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Floristería</title>
+    <title>Pétalo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../styles/main.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../../node_modules/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="../../node_modules/jspdf/dist/jspdf.umd.min.js"></script>
 </head>
 <body>
+
+
 <div class="app-container">
 
     <!-- FAB -->
@@ -21,7 +25,7 @@
             <button class="fab fab-secondary" data-action="nuevo-producto" title="Nuevo Producto"><i data-lucide="box"></i></button>
             <button class="fab fab-secondary" data-action="nuevo-cliente"  title="Nuevo Cliente"><i data-lucide="user-plus"></i></button>
             <button class="fab fab-secondary" data-action="nuevo-evento"   title="Nuevo Evento"><i data-lucide="calendar-plus"></i></button>
-            <button class="fab fab-secondary" data-action="nuevo-pedido"   title="Nuevo Pedido"><i data-lucide="clipboard-list"></i></button>
+            <button class="fab fab-secondary" data-action="nuevo-pedido"   title="Nuevo Encargo"><i data-lucide="clipboard-list"></i></button>
         </div>
     </div>
 
@@ -31,8 +35,8 @@
             <div class="logo-container">
                 <div class="logo-icon">✿</div>
                 <div class="logo-text">
-                    <span class="brand-name">Floristería</span>
-                    <span class="brand-subtitle">Manager Pro</span>
+                    <span class="brand-name">Pétalo</span>
+                    <span class="brand-subtitle">Gestión Floral</span>
                 </div>
             </div>
         </div>
@@ -122,6 +126,10 @@
                         <span class="stat-label">Stock Bajo</span>
                         <span class="stat-value warning" id="sidebar-stock-bajo">—</span>
                     </div>
+                    <div class="stat-item stat-item-link" id="sidebar-entregas-hoy-item" onclick="app._irEntregasHoy()">
+                        <span class="stat-label">Entregas Hoy</span>
+                        <span class="stat-value" id="sidebar-entregas-hoy">—</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -134,23 +142,12 @@
             <!-- ═══════════════════════════════════════════════ DASHBOARD -->
             <section id="dashboard-section" class="content-section" style="display:block;">
 
-                <!-- Saludo + fecha -->
-                <div class="dash-greeting">
-                    <div>
-                        <h2 class="dash-greeting-title" id="dash-greeting-text">Buenos días</h2>
-                        <p class="dash-greeting-sub" id="dash-fecha-hoy"></p>
-                    </div>
-                    <button class="btn btn-primary btn-tpv" onclick="app.ventaRapida()">
-                        <i data-lucide="zap" style="width:16px;height:16px;margin-right:6px"></i>Venta Rápida
-                    </button>
-                </div>
-
                 <!-- KPIs -->
                 <div class="stats-grid">
                     <div class="stat-card warning dashboard-link" data-section="pedidos">
                         <div class="stat-icon"><i data-lucide="clock"></i></div>
                         <div class="stat-content">
-                            <h3>Pedidos Pendientes</h3>
+                            <h3>Encargos Pendientes</h3>
                             <div class="stat-number" id="pedidos-pendientes">0</div>
                             <div class="stat-sub" id="dash-pedidos-hoy">0 para hoy</div>
                         </div>
@@ -189,8 +186,8 @@
                         <div class="card">
                             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
                                 <div>
-                                    <h3 class="card-title">Pedidos de hoy</h3>
-                                    <p class="card-subtitle">Entregas programadas para hoy</p>
+                                    <h3 class="card-title">Encargos de hoy</h3>
+                                    <p class="card-subtitle">Entregas aprobadas programadas para hoy</p>
                                 </div>
                                 <button class="btn btn-sm btn-secondary" onclick="app.showSection('pedidos')">Ver todos</button>
                             </div>
@@ -253,23 +250,13 @@
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title">Próximos Eventos</h3>
-                                <p class="card-subtitle">Esta semana</p>
+                                <p class="card-subtitle" id="proximos-eventos-sub">—</p>
                             </div>
                             <div class="card-body" style="padding:0">
                                 <div id="proximos-eventos"></div>
                             </div>
                         </div>
 
-                        <!-- Stock bajo -->
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Stock Bajo</h3>
-                                <p class="card-subtitle">Productos a reponer</p>
-                            </div>
-                            <div class="card-body" style="padding:0">
-                                <div id="stock-bajo-list" class="stock-list"></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
@@ -289,6 +276,7 @@
                         <select id="filter-categoria" class="form-select">
                             <option value="">Todas las categorías</option>
                         </select>
+                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('productos')"><i data-lucide="circle-help"></i></button>
                         <button id="btn-nuevo-producto" class="btn btn-primary">Nuevo Producto</button>
                     </div>
                 </div>
@@ -324,26 +312,12 @@
                     </div>
                     <div class="page-header-actions">
                         <input type="text" id="search-clientes" placeholder="Buscar clientes…" class="form-input search-input">
+                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('clientes')"><i data-lucide="circle-help"></i></button>
                         <button id="btn-nuevo-cliente" class="btn btn-primary">Nuevo Cliente</button>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table class="table" id="clientes-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Teléfono</th>
-                                <th>Email</th>
-                                <th>Tipo</th>
-                                <th>Total Compras</th>
-                                <th>Última Compra</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="7" class="text-center">Cargando clientes…</td></tr>
-                        </tbody>
-                    </table>
+                <div id="clientes-grid" class="clientes-grid">
+                    <p class="no-data">Cargando clientes…</p>
                 </div>
             </section>
 
@@ -358,6 +332,7 @@
                         </div>
                     </div>
                     <div class="page-header-actions">
+                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('eventos')"><i data-lucide="circle-help"></i></button>
                         <button id="btn-nuevo-evento" class="btn btn-primary">Nuevo Evento</button>
                     </div>
                 </div>
@@ -373,40 +348,30 @@
                         <div class="page-header-icon"><i data-lucide="clipboard-list"></i></div>
                         <div class="page-header-title">
                             <h2>Encargos</h2>
-                            <p class="page-subtitle">Pedidos especiales y entregas programadas</p>
+                            <p class="page-subtitle">Encargos especiales y entregas programadas</p>
                         </div>
                     </div>
                     <div class="page-header-actions">
-                        <select id="filter-estado" class="form-select">
-                            <option value="">Todos los estados</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="confirmado">Confirmado</option>
-                            <option value="preparando">Preparando</option>
-                            <option value="listo">Listo</option>
-                            <option value="entregado">Entregado</option>
-                            <option value="cancelado">Cancelado</option>
-                        </select>
-                        <input type="date" id="filter-fecha" class="form-input">
+                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('encargos')"><i data-lucide="circle-help"></i></button>
                         <button id="btn-nuevo-pedido-section" class="btn btn-primary">Nuevo Encargo</button>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table class="table" id="pedidos-table">
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Cliente</th>
-                                <th>Fecha</th>
-                                <th>Entrega</th>
-                                <th>Estado</th>
-                                <th>Total</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="7" class="text-center">Cargando pedidos…</td></tr>
-                        </tbody>
-                    </table>
+                <div class="pedidos-tabs">
+                    <button class="pedidos-tab active" data-tab-estado="pendiente">
+                        Pendientes
+                        <span class="pedidos-tab-count" id="tab-count-pendiente">0</span>
+                    </button>
+                    <button class="pedidos-tab" data-tab-estado="aprobado">
+                        Aprobados
+                        <span class="pedidos-tab-count" id="tab-count-aprobado">0</span>
+                    </button>
+                    <button class="pedidos-tab" data-tab-estado="cancelado">
+                        Cancelados
+                        <span class="pedidos-tab-count" id="tab-count-cancelado">0</span>
+                    </button>
+                </div>
+                <div id="pedidos-feed" class="pedidos-feed">
+                    <p class="no-data">Cargando encargos…</p>
                 </div>
             </section>
 
@@ -497,6 +462,7 @@
                             </div>
                         </div>
                         <div class="page-header-actions">
+                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('alertas')"><i data-lucide="circle-help"></i></button>
                             <select id="filter-nivel-alerta" class="form-select">
                                 <option value="">Todos los niveles</option>
                                 <option value="sin_stock">Sin Stock</option>
@@ -520,6 +486,9 @@
                                 <h2>Predicción de Demanda</h2>
                                 <p class="page-subtitle">Análisis predictivo de ventas futuras</p>
                             </div>
+                        </div>
+                        <div class="page-header-actions">
+                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('prediccion')"><i data-lucide="circle-help"></i></button>
                         </div>
                     </div>
                     <div class="prediction-content">
@@ -556,6 +525,7 @@
                             </div>
                         </div>
                         <div class="page-header-actions">
+                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('proveedores')"><i data-lucide="circle-help"></i></button>
                             <button class="btn btn-primary" onclick="app.nuevoProveedor()">Nuevo Proveedor</button>
                         </div>
                     </div>
@@ -575,6 +545,7 @@
                             </div>
                         </div>
                         <div class="page-header-actions">
+                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('ordenes')"><i data-lucide="circle-help"></i></button>
                             <select id="filter-estado-orden" class="form-select">
                                 <option value="">Todos los estados</option>
                                 <option value="pendiente">Pendiente</option>
@@ -616,6 +587,7 @@
                             </div>
                         </div>
                         <div class="page-header-actions">
+                            <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('movimientos')"><i data-lucide="circle-help"></i></button>
                             <input type="date" id="filter-fecha-desde" class="form-input" title="Desde">
                             <input type="date" id="filter-fecha-hasta" class="form-input" title="Hasta">
                             <select id="filter-tipo-movimiento" class="form-select">
@@ -661,13 +633,13 @@
                         </div>
                     </div>
                     <div class="page-header-actions">
+                        <button class="btn-help" title="Ayuda" onclick="app._showSectionHelp('reportes')"><i data-lucide="circle-help"></i></button>
                         <select id="report-period" class="form-select">
                             <option value="7">Últimos 7 días</option>
                             <option value="30" selected>Últimos 30 días</option>
                             <option value="90">Últimos 90 días</option>
                             <option value="365">Último año</option>
                         </select>
-                        <button class="btn btn-secondary" id="btn-export-reports">Exportar</button>
                     </div>
                 </div>
 
@@ -788,23 +760,106 @@
                     </div>
                 </div>
                 <div class="config-grid">
+                    <!-- Datos de la empresa -->
                     <div class="config-card">
-                        <h3>Datos de la Empresa</h3>
+                        <div class="config-card-header">
+                            <div class="config-card-icon"><i data-lucide="building-2"></i></div>
+                            <h3>Datos de la Empresa</h3>
+                        </div>
                         <form id="empresa-form">
                             <div class="form-group">
                                 <label>Nombre de la Empresa</label>
-                                <input type="text" id="empresa-nombre" class="form-input">
+                                <input type="text" id="empresa-nombre" class="form-input" placeholder="Mi Floristería">
                             </div>
                             <div class="form-group">
                                 <label>Dirección</label>
-                                <input type="text" id="empresa-direccion" class="form-input">
+                                <input type="text" id="empresa-direccion" class="form-input" placeholder="Calle Mayor, 1">
                             </div>
                             <div class="form-group">
                                 <label>Teléfono</label>
-                                <input type="text" id="empresa-telefono" class="form-input">
+                                <input type="text" id="empresa-telefono" class="form-input" placeholder="600 000 000">
                             </div>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <button type="submit" class="btn btn-primary config-btn">Guardar cambios</button>
                         </form>
+                    </div>
+
+                    <!-- Seguridad -->
+                    <div class="config-card">
+                        <div class="config-card-header">
+                            <div class="config-card-icon"><i data-lucide="shield"></i></div>
+                            <h3>Seguridad</h3>
+                        </div>
+                        <form onsubmit="event.preventDefault(); app.cambiarPassword();">
+                            <div class="form-group">
+                                <label>Contraseña actual</label>
+                                <input type="password" id="perfil-pass-actual" class="form-input" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label>Nueva contraseña</label>
+                                <input type="password" id="perfil-pass-nueva" class="form-input" placeholder="••••••••">
+                            </div>
+                            <div class="form-group">
+                                <label>Confirmar contraseña</label>
+                                <input type="password" id="perfil-pass-confirm" class="form-input" placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn btn-primary config-btn">Actualizar contraseña</button>
+                        </form>
+                    </div>
+
+                    <!-- Preferencias -->
+                    <div class="config-card">
+                        <div class="config-card-header">
+                            <div class="config-card-icon"><i data-lucide="sliders-horizontal"></i></div>
+                            <h3>Preferencias</h3>
+                        </div>
+                        <form onsubmit="event.preventDefault(); app.guardarPreferencias();">
+                            <div class="form-group">
+                                <label>Moneda</label>
+                                <select id="pref-moneda" class="form-select">
+                                    <option value="EUR">Euro (€)</option>
+                                    <option value="USD">Dólar ($)</option>
+                                    <option value="GBP">Libra (£)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Formato de fecha</label>
+                                <select id="pref-fecha" class="form-select">
+                                    <option value="es-ES">DD/MM/AAAA</option>
+                                    <option value="en-US">MM/DD/YYYY</option>
+                                    <option value="iso">AAAA-MM-DD</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Idioma</label>
+                                <select id="pref-idioma" class="form-select">
+                                    <option value="es">Español</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary config-btn">Guardar preferencias</button>
+                        </form>
+                    </div>
+
+                    <!-- Información del sistema -->
+                    <div class="config-card">
+                        <div class="config-card-header">
+                            <div class="config-card-icon"><i data-lucide="info"></i></div>
+                            <h3>Información del sistema</h3>
+                        </div>
+                        <div class="config-sys-grid">
+                            <div class="config-sys-row"><span class="config-sys-lbl">Versión</span><span class="config-sys-val">1.0.0</span></div>
+                            <div class="config-sys-row"><span class="config-sys-lbl">Base de datos</span><span class="config-sys-val">SQLite</span></div>
+                            <div class="config-sys-row"><span class="config-sys-lbl">Desarrollador</span><span class="config-sys-val">Alejandro</span></div>
+                            <div class="config-sys-row"><span class="config-sys-lbl">Soporte</span><span class="config-sys-val">bblottus@gmail.com</span></div>
+                        </div>
+                        <div class="config-card-actions">
+                            <button type="button" class="btn btn-secondary" onclick="app.abrirModalExportar('todo')">
+                                <i data-lucide="download" style="width:15px;height:15px;margin-right:6px"></i>Exportar datos
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="app.limpiarCache()">
+                                <i data-lucide="trash-2" style="width:15px;height:15px;margin-right:6px"></i>Limpiar caché
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -824,12 +879,15 @@
                 <!-- Avatar + datos básicos -->
                 <div class="perfil-hero card">
                     <div class="perfil-avatar-wrap">
-                        <div class="perfil-avatar" id="perfil-avatar-circle">A</div>
-                        <button class="perfil-avatar-edit" onclick="app.cambiarAvatar()" title="Cambiar color"><i data-lucide="pencil"></i></button>
+                        <div class="perfil-avatar" id="perfil-avatar-circle" onclick="app.cambiarAvatar()" title="Cambiar foto">A</div>
+                        <button class="perfil-avatar-edit" onclick="app.cambiarAvatar()" title="Cambiar foto"><i data-lucide="camera"></i></button>
+                        <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
                     </div>
                     <div class="perfil-hero-info">
-                        <h3 id="perfil-hero-nombre">Admin</h3>
-                        <span class="estado-badge confirmado">Administrador</span>
+                        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap">
+                            <h3 id="perfil-hero-nombre" style="margin:0">Admin</h3>
+                            <span style="font-size:0.7rem;font-weight:600;color:var(--p-600);background:var(--p-50);border:1px solid var(--p-200);border-radius:20px;padding:2px 10px;letter-spacing:.04em;text-transform:uppercase">Administrador</span>
+                        </div>
                         <p id="perfil-hero-email" style="font-size:0.85rem;color:var(--text-muted);margin-top:var(--sp-1)">admin@floristeria.com</p>
                     </div>
                     <div class="perfil-hero-stats">
@@ -856,97 +914,23 @@
                                 <label class="form-label">Teléfono</label>
                                 <input type="tel" id="perfil-telefono" class="form-input" placeholder="+34 600 000 000">
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Rol</label>
-                                <input type="text" id="perfil-rol" class="form-input" value="Administrador" readonly style="background:var(--s-50);color:var(--text-muted)">
-                            </div>
                             <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.guardarPerfil()">Guardar cambios</button>
                         </div>
                     </div>
 
-                    <!-- Seguridad -->
+                    <!-- Actividad -->
                     <div class="card">
                         <div class="card-body">
-                            <div class="form-section-title"><span class="form-section-dot"></span>Cambiar contraseña</div>
-                            <div class="form-group">
-                                <label class="form-label">Contraseña actual</label>
-                                <input type="password" id="perfil-pass-actual" class="form-input" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Nueva contraseña</label>
-                                <input type="password" id="perfil-pass-nueva" class="form-input" placeholder="••••••••">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Confirmar contraseña</label>
-                                <input type="password" id="perfil-pass-confirm" class="form-input" placeholder="••••••••">
-                            </div>
-                            <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.cambiarPassword()">Actualizar contraseña</button>
-                        </div>
-                    </div>
-
-                    <!-- Preferencias -->
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="form-section-title"><span class="form-section-dot"></span>Preferencias de la app</div>
-                            <div class="form-group">
-                                <label class="form-label">Moneda</label>
-                                <select id="pref-moneda" class="form-select">
-                                    <option value="EUR" selected>Euro (€)</option>
-                                    <option value="USD">Dólar ($)</option>
-                                    <option value="GBP">Libra (£)</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Formato de fecha</label>
-                                <select id="pref-fecha" class="form-select">
-                                    <option value="es-ES" selected>DD/MM/AAAA</option>
-                                    <option value="en-US">MM/DD/YYYY</option>
-                                    <option value="iso">AAAA-MM-DD</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Idioma</label>
-                                <select id="pref-idioma" class="form-select">
-                                    <option value="es" selected>Español</option>
-                                    <option value="en">English</option>
-                                </select>
-                            </div>
-                            <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)">
-                                <label class="form-label" style="margin:0">Notificaciones de stock bajo</label>
-                                <label class="perfil-toggle">
-                                    <input type="checkbox" id="pref-notif-stock" checked>
-                                    <span class="perfil-toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)">
-                                <label class="form-label" style="margin:0">Sonido de notificaciones</label>
-                                <label class="perfil-toggle">
-                                    <input type="checkbox" id="pref-notif-sonido">
-                                    <span class="perfil-toggle-slider"></span>
-                                </label>
-                            </div>
-                            <button type="button" class="btn btn-primary" style="margin-top:var(--sp-2)" onclick="app.guardarPreferencias()">Guardar preferencias</button>
-                        </div>
-                    </div>
-
-                    <!-- Sistema -->
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="form-section-title"><span class="form-section-dot"></span>Información del sistema</div>
-                            <div class="perfil-sys-grid">
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Versión de la app</span><span class="perfil-sys-val">1.0.0</span></div>
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Base de datos</span><span class="perfil-sys-val">SQLite local</span></div>
+                            <div class="form-section-title"><span class="form-section-dot"></span>Actividad de la cuenta</div>
+                            <div class="perfil-sys-grid" style="margin-top:var(--sp-2)">
                                 <div class="perfil-sys-row"><span class="perfil-sys-lbl">Último acceso</span><span class="perfil-sys-val" id="pstat-ultimo-acceso">—</span></div>
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Pedidos hoy</span><span class="perfil-sys-val" id="pstat-hoy">—</span></div>
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Movimientos esta semana</span><span class="perfil-sys-val" id="pstat-semana">—</span></div>
-                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Plataforma</span><span class="perfil-sys-val">Electron · Windows</span></div>
-                            </div>
-                            <div style="margin-top:var(--sp-4);display:flex;gap:var(--sp-2)">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="app.exportarDatos()">Exportar datos</button>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="app.limpiarCache()">Limpiar caché</button>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Encargos gestionados</span><span class="perfil-sys-val" id="pstat-pedidos2">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Clientes registrados</span><span class="perfil-sys-val" id="pstat-clientes2">—</span></div>
+                                <div class="perfil-sys-row"><span class="perfil-sys-lbl">Productos en catálogo</span><span class="perfil-sys-val" id="pstat-productos2">—</span></div>
                             </div>
                         </div>
                     </div>
+
                 </div>
             </section>
 
@@ -957,17 +941,19 @@
                         <div class="page-header-icon icon-amber"><i data-lucide="bell"></i></div>
                         <div class="page-header-title">
                             <h2>Notificaciones</h2>
-                            <p class="page-subtitle">Alertas y avisos del sistema</p>
+                            <p class="page-subtitle" id="notif-subtitle">Alertas y avisos del sistema</p>
                         </div>
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <ul id="notificaciones-list" class="notifications-list">
-                            <li class="no-data">No tienes notificaciones nuevas.</li>
-                        </ul>
+                    <div class="page-header-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="app.marcarTodasLeidas()">Marcar todas como leídas</button>
+                        <button class="btn btn-secondary btn-sm" onclick="app.limpiarNotificaciones()">Limpiar leídas</button>
                     </div>
                 </div>
+                <div id="notif-tabs" class="pedidos-tabs" style="margin-bottom:var(--sp-4)">
+                    <button class="pedidos-tab active" data-notif-tab="no-leidas">No leídas <span class="pedidos-tab-count" id="ntab-count-noleidas">0</span></button>
+                    <button class="pedidos-tab" data-notif-tab="todas">Todas <span class="pedidos-tab-count" id="ntab-count-todas">0</span></button>
+                </div>
+                <div id="notificaciones-list"></div>
             </section>
 
         </div><!-- /content-wrapper -->
@@ -991,6 +977,18 @@
         </div>
         <div class="modal-body">
             <form id="form-producto" class="form">
+                <div class="form-section-title"><span class="form-section-dot"></span>Imagen</div>
+                <div class="form-group form-group-full">
+                    <div class="producto-img-upload" id="producto-img-upload" onclick="document.getElementById('producto-imagen-input').click()">
+                        <img id="producto-img-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:var(--r-md)">
+                        <div id="producto-img-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);color:var(--text-muted)">
+                            <i data-lucide="image-plus" style="width:28px;height:28px"></i>
+                            <span style="font-size:0.82rem">Haz clic para agregar imagen</span>
+                        </div>
+                        <button type="button" id="producto-img-remove" onclick="event.stopPropagation();app.removeProductoImagen()" style="display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;color:#fff;font-size:14px;line-height:1;display:none;align-items:center;justify-content:center">&times;</button>
+                    </div>
+                    <input type="file" id="producto-imagen-input" accept="image/*" style="display:none">
+                </div>
                 <div class="form-section-title"><span class="form-section-dot"></span>Identificación</div>
                 <div class="form-group">
                     <label for="producto-nombre">Nombre *</label>
@@ -1066,9 +1064,20 @@
         <div class="modal-body">
             <form id="form-cliente" class="form">
                 <div class="form-section-title"><span class="form-section-dot"></span>Datos Personales</div>
-                <div class="form-group">
-                    <label for="cliente-nombre-completo">Nombre Completo *</label>
-                    <input type="text" id="cliente-nombre-completo" name="nombre_completo" class="form-input" required placeholder="Nombre completo del cliente">
+                <div class="cliente-nombre-foto-row">
+                    <div class="cliente-foto-upload-wrap">
+                        <div class="cliente-foto-upload" id="cliente-foto-upload" title="Haz clic para subir foto">
+                            <div class="cliente-foto-placeholder" id="cliente-foto-placeholder">
+                                <i data-lucide="camera" style="width:18px;height:18px;color:var(--s-400)"></i>
+                            </div>
+                            <img id="cliente-foto-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                        </div>
+                        <input type="file" id="cliente-foto-input" accept="image/*" style="display:none">
+                    </div>
+                    <div class="form-group" style="flex:1;margin-bottom:0">
+                        <label for="cliente-nombre-completo">Nombre Completo *</label>
+                        <input type="text" id="cliente-nombre-completo" name="nombre_completo" class="form-input" required placeholder="Nombre completo del cliente">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="cliente-email">Email</label>
@@ -1082,19 +1091,13 @@
                     <label for="cliente-direccion">Dirección</label>
                     <input type="text" id="cliente-direccion" name="direccion" class="form-input" placeholder="Calle, número, ciudad…">
                 </div>
-                <div class="form-group">
-                    <label for="cliente-fecha-nacimiento">Fecha de Nacimiento</label>
-                    <input type="date" id="cliente-fecha-nacimiento" name="fecha_nacimiento" class="form-input">
-                </div>
                 <div class="form-section-title"><span class="form-section-dot"></span>Perfil Comercial</div>
                 <div class="form-group">
-                    <label for="cliente-tipo">Tipo de Cliente</label>
-                    <select id="cliente-tipo" name="tipo_cliente" class="form-select">
-                        <option value="nuevo">Nuevo</option>
-                        <option value="regular">Regular</option>
-                        <option value="frecuente">Frecuente</option>
-                        <option value="vip">VIP</option>
-                    </select>
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <label for="cliente-tipo" style="margin:0">Tipo de Cliente</label>
+                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarTiposCliente()">+ Gestionar</button>
+                    </div>
+                    <select id="cliente-tipo" name="tipo_cliente" class="form-select"></select>
                 </div>
                 <div class="form-group">
                     <label for="cliente-presupuesto-habitual">Presupuesto Habitual (€)</label>
@@ -1121,6 +1124,52 @@
     </div>
 </div>
 
+<!-- Modal Exportar -->
+<div id="modal-exportar" class="modal" style="display:none;">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="download"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Exportar datos</h2>
+                    <p class="modal-subtitle-pro" id="export-modal-subtitle">Selecciona el formato de exportación</p>
+                </div>
+            </div>
+            <button class="modal-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="export-dataset-wrap" style="margin-bottom:var(--sp-4)">
+                <p style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">¿Qué datos exportar?</p>
+                <div id="export-dataset-options" class="export-dataset-options"></div>
+            </div>
+            <p style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-3)">Formato</p>
+            <div class="export-format-grid">
+                <button class="export-format-btn active" data-format="csv">
+                    <i data-lucide="file-text"></i>
+                    <span class="export-format-name">CSV</span>
+                    <span class="export-format-desc">Compatible con Excel, Sheets…</span>
+                </button>
+                <button class="export-format-btn" data-format="excel">
+                    <i data-lucide="table-2"></i>
+                    <span class="export-format-name">Excel</span>
+                    <span class="export-format-desc">Archivo .xlsx nativo</span>
+                </button>
+                <button class="export-format-btn" data-format="pdf">
+                    <i data-lucide="file-type-2"></i>
+                    <span class="export-format-name">PDF</span>
+                    <span class="export-format-desc">Para imprimir o compartir</span>
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btn-export-confirmar">
+                <i data-lucide="download" style="width:15px;height:15px"></i> Exportar
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Evento -->
 <div id="modal-evento" class="modal" style="display:none;">
     <div class="modal-content modal-lg">
@@ -1142,13 +1191,11 @@
                     <input type="text" id="evento-nombre" name="nombre" class="form-input" required placeholder="Nombre del evento">
                 </div>
                 <div class="form-group">
-                    <label for="evento-tipo">Tipo de Evento</label>
-                    <select id="evento-tipo" name="tipo_evento" class="form-select">
-                        <option value="temporal">Temporal</option>
-                        <option value="religioso">Religioso</option>
-                        <option value="comercial">Comercial</option>
-                        <option value="personalizado">Personalizado</option>
-                    </select>
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <label for="evento-tipo" style="margin:0">Tipo de Evento</label>
+                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarTiposEvento()">+ Gestionar</button>
+                    </div>
+                    <select id="evento-tipo" name="tipo_evento" class="form-select"></select>
                 </div>
                 <div class="form-group">
                     <label for="evento-demanda">Demanda Esperada</label>
@@ -1197,7 +1244,7 @@
                 <div class="modal-header-icon"><i data-lucide="clock"></i></div>
                 <div>
                     <h2 class="modal-title-pro">Historial de Compras</h2>
-                    <p class="modal-subtitle-pro">Registro de pedidos del cliente</p>
+                    <p class="modal-subtitle-pro">Registro de encargos del cliente</p>
                 </div>
             </div>
             <button class="modal-close" onclick="app.hideModal('modal-historial-cliente')" aria-label="Cerrar">&times;</button>
@@ -1212,7 +1259,7 @@
                     <div style="font-size:0.78rem;color:var(--text-muted)" id="historial-cliente-email">—</div>
                 </div>
                 <div style="display:flex;gap:var(--sp-4);flex-shrink:0;font-size:0.78rem;color:var(--text-muted);text-align:center">
-                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-pedidos-num">0</div><div>pedidos</div></div>
+                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-pedidos-num">0</div><div>encargos</div></div>
                     <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-gastado-num">0 €</div><div>gastado</div></div>
                 </div>
             </div>
@@ -1268,6 +1315,60 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-categorias')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL TIPOS DE CLIENTE ═══ -->
+<div id="modal-tipos-cliente" class="modal" style="display:none;">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="users"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Tipos de Cliente</h2>
+                    <p class="modal-subtitle-pro">Gestiona los tipos de cliente disponibles</p>
+                </div>
+            </div>
+            <button class="modal-close" onclick="app.hideModal('modal-tipos-cliente')" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-2);align-items:center">
+                <input type="color" id="nuevo-tipo-color" value="#6b7280" style="width:36px;height:36px;border:none;border-radius:var(--r-md);cursor:pointer;padding:2px;background:none">
+                <input type="text" id="nuevo-tipo-nombre" class="form-input" placeholder="Nombre del tipo" style="flex:1">
+                <button class="btn btn-primary" onclick="app.crearTipoCliente()">Añadir</button>
+            </div>
+            <div id="tipos-cliente-lista" style="display:flex;flex-direction:column;gap:var(--sp-2);max-height:280px;overflow-y:auto;margin-top:var(--sp-3)"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-tipos-cliente')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL TIPOS DE EVENTO ═══ -->
+<div id="modal-tipos-evento" class="modal" style="display:none;">
+    <div class="modal-content modal-sm">
+        <div class="modal-header">
+            <div class="modal-header-inner">
+                <div class="modal-header-icon"><i data-lucide="calendar"></i></div>
+                <div>
+                    <h2 class="modal-title-pro">Tipos de Evento</h2>
+                    <p class="modal-subtitle-pro">Gestiona los tipos de evento disponibles</p>
+                </div>
+            </div>
+            <button class="modal-close" onclick="app.hideModal('modal-tipos-evento')" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-2);align-items:center">
+                <input type="color" id="nuevo-tipo-evento-color" value="#6b7280" style="width:36px;height:36px;border:none;border-radius:var(--r-md);cursor:pointer;padding:2px;background:none">
+                <input type="text" id="nuevo-tipo-evento-nombre" class="form-input" placeholder="Nombre del tipo" style="flex:1">
+                <button class="btn btn-primary" onclick="app.crearTipoEvento()">Añadir</button>
+            </div>
+            <div id="tipos-evento-lista" style="display:flex;flex-direction:column;gap:var(--sp-2);max-height:280px;overflow-y:auto;margin-top:var(--sp-3)"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-tipos-evento')">Cerrar</button>
         </div>
     </div>
 </div>
@@ -1330,6 +1431,7 @@
     </div>
 </div>
 
+<script src="../i18n.js"></script>
 <script src="../js/main.js"></script>
 <script>
     // Initialize Lucide icons after DOM and JS app are ready

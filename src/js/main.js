@@ -17,7 +17,6 @@ class FlowerShopApp {
             if (badgeEventos) badgeEventos.textContent = eventos.length;
             if (badgePedidos) {
                 badgePedidos.textContent = pedidos.length;
-                // Buscar pedidos pendientes
                 const pendientes = pedidos.filter(p => p.estado && p.estado.toLowerCase() === 'pendiente');
                 if (pendientes.length > 0) {
                     badgePedidos.classList.add('new');
@@ -25,6 +24,19 @@ class FlowerShopApp {
                     badgePedidos.classList.remove('new');
                 }
             }
+            const stockBajo = productos.filter(p => p.stock_actual <= p.stock_minimo).length;
+            this.updateElement('sidebar-stock-bajo', stockBajo);
+
+            const hoyStr = new Date().toISOString().slice(0, 10);
+            const entregasHoy = pedidos.filter(p => p.estado === 'aprobado' && p.fecha_entrega && p.fecha_entrega.startsWith(hoyStr)).length;
+            this.updateElement('sidebar-entregas-hoy', entregasHoy);
+            const entregasEl = document.getElementById('sidebar-entregas-hoy');
+            if (entregasEl) entregasEl.className = `stat-value${entregasHoy > 0 ? ' success' : ''}`;
+
+            const ventasHoy = pedidos
+                .filter(p => p.estado === 'aprobado' && (p.fecha_pedido || '').startsWith(hoyStr))
+                .reduce((s, p) => s + (p.total || 0), 0);
+            this.updateElement('sidebar-ventas-hoy', window.flowerShopAPI.formatCurrency(ventasHoy));
         } catch (error) {
             console.error('❌ Error actualizando badges del sidebar:', error);
         }
@@ -35,12 +47,25 @@ class FlowerShopApp {
     }
 
     async init() {
+        // Inicializar idioma antes de renderizar nada
+        if (window.i18n) { window.i18n.initLocale(); window.i18n.applyTranslations(); }
+
         this.setupNavigation();
         this.setupModals();
         this.setupEventListeners();
         await this.loadInitialData();
         await this.updateSidebarBadges();
+        await this.generarNotificaciones();
         this.showSection('dashboard');
+        const avatarImg = localStorage.getItem('perfil_avatar_img');
+        this.updateAvatarEverywhere(avatarImg || null);
+        this.setupProductoImageInput();
+        this.setupClienteImageInput();
+        const savedPerfil = JSON.parse(localStorage.getItem('perfil_usuario') || '{}');
+        if (savedPerfil.nombre) {
+            const topbarName = document.querySelector('.user-name');
+            if (topbarName) topbarName.textContent = savedPerfil.nombre;
+        }
     }
 
     // ========== NAVEGACIÓN ==========
@@ -129,10 +154,13 @@ class FlowerShopApp {
                 case 'perfil':
                     await this.loadPerfilData();
                     break;
+                case 'notificaciones':
+                    this.loadNotificacionesData();
+                    break;
             }
         } catch (error) {
             console.error(`❌ Error cargando datos de ${sectionId}:`, error);
-            this.showNotification('Error cargando datos de la sección', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
@@ -143,7 +171,7 @@ class FlowerShopApp {
             const now = new Date();
             const hour = now.getHours();
             const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
-            this.updateElement('dash-greeting-text', greeting + ' 👋');
+            this.updateElement('dash-greeting-text', greeting);
             const fechaStr = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             this.updateElement('dash-fecha-hoy', fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1));
 
@@ -160,10 +188,15 @@ class FlowerShopApp {
             this.updateElement('total-clientes', stats.totalClientes || 0);
             this.updateElement('total-productos', (alertas || []).length);
 
-            // Pedidos hoy sub-label
+            // Pedidos hoy sub-label — solo aprobados con entrega hoy
             const hoy = now.toISOString().slice(0, 10);
-            const pedidosHoy = (pedidos || []).filter(p => (p.fecha_pedido || '').slice(0, 10) === hoy);
-            this.updateElement('dash-pedidos-hoy', `${pedidosHoy.length} para hoy`);
+            const pedidosHoy = (pedidos || []).filter(p =>
+                p.estado === 'aprobado' &&
+                p.tipo_pedido !== 'venta_rapida' &&
+                (p.fecha_entrega || '').slice(0, 10) === hoy
+            );
+            const n = pedidosHoy.length;
+            this.updateElement('dash-pedidos-hoy', `${n} encargo${n !== 1 ? 's' : ''} aprobado${n !== 1 ? 's' : ''} para hoy`);
 
             // Lista pedidos hoy
             this.renderDashPedidosHoy(pedidosHoy, pedidos);
@@ -183,7 +216,7 @@ class FlowerShopApp {
 
         } catch (error) {
             console.error('❌ Error cargando dashboard:', error);
-            this.showNotification('Error cargando el dashboard', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
@@ -191,13 +224,13 @@ class FlowerShopApp {
         const container = document.getElementById('dash-pedidos-hoy-lista');
         if (!container) return;
 
-        // Si no hay pedidos hoy, mostrar los pendientes más recientes
+        // Si no hay entregas hoy, mostrar los pendientes más recientes (sin cancelados)
         const lista = pedidosHoy.length > 0
-            ? pedidosHoy.slice(0, 8)
-            : (todosPedidos || []).filter(p => p.estado === 'pendiente').slice(0, 8);
+            ? pedidosHoy
+            : (todosPedidos || []).filter(p => p.estado !== 'cancelado');
 
         if (lista.length === 0) {
-            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="check-circle"></i><span>No hay pedidos pendientes</span></div>`;
+            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="check-circle"></i><span>${t('dashboard.no_orders')}</span></div>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
@@ -225,28 +258,25 @@ class FlowerShopApp {
         const items = [];
 
         // Stock crítico (stock_actual === 0)
-        alertas.filter(a => a.stock_actual === 0).slice(0, 3).forEach(a => {
-            items.push({ color: '#ef4444', icon: 'alert-triangle', text: `<b>${a.nombre}</b> — Sin stock`, action: `app.showSection('inventario')` });
+        alertas.filter(a => a.stock_actual === 0).forEach(a => {
+            items.push({ color: '#ef4444', icon: 'alert-triangle', text: `<b>${a.nombre}</b> — ${t('tpv.no_stock')}`, action: `app.showSection('inventario')` });
         });
 
-        // Pedidos urgentes (entrega hoy o mañana y pendientes)
+        // Entregas pendientes hoy/mañana — una sola línea resumida por día
         const hoy = new Date().toISOString().slice(0, 10);
         const manana = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
-        pedidos.filter(p => p.estado === 'pendiente' && (
-            (p.fecha_entrega || '').slice(0, 10) === hoy ||
-            (p.fecha_entrega || '').slice(0, 10) === manana
-        )).slice(0, 3).forEach(p => {
-            const esHoy = (p.fecha_entrega || '').slice(0, 10) === hoy;
-            items.push({ color: '#f59e0b', icon: 'clock', text: `Entrega ${esHoy ? 'hoy' : 'mañana'}: <b>${p.cliente_nombre || 'Pedido #' + p.id}</b>`, action: `app.verPedido(${p.id})` });
-        });
+        const entregasHoy    = pedidos.filter(p => p.estado === 'pendiente' && (p.fecha_entrega || '').slice(0, 10) === hoy).length;
+        const entregasManana = pedidos.filter(p => p.estado === 'pendiente' && (p.fecha_entrega || '').slice(0, 10) === manana).length;
+        if (entregasHoy > 0)    items.push({ color: '#f59e0b', icon: 'clock', text: `<b>${entregasHoy} encargo${entregasHoy > 1 ? 's' : ''} ${t('statuses.pending').toLowerCase()} hoy</b>`, action: `app._irPendientesHoy()` });
+        if (entregasManana > 0) items.push({ color: '#94a3b8', icon: 'clock', text: `<b>${entregasManana} entrega${entregasManana > 1 ? 's' : ''}</b> para mañana`, action: `app._irPendientesHoy()` });
 
         // Stock bajo (no crítico)
-        alertas.filter(a => a.stock_actual > 0).slice(0, 2).forEach(a => {
-            items.push({ color: '#f59e0b', icon: 'package', text: `<b>${a.nombre}</b> — Stock bajo (${a.stock_actual})`, action: `app.showSection('inventario')` });
+        alertas.filter(a => a.stock_actual > 0).forEach(a => {
+            items.push({ color: '#f59e0b', icon: 'package', text: `<b>${a.nombre}</b> — ${t('inventory.low')} (${a.stock_actual})`, action: `app.showSection('inventario')` });
         });
 
         if (items.length === 0) {
-            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="check-circle"></i><span>Sin alertas activas</span></div>`;
+            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="check-circle"></i><span>${t('dashboard.no_alerts')}</span></div>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
@@ -272,14 +302,21 @@ class FlowerShopApp {
         if (!container) return;
 
         if (productos.length > 0) {
-            container.innerHTML = productos.map(producto => `
-                <div class="stock-item warning">
-                    <span class="producto-nombre">${producto.nombre}</span>
-                    <span class="stock-badge low-stock">${producto.stock_actual}/${producto.stock_minimo}</span>
-                </div>
-            `).join('');
+            container.innerHTML = productos.map(producto => {
+                const agotado = producto.stock_actual === 0;
+                const badgeClass = agotado ? 'sin-stock' : 'low-stock';
+                const badgeLabel = agotado ? 'Agotado' : `${producto.stock_actual} / ${producto.stock_minimo}`;
+                return `
+                <div class="stock-item">
+                    <div class="stock-item-info">
+                        <span class="stock-item-nombre">${producto.nombre}</span>
+                        <span class="stock-item-sub">Mín: ${producto.stock_minimo} ud.</span>
+                    </div>
+                    <span class="stock-badge ${badgeClass}">${badgeLabel}</span>
+                </div>`;
+            }).join('');
         } else {
-            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="check-circle"></i><span>Todo el stock en nivel óptimo</span></div>`;
+            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="check-circle"></i><span>${t('dashboard.stock_ok')}</span></div>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     }
@@ -288,21 +325,46 @@ class FlowerShopApp {
         const container = document.getElementById('proximos-eventos');
         if (!container) return;
 
+        const hoy = new Date();
         const proximosEventos = eventos
-            .filter(evento => new Date(evento.fecha_inicio) >= new Date())
+            .filter(e => new Date(e.fecha_fin) >= hoy)
             .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio))
             .slice(0, 3);
 
+        const sub = document.getElementById('proximos-eventos-sub');
+        if (sub) {
+            if (proximosEventos.length === 0) {
+                sub.textContent = t('dashboard.no_events');
+            } else {
+                const diasHasta = Math.ceil((new Date(proximosEventos[0].fecha_inicio) - hoy) / 86400000);
+                sub.textContent = diasHasta <= 0 ? t('common.in_progress') : diasHasta === 1 ? t('common.tomorrow') : diasHasta <= 7 ? t('common.this_week') : t('common.in_days', { n: diasHasta });
+            }
+        }
+
+        const tipoIcon  = { religioso: 'church', comercial: 'shopping-bag', temporal: 'leaf', cultural: 'drama' };
+        const tipoColor = { religioso: '#7c3aed', comercial: '#0891b2', temporal: '#16a34a', cultural: '#d97706' };
+
         if (proximosEventos.length > 0) {
-            container.innerHTML = proximosEventos.map(evento => `
-                <div class="evento-item">
-                    <div class="evento-fecha">${window.flowerShopAPI.formatDate(evento.fecha_inicio)}</div>
-                    <div class="evento-nombre">${evento.nombre}</div>
-                    <div class="evento-tipo">${evento.tipo_evento || ''}</div>
-                </div>
-            `).join('');
+            container.innerHTML = proximosEventos.map(evento => {
+                const dias = Math.ceil((new Date(evento.fecha_inicio) - hoy) / 86400000);
+                const etiqueta = dias <= 0 ? `<span style="color:#16a34a;font-weight:700;font-size:0.7rem">${t('common.in_progress').toUpperCase()}</span>`
+                    : dias === 1 ? `<span style="color:#d97706;font-weight:700;font-size:0.7rem">${t('common.tomorrow').toUpperCase()}</span>`
+                    : `<span style="color:var(--s-500);font-size:0.7rem">en ${dias}d</span>`;
+                const color = tipoColor[evento.tipo_evento] || '#6b7280';
+                const iconName = tipoIcon[evento.tipo_evento] || 'calendar';
+                return `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--s-100);">
+                    <div style="width:36px;height:36px;border-radius:10px;background:${color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${color}"><i data-lucide="${iconName}" style="width:17px;height:17px"></i></div>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:0.82rem;color:var(--s-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${evento.nombre}</div>
+                        <div style="font-size:0.72rem;color:var(--s-500)">${window.flowerShopAPI.formatDate(evento.fecha_inicio)}</div>
+                    </div>
+                    ${etiqueta}
+                </div>`;
+            }).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         } else {
-            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="calendar-x"></i><span>Sin eventos programados</span></div>`;
+            container.innerHTML = `<div class="dashboard-empty-state"><i data-lucide="calendar-x"></i><span>${t('dashboard.no_events')}</span></div>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     }
@@ -316,6 +378,7 @@ class FlowerShopApp {
             ]);
             this.displayProductos(productos);
             this._productosCache = productos;
+            this._lazyLoadProductImages();
 
             // Poblar filtro de categorías
             const filterCat = document.getElementById('filter-categoria');
@@ -325,7 +388,7 @@ class FlowerShopApp {
             }
         } catch (error) {
             console.error('❌ Error cargando productos:', error);
-            this.showNotification('Error cargando productos', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
@@ -334,7 +397,7 @@ class FlowerShopApp {
         if (!tbody) return;
 
         if (productos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay productos registrados</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">${t('products.no_data')}</td></tr>`;
             return;
         }
 
@@ -343,8 +406,14 @@ class FlowerShopApp {
                 <td>${producto.codigo_producto || 'N/A'}</td>
                 <td>
                     <div class="producto-info">
-                        <span class="producto-nombre">${producto.nombre}</span>
-                        <small class="producto-categoria">${producto.categoria_icono} ${producto.categoria_nombre}</small>
+                        ${producto.tiene_imagen
+                            ? `<img src="" class="producto-thumb" alt="${producto.nombre}" data-producto-id="${producto.id}" data-lazy-img="1">`
+                            : `<div class="producto-thumb-placeholder">${producto.categoria_icono || '🌸'}</div>`
+                        }
+                        <div>
+                            <span class="producto-nombre">${producto.nombre}</span>
+                            <small class="producto-categoria">${producto.categoria_nombre}</small>
+                        </div>
                     </div>
                 </td>
                 <td>${producto.categoria_nombre}</td>
@@ -356,14 +425,14 @@ class FlowerShopApp {
                 <td>${window.flowerShopAPI.formatCurrency(producto.precio_venta)}</td>
                 <td>
                     <span class="status-badge ${producto.activo ? 'active' : 'inactive'}">
-                        ${producto.activo ? 'Activo' : 'Inactivo'}
+                        ${producto.activo ? t('common.active') : t('common.inactive')}
                     </span>
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn btn-sm btn-primary" onclick="app.editarProducto(${producto.id})" title="Editar">Editar</button>
-                        <button class="btn btn-sm btn-secondary" onclick="app.verProducto(${producto.id})" title="Ver detalles">Ver</button>
-                        <button class="btn btn-sm btn-danger" onclick="app.eliminarProducto(${producto.id})" title="Eliminar">Eliminar</button>
+                        <button class="btn btn-sm btn-primary" onclick="app.editarProducto(${producto.id})" title="${t('common.edit')}">${t('common.edit')}</button>
+                        <button class="btn btn-sm btn-secondary" onclick="app.verProducto(${producto.id})" title="${t('historial.view')}">${t('historial.view')}</button>
+                        <button class="btn btn-sm btn-danger" onclick="app.eliminarProducto(${producto.id})" title="${t('common.delete')}">${t('common.delete')}</button>
                     </div>
                 </td>
             </tr>
@@ -376,40 +445,56 @@ class FlowerShopApp {
             const clientes = await window.flowerShopAPI.getClientes();
             this.displayClientes(clientes);
             this._clientesCache = clientes;
+            this._lazyLoadClienteImages();
         } catch (error) {
             console.error('❌ Error cargando clientes:', error);
-            this.showNotification('Error cargando clientes', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
     displayClientes(clientes) {
-        const tbody = document.querySelector('#clientes-table tbody');
-        if (!tbody) return;
+        const grid = document.getElementById('clientes-grid');
+        if (!grid) return;
 
         if (clientes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay clientes registrados</td></tr>';
+            grid.innerHTML = `<p class="no-data">${t('clients.no_data')}</p>`;
             return;
         }
 
-        tbody.innerHTML = clientes.map(cliente => `
-            <tr data-id="${cliente.id}">
-                <td>${cliente.nombre} ${cliente.apellidos || ''}</td>
-                <td>${cliente.telefono || 'N/A'}</td>
-                <td>${cliente.email || 'N/A'}</td>
-                <td>
-                    <span class="cliente-tipo ${cliente.tipo_cliente}">${cliente.tipo_cliente}</span>
-                </td>
-                <td>${window.flowerShopAPI.formatCurrency(cliente.total_compras || 0)}</td>
-                <td>${cliente.ultima_compra ? window.flowerShopAPI.formatDate(cliente.ultima_compra) : 'N/A'}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-primary" onclick="app.editarCliente(${cliente.id})" title="Editar">Editar</button>
-                        <button class="btn btn-sm btn-secondary" onclick="app.verCliente(${cliente.id})" title="Ver historial">Ver</button>
-                        <button class="btn btn-sm btn-success" onclick="app.nuevoPedidoCliente(${cliente.id})" title="Nuevo pedido">Pedido</button>
+        const tipoColor = { vip: '#7c3aed', regular: '#0891b2', ocasional: '#6b7280' };
+
+        grid.innerHTML = clientes.map(cliente => {
+            const nombre = `${cliente.nombre} ${cliente.apellidos || ''}`.trim();
+            const inicial = nombre.charAt(0).toUpperCase();
+            const tipo = cliente.tipo_cliente || 'regular';
+            const color = tipoColor[tipo] || '#6b7280';
+            const avatarContent = cliente.tiene_imagen
+                ? `<img data-lazy-cliente="${cliente.id}" src="" alt="${inicial}" style="display:none">`
+                : inicial;
+            const avatarBg = cliente.tiene_imagen ? 'transparent' : color;
+            return `
+            <div class="cliente-card">
+                <div class="cliente-card-top">
+                    <div class="cliente-avatar" style="background:${avatarBg}">${avatarContent}</div>
+                    <div class="cliente-card-info">
+                        <div class="cliente-card-nombre">${nombre}</div>
+                        <span class="cliente-tipo ${tipo}">${tipo}</span>
                     </div>
-                </td>
-            </tr>
-        `).join('');
+                </div>
+                <div class="cliente-card-datos">
+                    ${cliente.telefono ? `<div class="cliente-dato"><i data-lucide="phone" style="width:12px;height:12px;flex-shrink:0"></i><span>${cliente.telefono}</span></div>` : ''}
+                    ${cliente.email    ? `<div class="cliente-dato"><i data-lucide="mail"  style="width:12px;height:12px;flex-shrink:0"></i><span>${cliente.email}</span></div>`    : ''}
+                    <div class="cliente-dato"><i data-lucide="shopping-bag"   style="width:12px;height:12px;flex-shrink:0"></i><span>${window.flowerShopAPI.formatCurrency(cliente.total_compras || 0)}</span></div>
+                    <div class="cliente-dato"><i data-lucide="clipboard-list" style="width:12px;height:12px;flex-shrink:0"></i><span>${cliente.num_encargos || 0} encargo${(cliente.num_encargos || 0) !== 1 ? 's' : ''}</span></div>
+                </div>
+                <div class="cliente-card-actions">
+                    <button class="btn btn-sm btn-primary" onclick="app.editarCliente(${cliente.id})">${t('common.edit')}</button>
+                    <button class="btn btn-sm btn-secondary" onclick="app.verCliente(${cliente.id})">${t('historial.view')}</button>
+                    <button class="btn btn-sm btn-success" onclick="app.nuevoPedidoCliente(${cliente.id})">${t('nav.orders')}</button>
+                </div>
+            </div>`;
+        }).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     // ========== EVENTOS ==========
@@ -419,7 +504,7 @@ class FlowerShopApp {
             this.displayEventos(eventos);
         } catch (error) {
             console.error('❌ Error cargando eventos:', error);
-            this.showNotification('Error cargando eventos', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
@@ -428,7 +513,7 @@ class FlowerShopApp {
         if (!container) return;
 
         if (eventos.length === 0) {
-            container.innerHTML = '<p class="text-center">No hay eventos registrados</p>';
+            container.innerHTML = `<p class="text-center">${t('events.no_data')}</p>`;
             return;
         }
 
@@ -470,9 +555,9 @@ class FlowerShopApp {
                         ${evento.descripcion ? `<p class="evento-desc">${evento.descripcion}</p>` : ''}
                     </div>
                     <div class="evento-actions">
-                        <button class="btn btn-sm btn-secondary" onclick="app.editarEvento(${evento.id})">Editar</button>
+                        <button class="btn btn-sm btn-secondary" onclick="app.editarEvento(${evento.id})">${t('common.edit')}</button>
                         <button class="btn btn-sm btn-success" onclick="app.gestionarEventoStock(${evento.id})">Stock</button>
-                        <button class="btn btn-sm btn-danger" onclick="app.eliminarEvento(${evento.id})">Eliminar</button>
+                        <button class="btn btn-sm btn-danger" onclick="app.eliminarEvento(${evento.id})">${t('common.delete')}</button>
                     </div>
                 </div>
             `;
@@ -480,52 +565,135 @@ class FlowerShopApp {
         // Re-render Lucide icons for dynamically added content
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
+    _irEntregasHoy() {
+        this.showSection('pedidos');
+        this._activarTabPedidos('aprobado');
+    }
+
+    _irPendientesHoy() {
+        this.showSection('pedidos');
+        this._activarTabPedidos('pendiente');
+    }
+
     // ========== PEDIDOS ==========
+    _activarTabPedidos(estado) {
+        this._tabPedidosActiva = estado;
+        document.querySelectorAll('.pedidos-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.tabEstado === estado);
+        });
+        const pedidos = (this._pedidosCache || [])
+            .filter(p => p.estado === estado && p.tipo_pedido !== 'venta_rapida')
+            .sort((a, b) => new Date(b.fecha_pedido) - new Date(a.fecha_pedido));
+        this.displayPedidos(pedidos);
+    }
+
+    _actualizarContadoresTabs() {
+        const cache = (this._pedidosCache || []).filter(p => p.tipo_pedido !== 'venta_rapida');
+        ['pendiente','aprobado','cancelado'].forEach(estado => {
+            const el = document.getElementById(`tab-count-${estado}`);
+            if (el) el.textContent = cache.filter(p => p.estado === estado).length;
+        });
+    }
+
     async loadPedidosData() {
         try {
             const pedidos = await window.flowerShopAPI.getPedidos();
-            this.displayPedidos(pedidos);
+            this._pedidosCache = pedidos;
+            this._actualizarContadoresTabs();
+            const tabActiva = this._tabPedidosActiva || 'pendiente';
+            this._activarTabPedidos(tabActiva);
         } catch (error) {
             console.error('❌ Error cargando pedidos:', error);
-            this.showNotification('Error cargando pedidos', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
-    displayPedidos(pedidos) {
-        const tbody = document.querySelector('#pedidos-table tbody');
-        if (!tbody) return;
+    displayPedidos(pedidos, pagina = 1) {
+        const feed = document.getElementById('pedidos-feed');
+        if (!feed) return;
 
         if (!pedidos || pedidos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay pedidos registrados</td></tr>';
+            const tabActiva = this._tabPedidosActiva || 'pendiente';
+            const msgs = {
+                pendiente: { icon: 'inbox',        title: t('orders.no_pending_title'), sub: t('orders.no_pending_sub') },
+                aprobado:  { icon: 'check-circle', title: t('orders.no_approved_title'), sub: t('orders.no_approved_sub') },
+                cancelado: { icon: 'x-circle',     title: t('orders.no_cancelled_title'), sub: t('orders.no_cancelled_sub') },
+            };
+            const m = msgs[tabActiva] || msgs.pendiente;
+            feed.innerHTML = `
+                <div class="pedidos-empty">
+                    <i data-lucide="${m.icon}" class="pedidos-empty-icon"></i>
+                    <p class="pedidos-empty-title">${m.title}</p>
+                    <p class="pedidos-empty-sub">${m.sub}</p>
+                </div>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
 
-        tbody.innerHTML = pedidos.map(pedido => {
-            const estadoBadge = `<span class="badge-estado badge-estado-${(pedido.estado || '').toLowerCase()}">${pedido.estado || 'N/A'}</span>`;
-            // Usar los nombres correctos de los campos según la base de datos
-            const numeroPedido = pedido.numero_pedido || pedido.numero || pedido.id;
-            const cliente = (pedido.cliente_nombre ? pedido.cliente_nombre : '') + (pedido.cliente_apellidos ? ' ' + pedido.cliente_apellidos : '');
-            const fechaPedido = pedido.fecha_pedido ? (window.flowerShopAPI.formatDate ? window.flowerShopAPI.formatDate(pedido.fecha_pedido) : pedido.fecha_pedido) : 'N/A';
-            const fechaEntrega = pedido.fecha_entrega ? (window.flowerShopAPI.formatDate ? window.flowerShopAPI.formatDate(pedido.fecha_entrega) : pedido.fecha_entrega) : 'N/A';
-            const totalPedido = (typeof pedido.total !== 'undefined' && pedido.total !== null) ? (window.flowerShopAPI.formatCurrency ? window.flowerShopAPI.formatCurrency(pedido.total) : pedido.total) : 'N/A';
+        const POR_PAGINA = 5;
+        const totalPaginas = Math.ceil(pedidos.length / POR_PAGINA);
+        pagina = Math.max(1, Math.min(pagina, totalPaginas));
+        const slice = pedidos.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
+        this._pedidosPaginaActual = { pedidos, pagina };
+
+        const hoy = new Date().toDateString();
+
+        const filas = slice.map(pedido => {
+            const estado = (pedido.estado || 'pendiente').toLowerCase();
+            const numeroRaw = pedido.numero_pedido || `#${pedido.id}`;
+            const numero = numeroRaw.length > 10 ? '#' + numeroRaw.slice(-8) : numeroRaw;
+            const cliente = [pedido.cliente_nombre, pedido.cliente_apellidos].filter(Boolean).join(' ') || t('orders.no_client');
+            const inicial = cliente.charAt(0).toUpperCase();
+            const fechaPedido = window.flowerShopAPI.formatDate(pedido.fecha_pedido);
+            const fechaEntrega = pedido.fecha_entrega ? window.flowerShopAPI.formatDate(pedido.fecha_entrega) : null;
+            const entregaHoy = pedido.fecha_entrega && new Date(pedido.fecha_entrega).toDateString() === hoy;
+            const total = window.flowerShopAPI.formatCurrency(pedido.total || 0);
+            const metodo = pedido.metodo_pago ? `· ${pedido.metodo_pago}` : '';
             return `
-                <tr data-id="${pedido.id}">
-                    <td>${numeroPedido}</td>
-                    <td>${cliente.trim() || 'N/A'}</td>
-                    <td>${fechaPedido}</td>
-                    <td>${fechaEntrega}</td>
-                    <td>${estadoBadge}</td>
-                    <td>${totalPedido}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-sm btn-secondary" onclick="app.verPedido(${pedido.id})" title="Ver detalles">👁️</button>
-                            ${pedido.estado && pedido.estado.toLowerCase() === 'pendiente' ? `<button class="btn btn-sm btn-success" onclick="app.aprobarPedido(${pedido.id})" title="Aprobar">✔️</button>` : ''}
-                            ${pedido.estado && pedido.estado.toLowerCase() !== 'cancelado' && pedido.estado.toLowerCase() !== 'entregado' ? `<button class="btn btn-sm btn-danger" onclick="app.cancelarPedido(${pedido.id})" title="Cancelar">🗑️</button>` : ''}
-                        </div>
-                    </td>
-                </tr>
-            `;
+            <div class="pedido-row" data-id="${pedido.id}">
+                <div class="pedido-row-avatar">${inicial}</div>
+                <div class="pedido-row-num">
+                    <span class="pedido-numero">${numero}</span>
+                    <span class="pedido-fecha-sub">${fechaPedido}</span>
+                </div>
+                <div class="pedido-row-cliente">${cliente}</div>
+                <div class="pedido-row-entrega">
+                    ${fechaEntrega
+                        ? `<span class="${entregaHoy ? 'pedido-entrega-hoy' : ''}">${entregaHoy ? `<span style="display:inline-flex;align-items:center;gap:4px"><i data-lucide="package" style="width:13px;height:13px"></i>${t('orders.delivery_today')}</span>` : fechaEntrega}</span>`
+                        : '<span class="text-muted">—</span>'}
+                </div>
+                <div class="pedido-row-estado">
+                    <span class="estado-badge ${estado}">${t('statuses.' + estado) || estado}</span>
+                </div>
+                <div class="pedido-row-total">
+                    <span class="pedido-total">${total} <span class="pedido-metodo-sub">${metodo}</span></span>
+                </div>
+                <div class="pedido-row-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="app.verPedido(${pedido.id})">${t('historial.view')}</button>
+                    ${estado === 'pendiente' ? `<button class="btn btn-sm btn-success" onclick="app.aprobarPedido(${pedido.id})">${t('confirms.approve_btn')}</button>` : ''}
+                    ${estado !== 'cancelado' ? `<button class="btn btn-sm btn-danger" onclick="app.cancelarPedido(${pedido.id})">${t('common.cancel')}</button>` : ''}
+                </div>
+            </div>`;
         }).join('');
+
+        const paginacion = totalPaginas > 1 ? `
+            <div class="pedidos-paginacion">
+                <button class="pedidos-pag-btn" ${pagina === 1 ? 'disabled' : ''} onclick="app._pedidosPagina(${pagina - 1})">
+                    <i data-lucide="chevron-left" style="width:15px;height:15px"></i>
+                </button>
+                <span class="pedidos-pag-info">${pagina} / ${totalPaginas}</span>
+                <button class="pedidos-pag-btn" ${pagina === totalPaginas ? 'disabled' : ''} onclick="app._pedidosPagina(${pagina + 1})">
+                    <i data-lucide="chevron-right" style="width:15px;height:15px"></i>
+                </button>
+            </div>` : '';
+
+        feed.innerHTML = filas + paginacion;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    _pedidosPagina(pagina) {
+        if (!this._pedidosPaginaActual) return;
+        this.displayPedidos(this._pedidosPaginaActual.pedidos, pagina);
     }
 
     // Acciones básicas para pedidos
@@ -535,7 +703,7 @@ class FlowerShopApp {
             const pedidos = await window.flowerShopAPI.getPedidos();
             const pedido = pedidos.find(p => p.id === id);
             if (!pedido) {
-                this.showNotification('No se encontró el pedido', 'error');
+                this.showNotification(t('msgs.product_not_found'), 'error');
                 return;
             }
             let productosPedido = pedido.productos || [];
@@ -546,7 +714,7 @@ class FlowerShopApp {
             this.renderPedidoDetallesModal(pedido, productosPedido);
             this.showModal('modal-pedido-detalles');
         } catch (error) {
-            this.showNotification('Error mostrando detalles del pedido', 'error');
+            this.showNotification(t('msgs.error_show_detail'), 'error');
         }
     }
 
@@ -585,8 +753,11 @@ class FlowerShopApp {
         const fmt = (v) => window.flowerShopAPI.formatCurrency(v || 0);
         const fmtDate = (v) => v ? window.flowerShopAPI.formatDate(v) : '—';
         const estado = pedido.estado?.toLowerCase() || 'pendiente';
-        document.getElementById('detalle-numero-pedido').textContent = pedido.numero || pedido.id;
+        const numeroRaw = String(pedido.numero || pedido.id || '');
+        document.getElementById('detalle-numero-pedido').textContent = numeroRaw.slice(-8);
         const body = document.getElementById('detalle-pedido-body');
+
+        const clienteNombre = [pedido.cliente_nombre, pedido.cliente_apellidos].filter(Boolean).join(' ') || '—';
 
         const productosRows = (productos && productos.length > 0)
             ? productos.map(p => {
@@ -601,7 +772,7 @@ class FlowerShopApp {
                     <td style="text-align:right;font-weight:600">${fmt(sub)}</td>
                 </tr>`;
             }).join('')
-            : `<tr><td colspan="4" class="text-center text-muted">Sin productos registrados</td></tr>`;
+            : `<tr><td colspan="4" class="text-center text-muted">${t('products.no_data')}</td></tr>`;
 
         const lbl = (text) => `<span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${text}</span>`;
         const val = (text, bold = false) => `<span style="font-size:0.92rem;${bold ? 'font-weight:600;' : ''}color:var(--text-primary)">${text}</span>`;
@@ -610,12 +781,17 @@ class FlowerShopApp {
                 ${lbl(label)}${content}
             </div>`;
 
+        const metodoPagoLabel = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia', bizum: 'Bizum' };
+        const metodoPago = pedido.metodo_pago ? (metodoPagoLabel[pedido.metodo_pago] || pedido.metodo_pago) : null;
+
         body.innerHTML = `
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4);margin-bottom:var(--sp-5)">
-                ${field('Cliente', val(pedido.cliente_nombre || '—'))}
+            <div style="background:var(--s-50);border-radius:var(--r-lg);padding:var(--sp-4);margin-bottom:var(--sp-4);display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
+                ${field('Cliente', val(clienteNombre, true))}
                 ${field('Estado', `<span><span class="estado-badge ${estado}">${pedido.estado || '—'}</span></span>`)}
                 ${field('Fecha pedido', val(fmtDate(pedido.fecha_pedido || pedido.fecha)))}
                 ${field('Fecha entrega', val(fmtDate(pedido.fecha_entrega || pedido.entrega)))}
+                ${metodoPago ? field('Método de pago', val(metodoPago)) : ''}
+                ${pedido.evento_nombre ? field('Evento', val(pedido.evento_nombre)) : ''}
             </div>
             <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Productos</div>
             <div style="border:1px solid var(--s-100);border-radius:var(--r-lg);overflow:hidden;margin-bottom:var(--sp-4);max-height:240px;overflow-y:auto">
@@ -624,37 +800,42 @@ class FlowerShopApp {
                     <tbody>${productosRows}</tbody>
                 </table>
             </div>
+            ${pedido.notas ? `
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-4);display:flex;gap:var(--sp-3);align-items:flex-start">
+                <i data-lucide="sticky-note" style="width:16px;height:16px;color:#b45309;flex-shrink:0;margin-top:2px"></i>
+                <div>
+                    ${lbl('Notas')}
+                    <p style="margin:var(--sp-1) 0 0;font-size:0.9rem;color:var(--text-secondary)">${pedido.notas}</p>
+                </div>
+            </div>` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;background:var(--s-900);color:#fff;padding:var(--sp-3) var(--sp-4);border-radius:var(--r-lg)">
                 <span style="font-weight:600">Total</span>
                 <span style="font-size:1.05rem;font-weight:700">${fmt(pedido.total)}</span>
             </div>
-            ${pedido.notas ? `
-            <div style="margin-top:var(--sp-3);padding-top:var(--sp-3);border-top:1px solid var(--s-100)">
-                ${lbl('Notas')}
-                <p style="margin:var(--sp-1) 0 0;font-size:0.9rem;color:var(--text-secondary)">${pedido.notas}</p>
-            </div>` : ''}
         `;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     async aprobarPedido(id) {
         try {
-            if (!await this._confirm('Aprobar pedido', '¿Confirmas que quieres aprobar este pedido?', 'Aprobar', 'btn-primary')) return;
-            await window.flowerShopAPI.actualizarEstadoPedido(id, 'confirmado');
-            this.showNotification('Pedido aprobado', 'success');
+            if (!await this._confirm(t('confirms.approve_order_title'), t('confirms.approve_order'), t('confirms.approve_btn'), 'btn-primary')) return;
+            await window.flowerShopAPI.actualizarEstadoPedido(id, 'aprobado');
+            this.showNotification(t('msgs.order_approved'), 'success');
             await this.loadPedidosData();
+            await this.generarNotificaciones();
         } catch (error) {
-            this.showNotification('Error aprobando pedido', 'error');
+            this.showNotification(t('msgs.error_approve'), 'error');
         }
     }
 
     async cancelarPedido(id) {
         try {
-            if (!await this._confirm('Cancelar pedido', '¿Seguro que quieres cancelar este pedido? Esta acción no se puede deshacer.', 'Cancelar pedido')) return;
+            if (!await this._confirm(t('confirms.cancel_order_title'), t('confirms.cancel_order'), t('common.cancel'))) return;
             await window.flowerShopAPI.actualizarEstadoPedido(id, 'cancelado');
-            this.showNotification('Pedido cancelado', 'success');
+            this.showNotification(t('msgs.order_cancelled'), 'success');
             await this.loadPedidosData();
         } catch (error) {
-            this.showNotification('Error cancelando pedido', 'error');
+            this.showNotification(t('msgs.error_cancel_order'), 'error');
         }
     }
 
@@ -781,7 +962,7 @@ class FlowerShopApp {
 
         } catch (error) {
             console.error('❌ Error cargando dashboard de inventario:', error);
-            this.showNotification('Error cargando dashboard de inventario', 'error');
+            this.showNotification(t('msgs.error_dashboard'), 'error');
         }
     }
     
@@ -801,7 +982,7 @@ class FlowerShopApp {
         this.rotationChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Rotación Rápida', 'Rotación Lenta', 'Stock Bajo'],
+                labels: [t('inventory.rotation_fast'), t('inventory.rotation_slow'), t('inventory.chart_low_stock')],
                 datasets: [{
                     data: [rotacionRapida, rotacionLenta, sinMovimiento],
                     backgroundColor: [
@@ -855,22 +1036,6 @@ class FlowerShopApp {
         `).join('');
     }
 
-    updateInventoryKPIs(estadisticas) {
-        document.getElementById('total-productos').textContent = estadisticas.total_productos || 0;
-        document.getElementById('stock-bajo').textContent = estadisticas.productos_stock_bajo || 0;
-        document.getElementById('valor-inventario').textContent = 
-            window.flowerShopAPI.formatCurrency(estadisticas.valor_inventario_venta);
-        
-        // Calcular rotación promedio aproximada
-        const rotacionPromedio = Math.round(estadisticas.promedio_stock / 30 * 365) || 0;
-        document.getElementById('rotacion-promedio').textContent = rotacionPromedio;
-        
-        // Actualizar trends
-        document.getElementById('trend-stock').textContent = 
-            `${estadisticas.productos_sin_stock || 0} sin stock`;
-        document.getElementById('trend-rotacion').textContent = `días/año`;
-    }
-
     createRotationAnalysisChart(analisisData) {
         const ctx = document.getElementById('rotation-analysis-chart');
         if (!ctx) return;
@@ -886,7 +1051,7 @@ class FlowerShopApp {
         this.rotationChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Rotación Rápida', 'Rotación Lenta', 'Sin Movimiento'],
+                labels: [t('inventory.rotation_fast'), t('inventory.rotation_slow'), t('inventory.chart_no_movement')],
                 datasets: [{
                     data: [rapidaCount, lentaCount, sinMovimientoCount],
                     backgroundColor: [
@@ -930,9 +1095,40 @@ class FlowerShopApp {
                     <div class="ranking-title">${producto.nombre}</div>
                     <div class="ranking-subtitle">Stock: ${producto.stock_actual} unidades</div>
                 </div>
-                <div class="ranking-value" style="font-size:0.78rem;color:var(--text-muted)">${producto.dias_stock >= 999 ? 'Sin ventas' : producto.dias_stock + ' días'}</div>
+                <div class="ranking-value" style="font-size:0.78rem;color:var(--text-muted)">${producto.dias_stock >= 999 ? t('inventory.no_sales') : producto.dias_stock + ' ' + t('inventory.days_label')}</div>
             </div>
         `).join('');
+    }
+
+    _showSectionHelp(section) {
+        const h = { title: t(`help.${section}_title`), body: t(`help.${section}_body`) };
+        if (!h.title) return;
+
+        const existing = document.getElementById('_help-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = '_help-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content modal-md help-modal-content">
+                <div class="modal-header help-modal-header">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <i data-lucide="circle-help" style="width:20px;height:20px;color:var(--p-500);flex-shrink:0"></i>
+                        <h3 class="modal-title-pro">${h.title}</h3>
+                    </div>
+                    <button class="modal-close" aria-label="Cerrar">&times;</button>
+                </div>
+                <div class="modal-body help-modal-body">${h.body}</div>
+            </div>`;
+
+        document.body.appendChild(modal);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        this.showModal('_help-modal');
+        modal.querySelector('.modal-close').addEventListener('click', () => {
+            this.hideModal('_help-modal');
+            setTimeout(() => modal.remove(), 300);
+        });
     }
 
     async loadInventoryAlerts() {
@@ -941,14 +1137,13 @@ class FlowerShopApp {
             this.displayStockAlerts(alertas);
         } catch (error) {
             console.error('Error cargando alertas de stock:', error);
-            this.showNotification('Error cargando alertas de stock', 'error');
+            this.showNotification(t('msgs.error_alerts'), 'error');
         }
     }
 
     displayStockAlerts(alertas) {
         const container = document.getElementById('alertas-stock-grid');
         if (!container) return;
-
         if (alertas.length === 0) {
             container.innerHTML = `
                 <div class="inv-empty-state">
@@ -974,14 +1169,15 @@ class FlowerShopApp {
                 </div>
                 <div class="alert-actions">
                     <button class="btn btn-sm btn-primary" onclick="app.ajustarStockMinimo(${alerta.id})">
-                        ⚙️ Ajustar
+                        <i data-lucide="settings-2" style="width:13px;height:13px;margin-right:4px"></i>Ajustar
                     </button>
-                    <button class="btn btn-sm btn-secondary" onclick="app.crearOrdenCompra([${alerta.id}])">
-                        🛒 Pedir
+                    <button class="btn btn-sm btn-secondary" onclick="app.crearOrdenCompraDesdeAlerta(${alerta.id}, ${Math.max(alerta.stock_sugerido, 1)})">
+                        <i data-lucide="shopping-cart" style="width:13px;height:13px;margin-right:4px"></i>Pedir
                     </button>
                 </div>
             </div>
         `).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     async loadDemandPrediction() {
@@ -1004,87 +1200,6 @@ class FlowerShopApp {
                 console.error('Error cargando predicción:', e);
             }
         }
-    }
-
-    createDemandPredictionChart(predicciones) {
-        const ctx = document.getElementById('demand-prediction-chart');
-        if (!ctx) return;
-
-        if (this.demandChart) {
-            this.demandChart.destroy();
-        }
-
-        const topPredicciones = predicciones.slice(0, 10);
-
-        this.demandChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: topPredicciones.map(p => p.nombre.substring(0, 15) + '...'),
-                datasets: [{
-                    label: 'Stock Actual',
-                    data: topPredicciones.map(p => p.stock_actual),
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 4
-                }, {
-                    label: 'Demanda Prevista',
-                    data: topPredicciones.map(p => p.demanda_prevista),
-                    backgroundColor: '#f59e0b',
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: '#f3f4f6'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    displayPredictionTable(predicciones) {
-        const tbody = document.querySelector('#prediction-table tbody');
-        if (!tbody) return;
-
-        if (predicciones.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay datos de predicción disponibles</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = predicciones.slice(0, 20).map(pred => {
-            const alertClass = pred.stock_proyectado < 0 ? 'text-danger' : pred.stock_proyectado < pred.stock_actual * 0.3 ? 'text-warning' : '';
-            return `
-                <tr>
-                    <td>${pred.nombre}</td>
-                    <td>${pred.stock_actual}</td>
-                    <td>${Math.round(pred.demanda_prevista)}</td>
-                    <td class="${alertClass}">${Math.round(pred.stock_proyectado)}</td>
-                    <td>
-                        ${pred.stock_proyectado < 0 ? 
-                            '<span class="badge bg-danger">Reabastecer</span>' : 
-                            pred.stock_proyectado < pred.stock_actual * 0.3 ? 
-                            '<span class="badge bg-warning">Monitorear</span>' : 
-                            '<span class="badge bg-success">OK</span>'
-                        }
-                    </td>
-                </tr>
-            `;
-        }).join('');
     }
 
     setupInventoryEventListeners() {
@@ -1110,7 +1225,7 @@ class FlowerShopApp {
             const alertas = await window.flowerShopAPI.getAlertasStock();
             
             if (alertas.length === 0) {
-                this.showNotification('No hay productos que requieran reabastecimiento', 'info');
+                this.showNotification(t('msgs.auto_order_none'), 'info');
                 return;
             }
 
@@ -1120,17 +1235,17 @@ class FlowerShopApp {
             }));
 
             const ordenes = await window.flowerShopAPI.generarOrdenCompra(productos);
-            
+
             if (ordenes.length > 0) {
-                this.showNotification(`✅ Se generaron ${ordenes.length} órdenes de compra automáticamente`, 'success');
+                this.showNotification(t('msgs.auto_order_ok', { count: ordenes.length }), 'success');
                 // Cambiar a la pestaña de órdenes
                 document.querySelector('[data-tab="ordenes"]').click();
             } else {
-                this.showNotification('No se pudieron generar órdenes automáticas. Verifica los proveedores.', 'warning');
+                this.showNotification(t('msgs.auto_order_error'), 'warning');
             }
         } catch (error) {
             console.error('Error generando orden automática:', error);
-            this.showNotification('Error generando orden automática', 'error');
+            this.showNotification(t('msgs.auto_order_error'), 'error');
         }
     }
 
@@ -1140,7 +1255,7 @@ class FlowerShopApp {
             this.displayProviders(proveedores);
         } catch (error) {
             console.error('Error cargando proveedores:', error);
-            this.showNotification('Error cargando proveedores', 'error');
+            this.showNotification(t('msgs.error_suppliers'), 'error');
         }
     }
 
@@ -1149,7 +1264,7 @@ class FlowerShopApp {
         if (!container) return;
 
         if (proveedores.length === 0) {
-            container.innerHTML = '<div class="loading-message">No hay proveedores registrados</div>';
+            container.innerHTML = `<div class="loading-message">${t('inventory.no_providers')}</div>`;
             return;
         }
 
@@ -1159,7 +1274,7 @@ class FlowerShopApp {
                     <div class="provider-avatar">${proveedor.nombre.charAt(0).toUpperCase()}</div>
                     <div class="provider-card-info">
                         <h4 class="provider-name">${proveedor.nombre}</h4>
-                        <span class="provider-status ${proveedor.activo ? 'activo' : 'inactivo'}">${proveedor.activo ? 'Activo' : 'Inactivo'}</span>
+                        <span class="provider-status ${proveedor.activo ? 'activo' : 'inactivo'}">${proveedor.activo ? t('common.active') : t('common.inactive')}</span>
                     </div>
                 </div>
                 <div class="provider-details-list">
@@ -1178,9 +1293,9 @@ class FlowerShopApp {
                     </div>
                 </div>
                 <div class="provider-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="app.editarProveedor(${proveedor.id})">Editar</button>
-                    <button class="btn btn-sm btn-primary" onclick="app.viewProviderOrders(${proveedor.id})">Órdenes</button>
-                    <button class="btn btn-sm btn-danger" onclick="app.eliminarProveedor(${proveedor.id})">Eliminar</button>
+                    <button class="btn btn-sm btn-secondary" onclick="app.editarProveedor(${proveedor.id})">${t('common.edit')}</button>
+                    <button class="btn btn-sm btn-primary" onclick="app.viewProviderOrders(${proveedor.id})">${t('inventory.provider_orders_btn')}</button>
+                    <button class="btn btn-sm btn-danger" onclick="app.eliminarProveedor(${proveedor.id})">${t('common.delete')}</button>
                 </div>
             </div>
         `).join('');
@@ -1192,39 +1307,8 @@ class FlowerShopApp {
             this.renderOrdenesCompra(ordenes || []);
         } catch (error) {
             console.error('Error cargando órdenes de compra:', error);
-            this.showNotification('Error cargando órdenes de compra', 'error');
+            this.showNotification(t('msgs.error_purchase_orders'), 'error');
         }
-    }
-
-    displayPurchaseOrders(ordenes) {
-        const tbody = document.querySelector('#ordenes-table tbody');
-        if (!tbody) return;
-
-        if (ordenes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay órdenes de compra registradas</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = ordenes.map(orden => `
-            <tr>
-                <td>${orden.numero_orden}</td>
-                <td>${orden.proveedor_nombre}</td>
-                <td>${window.flowerShopAPI.formatDate(orden.fecha_orden)}</td>
-                <td>${orden.total_items}</td>
-                <td>${window.flowerShopAPI.formatCurrency(orden.total)}</td>
-                <td><span class="status-badge ${orden.estado}">${orden.estado}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="app.viewOrderDetails(${orden.id})">
-                        👁️ Ver
-                    </button>
-                    ${orden.estado === 'pendiente' ? `
-                        <button class="btn btn-sm btn-success" onclick="app.markOrderReceived(${orden.id})">
-                            ✅ Recibida
-                        </button>
-                    ` : ''}
-                </td>
-            </tr>
-        `).join('');
     }
 
     async loadInventoryMovements() {
@@ -1233,34 +1317,8 @@ class FlowerShopApp {
             this.renderMovimientosInventario(movimientos);
         } catch (error) {
             console.error('Error cargando movimientos de inventario:', error);
-            this.showNotification('Error cargando movimientos de inventario', 'error');
+            this.showNotification(t('msgs.error_movements'), 'error');
         }
-    }
-
-    displayInventoryMovements(movimientos) {
-        const tbody = document.querySelector('#movimientos-table tbody');
-        if (!tbody) return;
-
-        if (movimientos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay movimientos de inventario registrados</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = movimientos.map(mov => `
-            <tr>
-                <td>${window.flowerShopAPI.formatDateTime(mov.fecha_movimiento)}</td>
-                <td>${mov.producto_nombre}</td>
-                <td>
-                    <span class="badge ${mov.tipo_movimiento === 'entrada' ? 'bg-success' : 'bg-danger'}">
-                        ${mov.tipo_movimiento}
-                    </span>
-                </td>
-                <td>${mov.cantidad}</td>
-                <td>${mov.stock_anterior || 'N/A'} → ${mov.stock_nuevo || 'N/A'}</td>
-                <td>${mov.motivo || 'N/A'}</td>
-                <td>${mov.referencia || 'N/A'}</td>
-            </tr>
-        `).join('');
     }
 
     async loadReportesData() {
@@ -1311,7 +1369,10 @@ class FlowerShopApp {
             });
             
             // Crear gráficos
-            this.createSalesChart(ventasData.ventasDiarias);
+            this._ventasDiariasRaw = ventasData.ventasDiarias;
+            const activeChartBtn = document.querySelector('.chart-btn[data-chart="ventas"].active');
+            const chartTipo = activeChartBtn?.dataset.type || 'diario';
+            this.createSalesChart(ventasData.ventasDiarias, chartTipo);
             this.createOrdersStatusChart(estadosPedidos);
             this.createInventoryRotationChart(rotacionInventario);
             
@@ -1326,7 +1387,7 @@ class FlowerShopApp {
             
         } catch (error) {
             console.error('❌ Error cargando reportes:', error);
-            this.showNotification('Error cargando reportes', 'error');
+            this.showNotification(t('msgs.error_reports'), 'error');
         }
     }
 
@@ -1349,21 +1410,45 @@ class FlowerShopApp {
         element.className = 'kpi-trend ' + (percentage > 0 ? 'positive' : percentage < 0 ? 'negative' : 'neutral');
     }
 
-    createSalesChart(ventasData) {
+    createSalesChart(ventasData, tipo = 'diario') {
         const ctx = document.getElementById('sales-chart');
         if (!ctx) return;
 
-        // Destruir gráfico anterior si existe
-        if (this.salesChart) {
-            this.salesChart.destroy();
-        }
+        if (this.salesChart) this.salesChart.destroy();
 
-        const labels = ventasData.map(v => {
-            const fecha = new Date(v.fecha);
-            return fecha.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
-        }).reverse();
-        
-        const valores = ventasData.map(v => v.total_ventas).reverse();
+        let labels, valores;
+        const sorted = [...ventasData].reverse();
+
+        if (tipo === 'semanal') {
+            const semanas = {};
+            sorted.forEach(v => {
+                const d = new Date(v.fecha);
+                const startOfWeek = new Date(d);
+                startOfWeek.setDate(d.getDate() - d.getDay() + 1);
+                const key = startOfWeek.toISOString().slice(0, 10);
+                semanas[key] = (semanas[key] || 0) + (v.total_ventas || 0);
+            });
+            labels = Object.keys(semanas).map(k => {
+                const d = new Date(k);
+                return `Sem ${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`;
+            });
+            valores = Object.values(semanas);
+        } else if (tipo === 'mensual') {
+            const meses = {};
+            sorted.forEach(v => {
+                const d = new Date(v.fecha);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                meses[key] = (meses[key] || 0) + (v.total_ventas || 0);
+            });
+            labels = Object.keys(meses).map(k => {
+                const [y, m] = k.split('-');
+                return new Date(y, m - 1).toLocaleDateString('es-ES', { month: 'short', year: '2-digit' });
+            });
+            valores = Object.values(meses);
+        } else {
+            labels = sorted.map(v => new Date(v.fecha).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+            valores = sorted.map(v => v.total_ventas);
+        }
 
         this.salesChart = new Chart(ctx, {
             type: 'line',
@@ -1502,7 +1587,7 @@ class FlowerShopApp {
         if (!container) return;
 
         if (productos.length === 0) {
-            container.innerHTML = '<div class="ranking-loading">No hay datos de productos vendidos</div>';
+            container.innerHTML = `<div class="ranking-loading">${t('reports.no_products')}</div>`;
             return;
         }
 
@@ -1523,7 +1608,7 @@ class FlowerShopApp {
         if (!container) return;
 
         if (clientesData.length === 0) {
-            container.innerHTML = '<div class="ranking-loading">No hay datos de clientes</div>';
+            container.innerHTML = `<div class="ranking-loading">${t('reports.no_clients')}</div>`;
             return;
         }
 
@@ -1552,7 +1637,7 @@ class FlowerShopApp {
         if (!container) return;
 
         if (eventos.length === 0) {
-            container.innerHTML = '<div class="ranking-loading">No hay eventos con ventas registradas</div>';
+            container.innerHTML = `<div class="ranking-loading">${t('reports.no_events')}</div>`;
             return;
         }
 
@@ -1573,7 +1658,7 @@ class FlowerShopApp {
         if (!tbody) return;
 
         if (ventasData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay ventas en el período seleccionado</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">${t('reports.no_sales')}</td></tr>`;
             return;
         }
 
@@ -1602,12 +1687,10 @@ class FlowerShopApp {
         // Controles de gráfico de ventas
         document.querySelectorAll('.chart-btn[data-chart="ventas"]').forEach(btn => {
             btn.addEventListener('click', () => {
-                // Remover clase activa de otros botones
                 document.querySelectorAll('.chart-btn[data-chart="ventas"]').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
-                // TODO: Implementar cambio de vista (diario/semanal/mensual)
-                const tipo = btn.dataset.type;
+                const tipo = btn.dataset.type || 'diario';
+                if (this._ventasDiariasRaw) this.createSalesChart(this._ventasDiariasRaw, tipo);
             });
         });
 
@@ -1626,18 +1709,312 @@ class FlowerShopApp {
             });
         }
 
-        // Botón de exportar
-        const exportBtn = document.getElementById('btn-export-reports');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => {
-                this.exportReports();
-            });
-        }
     }
 
-    exportReports() {
-        // TODO: Implementar exportación de reportes
-        this.showNotification('Funcionalidad de exportación en desarrollo', 'info');
+    abrirModalExportar(contexto = 'todo') {
+        // Datasets disponibles según contexto
+        const datasets = {
+            reportes: [
+                { id: 'ventas',    label: 'Ventas',    icon: 'trending-up', checked: true },
+            ],
+            todo: [
+                { id: 'productos', label: 'Productos', icon: 'box',         checked: true },
+                { id: 'clientes',  label: 'Clientes',  icon: 'users',       checked: true },
+                { id: 'encargos',  label: 'Encargos',  icon: 'clipboard-list', checked: true },
+            ],
+        };
+
+        const sets = datasets[contexto] || datasets.todo;
+        const subtitles = { reportes: 'Exportar datos de ventas y reportes', todo: 'Exportar datos de la aplicación' };
+
+        document.getElementById('export-modal-subtitle').textContent = subtitles[contexto] || '';
+
+        // Renderizar chips de datasets
+        const wrap = document.getElementById('export-dataset-options');
+        const datasetWrap = document.getElementById('export-dataset-wrap');
+        if (sets.length <= 1) {
+            datasetWrap.style.display = 'none';
+        } else {
+            datasetWrap.style.display = '';
+            wrap.innerHTML = sets.map(s => `
+                <label class="export-dataset-chip ${s.checked ? 'active' : ''}" data-id="${s.id}">
+                    <i data-lucide="${s.icon}"></i>${s.label}
+                    <input type="checkbox" style="display:none" ${s.checked ? 'checked' : ''}>
+                </label>`).join('');
+            wrap.querySelectorAll('.export-dataset-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chip.classList.toggle('active');
+                    chip.querySelector('input').checked = chip.classList.contains('active');
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                });
+            });
+        }
+
+        // Selección de formato
+        document.querySelectorAll('.export-format-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.format === 'csv');
+            btn.onclick = () => {
+                document.querySelectorAll('.export-format-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+        });
+
+        // Botón confirmar
+        const confirmar = document.getElementById('btn-export-confirmar');
+        confirmar.onclick = () => this._ejecutarExportacion(contexto);
+
+        this.showModal('modal-exportar');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async _ejecutarExportacion(contexto) {
+        const formato = document.querySelector('.export-format-btn.active')?.dataset.format || 'csv';
+        const activosChips = [...document.querySelectorAll('.export-dataset-chip.active')].map(c => c.dataset.id);
+        const hoy = new Date().toISOString().slice(0, 10);
+
+        try {
+            // Recopilar datos según contexto
+            let sheets = {};
+
+            if (contexto === 'reportes' || activosChips.includes('ventas')) {
+                const rows = [['Fecha', 'Cliente', 'Productos', 'Total (€)']];
+                document.querySelectorAll('#sales-detail-table tbody tr').forEach(tr => {
+                    const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
+                    if (cells.length) rows.push(cells);
+                });
+                sheets['Ventas'] = rows;
+            }
+
+            if (contexto === 'todo') {
+                const [productos, clientes, pedidos] = await Promise.all([
+                    window.flowerShopAPI.getProductos(),
+                    window.flowerShopAPI.getClientes(),
+                    window.flowerShopAPI.getPedidos(),
+                ]);
+
+                if (activosChips.includes('productos')) {
+                    sheets['Productos'] = [
+                        ['Código', 'Nombre', 'Categoría', 'Precio Venta', 'Precio Compra', 'Stock', 'Stock Mín.'],
+                        ...productos.map(p => [p.codigo_producto||'', p.nombre, p.categoria_nombre||'', p.precio_venta, p.precio_compra||0, p.stock_actual, p.stock_minimo]),
+                    ];
+                }
+                if (activosChips.includes('clientes')) {
+                    sheets['Clientes'] = [
+                        ['Nombre', 'Email', 'Teléfono', 'Tipo'],
+                        ...clientes.map(c => [`${c.nombre} ${c.apellidos||''}`.trim(), c.email||'', c.telefono||'', c.tipo_cliente||'']),
+                    ];
+                }
+                if (activosChips.includes('encargos')) {
+                    sheets['Encargos'] = [
+                        ['ID', 'Cliente', 'Fecha Entrega', 'Estado', 'Total (€)'],
+                        ...pedidos.map(p => [p.id, p.cliente_nombre||'—', p.fecha_entrega||'', p.estado, p.total]),
+                    ];
+                }
+            }
+
+            if (!Object.keys(sheets).length) {
+                this.showNotification(t('msgs.export_select'), 'warning');
+                return;
+            }
+
+            if (formato === 'csv') {
+                const allRows = [];
+                for (const [title, rows] of Object.entries(sheets)) {
+                    if (allRows.length) allRows.push([]);
+                    allRows.push([`--- ${title.toUpperCase()} ---`]);
+                    allRows.push(...rows);
+                }
+                this._downloadCSV(allRows, `petalo_exportacion_${hoy}.csv`);
+
+            } else if (formato === 'excel') {
+                const wb = XLSX.utils.book_new();
+                for (const [title, rows] of Object.entries(sheets)) {
+                    const ws = XLSX.utils.aoa_to_sheet(rows);
+                    XLSX.utils.book_append_sheet(wb, ws, title);
+                }
+                XLSX.writeFile(wb, `petalo_exportacion_${hoy}.xlsx`);
+
+            } else if (formato === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const empresa = await window.flowerShopAPI.getConfiguracion();
+                const nombreEmpresa = empresa?.empresa_nombre || 'Mi Floristería';
+                const direccionEmpresa = empresa?.empresa_direccion || '';
+                const telefonoEmpresa = empresa?.empresa_telefono || '';
+
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                const PW = doc.internal.pageSize.width;
+                const PH = doc.internal.pageSize.height;
+
+                // Paleta de colores
+                const C = {
+                    primary:      [34, 90, 60],
+                    primaryMid:   [52, 131, 88],
+                    accent:       [74, 222, 128],
+                    accentLight:  [220, 252, 231],
+                    headerText:   [255, 255, 255],
+                    rowAlt:       [246, 250, 248],
+                    rowBorder:    [209, 231, 221],
+                    bodyText:     [30, 41, 59],
+                    mutedText:    [100, 116, 139],
+                    footerBg:     [241, 245, 249],
+                };
+
+                const fechaLarga = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+                let pageNum = 1;
+
+                const drawHeader = () => {
+                    // Fondo principal verde
+                    doc.setFillColor(...C.primary);
+                    doc.rect(0, 0, PW, 20, 'F');
+                    // Franja decorativa verde claro
+                    doc.setFillColor(...C.primaryMid);
+                    doc.rect(0, 20, PW, 3, 'F');
+                    // Línea acento
+                    doc.setFillColor(...C.accent);
+                    doc.rect(0, 23, PW, 1.5, 'F');
+
+                    // Nombre empresa (izq)
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(15);
+                    doc.setTextColor(...C.headerText);
+                    doc.text(nombreEmpresa, 14, 13);
+
+                    // Subtítulo (izq)
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(180, 230, 200);
+                    if (telefonoEmpresa || direccionEmpresa) {
+                        doc.text([direccionEmpresa, telefonoEmpresa].filter(Boolean).join('  ·  '), 14, 18.5);
+                    }
+
+                    // Fecha + página (der)
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7.5);
+                    doc.setTextColor(...C.headerText);
+                    doc.text(fechaLarga, PW - 14, 11, { align: 'right' });
+                    doc.setFontSize(7);
+                    doc.setTextColor(180, 230, 200);
+                    doc.text(`Página ${pageNum}`, PW - 14, 17, { align: 'right' });
+
+                    doc.setTextColor(0, 0, 0);
+                };
+
+                const drawFooter = () => {
+                    doc.setFillColor(...C.footerBg);
+                    doc.rect(0, PH - 9, PW, 9, 'F');
+                    doc.setDrawColor(...C.rowBorder);
+                    doc.line(0, PH - 9, PW, PH - 9);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(7);
+                    doc.setTextColor(...C.mutedText);
+                    doc.text('Documento generado con Pétalo — Software de Gestión para Floristería', 14, PH - 4);
+                    doc.text(`${fechaLarga}`, PW - 14, PH - 4, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                };
+
+                const newPage = () => {
+                    doc.addPage();
+                    pageNum++;
+                    drawHeader();
+                    drawFooter();
+                };
+
+                drawHeader();
+                drawFooter();
+                let y = 32;
+
+                const sheetEntries = Object.entries(sheets);
+                sheetEntries.forEach(([title, rows], sheetIdx) => {
+                    if (sheetIdx > 0) { newPage(); y = 32; }
+
+                    // Caja título sección
+                    doc.setFillColor(...C.accentLight);
+                    doc.roundedRect(14, y, PW - 28, 9, 1.5, 1.5, 'F');
+                    doc.setDrawColor(...C.accent);
+                    doc.roundedRect(14, y, PW - 28, 9, 1.5, 1.5, 'S');
+                    // Barra izquierda color
+                    doc.setFillColor(...C.primaryMid);
+                    doc.roundedRect(14, y, 3.5, 9, 1, 1, 'F');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(...C.primary);
+                    doc.text(title.toUpperCase(), 22, y + 6);
+                    doc.setTextColor(0, 0, 0);
+                    y += 14;
+
+                    if (!rows.length) return;
+                    const headers = rows[0];
+                    const data = rows.slice(1);
+                    const colCount = headers.length;
+                    const tableW = PW - 28;
+                    const colW = tableW / colCount;
+                    const rowH = 6.5;
+
+                    const drawTableHeader = (startY) => {
+                        doc.setFillColor(...C.primary);
+                        doc.rect(14, startY, tableW, rowH + 1, 'F');
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(...C.headerText);
+                        headers.forEach((h, i) => {
+                            doc.text(String(h ?? '').slice(0, 24), 17 + i * colW, startY + 5);
+                        });
+                        doc.setTextColor(0, 0, 0);
+                        return startY + rowH + 1;
+                    };
+
+                    y = drawTableHeader(y);
+
+                    data.forEach((row, ri) => {
+                        if (y + rowH > PH - 14) {
+                            newPage(); y = 32;
+                            // Re-title
+                            doc.setFillColor(...C.accentLight);
+                            doc.roundedRect(14, y, PW - 28, 9, 1.5, 1.5, 'F');
+                            doc.setFillColor(...C.primaryMid);
+                            doc.roundedRect(14, y, 3.5, 9, 1, 1, 'F');
+                            doc.setFont('helvetica', 'bold');
+                            doc.setFontSize(9);
+                            doc.setTextColor(...C.primary);
+                            doc.text(`${title.toUpperCase()} (cont.)`, 22, y + 6);
+                            doc.setTextColor(0, 0, 0);
+                            y += 14;
+                            y = drawTableHeader(y);
+                        }
+                        // Fila alternada
+                        if (ri % 2 === 0) {
+                            doc.setFillColor(...C.rowAlt);
+                            doc.rect(14, y, tableW, rowH, 'F');
+                        }
+                        // Borde inferior fila
+                        doc.setDrawColor(...C.rowBorder);
+                        doc.line(14, y + rowH, 14 + tableW, y + rowH);
+
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(7.5);
+                        doc.setTextColor(...C.bodyText);
+                        row.forEach((cell, i) => {
+                            const text = String(cell ?? '').slice(0, 26);
+                            doc.text(text, 17 + i * colW, y + 4.8);
+                        });
+                        y += rowH;
+                    });
+
+                    // Borde exterior tabla
+                    doc.setDrawColor(...C.primaryMid);
+                    doc.rect(14, y - data.length * rowH - rowH - 1, tableW, data.length * rowH + rowH + 1);
+                    y += 10;
+                });
+
+                doc.save(`petalo_exportacion_${hoy}.pdf`);
+            }
+
+            this.hideModal('modal-exportar');
+            this.showNotification(t('msgs.export_done'), 'success');
+        } catch (e) {
+            console.error(e);
+            this.showNotification(t('msgs.export_error'), 'error');
+        }
     }
 
     // ========== GENERADOR DE CÓDIGO DE PRODUCTO ==========
@@ -1681,12 +2058,14 @@ class FlowerShopApp {
     async nuevoProducto() {
         try {
             this.clearForm('form-producto');
+            document.getElementById('form-producto')?.removeAttribute('data-imagen');
+            this._setProductoImagePreview(null);
             await this.loadCategoriasEnModal();
             this.setupCodigoProductoAutoGen();
             this.showModal('modal-producto');
         } catch (error) {
             console.error('❌ Error abriendo modal de producto:', error);
-            this.showNotification('Error abriendo formulario', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -1700,7 +2079,7 @@ class FlowerShopApp {
             }
         } catch (error) {
             console.error('❌ Error cargando categorías:', error);
-            this.showNotification('Error cargando categorías', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
@@ -1720,7 +2099,7 @@ class FlowerShopApp {
             const productos = await window.flowerShopAPI.getProductos();
             const producto = productos.find(p => p.id === id);
             if (!producto) {
-                this.showNotification('No se encontró el producto', 'error');
+                this.showNotification(t('msgs.product_not_found'), 'error');
                 return;
             }
             // Rellenar el formulario
@@ -1737,11 +2116,13 @@ class FlowerShopApp {
             document.getElementById('producto-stock').value = producto.stock_actual || 0;
             document.getElementById('producto-stock-minimo').value = producto.stock_minimo || 5;
             document.getElementById('producto-descripcion').value = producto.descripcion || '';
-            // Si tienes más campos, agrégalos aquí
+            const imgSrc = await window.flowerShopAPI.getProductoImagen(producto.id);
+            form.setAttribute('data-imagen', imgSrc || '');
+            this._setProductoImagePreview(imgSrc || null);
             this.showModal('modal-producto');
         } catch (error) {
             console.error('❌ Error editando producto:', error);
-            this.showNotification('Error abriendo editor', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -1765,19 +2146,20 @@ class FlowerShopApp {
                             <div class="modal-header-icon"><i data-lucide="box"></i></div>
                             <div>
                                 <h2 class="modal-title-pro">${p.nombre}</h2>
-                                <p class="modal-subtitle-pro">${p.codigo_producto || 'Sin código'} · ${p.categoria_nombre || 'Sin categoría'}</p>
+                                <p class="modal-subtitle-pro">${p.codigo_producto || t('products.no_code')} · ${p.categoria_nombre || t('products.no_category')}</p>
                             </div>
                         </div>
                         <button class="modal-close" aria-label="Cerrar">&times;</button>
                     </div>
                     <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
+                        ${p.tiene_imagen ? `<img id="ver-producto-img-${p.id}" src="" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--r-md)">` : ''}
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
                             ${field('Precio de venta', val(window.flowerShopAPI.formatCurrency(p.precio_venta)))}
                             ${field('Precio de compra', val(window.flowerShopAPI.formatCurrency(p.precio_compra || 0)))}
                             ${field('Stock actual', val(`${p.stock_actual} ${p.unidad_medida}`, stockBajo))}
                             ${field('Stock mínimo', val(`${p.stock_minimo} ${p.unidad_medida}`))}
-                            ${field('Estado', `<span><span class="estado-badge ${p.activo ? 'confirmado' : 'cancelado'}">${p.activo ? 'Activo' : 'Inactivo'}</span></span>`)}
-                            ${field('Categoría', val(p.categoria_nombre || 'Sin categoría'))}
+                            ${field('Estado', `<span><span class="estado-badge ${p.activo ? 'confirmado' : 'cancelado'}">${p.activo ? t('common.active') : t('common.inactive')}</span></span>`)}
+                            ${field('Categoría', val(p.categoria_nombre || t('products.no_category')))}
                         </div>
                         ${p.descripcion ? `
                         <div style="padding-top:var(--sp-3);border-top:1px solid var(--s-100)">
@@ -1791,31 +2173,39 @@ class FlowerShopApp {
                     </div>
                 </div>
             `;
-            document.body.appendChild(modal);
-            modal.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', () => this.closeModal(modal)));
-            modal.addEventListener('click', e => { if (e.target === modal) this.closeModal(modal); });
+            // Remove any previous instance to avoid DOM leak
+            document.getElementById('modal-ver-producto-' + p.id)?.remove();
             modal.id = 'modal-ver-producto-' + p.id;
+            document.body.appendChild(modal);
+            const closeVerProducto = () => { this.closeModal(modal); setTimeout(() => modal.remove(), 300); };
+            modal.querySelectorAll('.modal-close').forEach(btn => btn.addEventListener('click', closeVerProducto));
+            modal.addEventListener('click', e => { if (e.target === modal) closeVerProducto(); });
             this.showModal(modal.id);
+            if (p.tiene_imagen) {
+                window.flowerShopAPI.getProductoImagen(p.id).then(src => {
+                    if (src) { const img = document.getElementById(`ver-producto-img-${p.id}`); if (img) img.src = src; }
+                });
+            }
         } catch (e) {
             console.error(e);
         }
     }
 
     async eliminarProducto(id) {
-        const ok = await this._confirm('Eliminar producto', 'Esta acción no se puede deshacer. ¿Seguro que quieres eliminar este producto?');
+        const ok = await this._confirm(t('confirms.delete_product_title'), t('confirms.delete_product'), t('confirms.btn_delete'));
         if (!ok) return;
         try {
             await window.flowerShopAPI.eliminarProducto(id);
             await this.loadProductosData();
             await this.updateSidebarBadges();
-            this.showNotification('Producto eliminado correctamente', 'success');
+            this.showNotification(t('msgs.product_deleted'), 'success');
             // Re-apply active filters
             const termino = document.getElementById('search-productos')?.value || '';
             const catId = document.getElementById('filter-categoria')?.value || '';
             if (termino || catId) this.filtrarProductos(termino);
         } catch (error) {
             console.error('Error eliminando producto:', error);
-            this.showNotification('Error eliminando producto: ' + error.message, 'error');
+            this.showNotification(t('msgs.error_delete'), 'error');
         }
     }
 
@@ -1823,6 +2213,203 @@ class FlowerShopApp {
     _emojisCategorias() {
         return ['🌸','🌹','🌺','🌻','🌼','🌷','🌿','🍀','🌱','🌲','🌳','🌴','🍁','🍂','🍃','🌵',
                 '🎋','🎍','🪴','🪷','💐','🫧','🧺','🎁','🎀','🏺','🪨','🧪','🌙','⭐','🦋','🐝'];
+    }
+
+    async cargarSelectTiposCliente(valorActual) {
+        const select = document.getElementById('cliente-tipo');
+        if (!select) return;
+        try {
+            const tipos = await window.flowerShopAPI.getTiposCliente();
+            select.innerHTML = tipos.map(t =>
+                `<option value="${t.nombre}" ${t.nombre === valorActual ? 'selected' : ''}>${t.nombre}</option>`
+            ).join('');
+        } catch (_) {
+            select.innerHTML = `<option value="Regular">Regular</option>`;
+        }
+    }
+
+    async gestionarTiposCliente() {
+        await this._renderTiposClienteLista();
+        this.showModal('modal-tipos-cliente');
+        document.getElementById('nuevo-tipo-nombre')?.focus();
+    }
+
+    async _renderTiposClienteLista() {
+        const lista = document.getElementById('tipos-cliente-lista');
+        if (!lista) return;
+        const tipos = await window.flowerShopAPI.getTiposCliente();
+        if (!tipos.length) {
+            lista.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.85rem">${t('clients.no_types')}</p>`;
+            return;
+        }
+        lista.innerHTML = tipos.map(t => `
+            <div class="cat-item" id="tipo-item-${t.id}">
+                <span class="cat-icono-btn" style="background:${t.color}20;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center">
+                    <span style="width:12px;height:12px;border-radius:50%;background:${t.color};display:inline-block"></span>
+                </span>
+                <span class="cat-nombre" id="tipo-nombre-${t.id}">${t.nombre}</span>
+                <div class="cat-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="app._editarTipoCliente(${t.id}, '${t.nombre}', '${t.color}')">
+                        <i data-lucide="pencil" style="width:14px;height:14px"></i>
+                    </button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="app._eliminarTipoCliente(${t.id})">
+                        <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async crearTipoCliente() {
+        const nombre = document.getElementById('nuevo-tipo-nombre')?.value?.trim();
+        const color  = document.getElementById('nuevo-tipo-color')?.value || '#6b7280';
+        if (!nombre) { this.showNotification(t('msgs.type_name_required'), 'warning'); return; }
+        try {
+            await window.flowerShopAPI.crearTipoCliente({ nombre, color });
+            document.getElementById('nuevo-tipo-nombre').value = '';
+            document.getElementById('nuevo-tipo-color').value = '#6b7280';
+            await this._renderTiposClienteLista();
+            await this.cargarSelectTiposCliente();
+            this.showNotification(t('msgs.type_created'), 'success');
+        } catch (e) {
+            this.showNotification(e.message || t('msgs.type_create_error'), 'error');
+        }
+    }
+
+    _editarTipoCliente(id, nombreActual, colorActual) {
+        const item = document.getElementById(`tipo-item-${id}`);
+        if (!item) return;
+        item.innerHTML = `
+            <input type="color" id="edit-tipo-color-${id}" value="${colorActual}" style="width:32px;height:32px;border:none;border-radius:var(--r-md);cursor:pointer;padding:2px;background:none">
+            <input type="text" id="edit-tipo-nombre-${id}" value="${nombreActual}" class="form-input" style="flex:1">
+            <button class="btn btn-primary btn-sm" onclick="app._guardarTipoCliente(${id})">${t('inventory.btn_save')}</button>
+            <button class="btn btn-secondary btn-sm" onclick="app._renderTiposClienteLista()">${t('common.cancel')}</button>
+        `;
+        document.getElementById(`edit-tipo-nombre-${id}`)?.focus();
+    }
+
+    async _guardarTipoCliente(id) {
+        const nombre = document.getElementById(`edit-tipo-nombre-${id}`)?.value?.trim();
+        const color  = document.getElementById(`edit-tipo-color-${id}`)?.value || '#6b7280';
+        if (!nombre) { this.showNotification(t('msgs.type_name_empty'), 'warning'); return; }
+        try {
+            await window.flowerShopAPI.actualizarTipoCliente(id, { nombre, color });
+            await this._renderTiposClienteLista();
+            await this.cargarSelectTiposCliente();
+            this.showNotification(t('msgs.type_updated'), 'success');
+        } catch (e) {
+            this.showNotification(e.message || t('msgs.type_update_error'), 'error');
+        }
+    }
+
+    async _eliminarTipoCliente(id) {
+        if (!await this._confirm(t('confirms.delete_type_title'), t('confirms.delete_client_type'), t('confirms.btn_delete'), 'btn-danger')) return;
+        try {
+            await window.flowerShopAPI.eliminarTipoCliente(id);
+            await this._renderTiposClienteLista();
+            await this.cargarSelectTiposCliente();
+            this.showNotification(t('msgs.type_deleted'), 'success');
+        } catch (e) {
+            this.showNotification(e.message || t('msgs.type_delete_error'), 'error');
+        }
+    }
+
+    async gestionarTiposEvento() {
+        await this._renderTiposEventoLista();
+        this.showModal('modal-tipos-evento');
+        document.getElementById('nuevo-tipo-evento-nombre')?.focus();
+    }
+
+    async _renderTiposEventoLista() {
+        const lista = document.getElementById('tipos-evento-lista');
+        if (!lista) return;
+        const tipos = await window.flowerShopAPI.getTiposEvento();
+        if (!tipos.length) {
+            lista.innerHTML = `<p style="text-align:center;color:var(--text-muted);font-size:0.85rem">${t('clients.no_types')}</p>`;
+            return;
+        }
+        lista.innerHTML = tipos.map(t => `
+            <div class="cat-item" id="tipo-evento-item-${t.id}">
+                <span style="background:${t.color}20;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <span style="width:12px;height:12px;border-radius:50%;background:${t.color};display:inline-block"></span>
+                </span>
+                <span class="cat-nombre">${t.nombre}</span>
+                <div class="cat-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="app._editarTipoEvento(${t.id}, '${t.nombre.replace(/'/g,"\\'")}', '${t.color}')">
+                        <i data-lucide="pencil" style="width:14px;height:14px"></i>
+                    </button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--color-danger)" onclick="app._eliminarTipoEvento(${t.id})">
+                        <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async crearTipoEvento() {
+        const nombre = document.getElementById('nuevo-tipo-evento-nombre')?.value?.trim();
+        const color  = document.getElementById('nuevo-tipo-evento-color')?.value || '#6b7280';
+        if (!nombre) { this.showNotification(t('msgs.type_name_required'), 'warning'); return; }
+        try {
+            await window.flowerShopAPI.crearTipoEvento({ nombre, color });
+            document.getElementById('nuevo-tipo-evento-nombre').value = '';
+            document.getElementById('nuevo-tipo-evento-color').value = '#6b7280';
+            await this._renderTiposEventoLista();
+            await this.cargarSelectTiposEvento();
+            this.showNotification(t('msgs.type_created'), 'success');
+        } catch (e) {
+            this.showNotification(e.message || t('msgs.type_create_error'), 'error');
+        }
+    }
+
+    _editarTipoEvento(id, nombreActual, colorActual) {
+        const item = document.getElementById(`tipo-evento-item-${id}`);
+        if (!item) return;
+        item.innerHTML = `
+            <input type="color" id="edit-tipo-evento-color-${id}" value="${colorActual}" style="width:32px;height:32px;border:none;border-radius:var(--r-md);cursor:pointer;padding:2px;background:none">
+            <input type="text" id="edit-tipo-evento-nombre-${id}" value="${nombreActual}" class="form-input" style="flex:1">
+            <button class="btn btn-primary btn-sm" onclick="app._guardarTipoEvento(${id})">${t('inventory.btn_save')}</button>
+            <button class="btn btn-secondary btn-sm" onclick="app._renderTiposEventoLista()">${t('common.cancel')}</button>
+        `;
+        document.getElementById(`edit-tipo-evento-nombre-${id}`)?.focus();
+    }
+
+    async _guardarTipoEvento(id) {
+        const nombre = document.getElementById(`edit-tipo-evento-nombre-${id}`)?.value?.trim();
+        const color  = document.getElementById(`edit-tipo-evento-color-${id}`)?.value || '#6b7280';
+        if (!nombre) { this.showNotification(t('msgs.type_name_empty'), 'warning'); return; }
+        try {
+            await window.flowerShopAPI.actualizarTipoEvento(id, { nombre, color });
+            await this._renderTiposEventoLista();
+            await this.cargarSelectTiposEvento();
+            this.showNotification(t('msgs.type_updated'), 'success');
+        } catch (e) {
+            this.showNotification(e.message || t('msgs.type_update_error'), 'error');
+        }
+    }
+
+    async _eliminarTipoEvento(id) {
+        if (!await this._confirm(t('confirms.delete_type_title'), t('confirms.delete_event_type'), t('confirms.btn_delete'), 'btn-danger')) return;
+        try {
+            await window.flowerShopAPI.eliminarTipoEvento(id);
+            await this._renderTiposEventoLista();
+            await this.cargarSelectTiposEvento();
+            this.showNotification(t('msgs.type_deleted'), 'success');
+        } catch (e) {
+            this.showNotification(e.message || t('msgs.type_delete_error'), 'error');
+        }
+    }
+
+    async cargarSelectTiposEvento() {
+        const select = document.getElementById('evento-tipo');
+        if (!select) return;
+        const tipos = await window.flowerShopAPI.getTiposEvento().catch(() => []);
+        const valorActual = select.value;
+        select.innerHTML = tipos.map(t =>
+            `<option value="${t.nombre}" style="color:${t.color}" ${t.nombre === valorActual ? 'selected' : ''}>${t.nombre}</option>`
+        ).join('');
     }
 
     async gestionarCategorias() {
@@ -1869,7 +2456,7 @@ class FlowerShopApp {
         if (!container) return;
         const categorias = await window.flowerShopAPI.getCategorias();
         if (!categorias.length) {
-            container.innerHTML = '<p style="color:var(--s-400);font-size:0.82rem;text-align:center;padding:var(--sp-3)">Sin categorías creadas</p>';
+            container.innerHTML = `<p style="color:var(--s-400);font-size:0.82rem;text-align:center;padding:var(--sp-3)">${t('events.no_types')}</p>`;
             return;
         }
         container.innerHTML = categorias.map(c => `
@@ -1935,21 +2522,21 @@ class FlowerShopApp {
     async guardarCategoria(id) {
         const nombre = document.getElementById(`cat-edit-nombre-${id}`)?.value.trim();
         const icono = document.getElementById(`cat-edit-icono-${id}`)?.value || '🌿';
-        if (!nombre) { this.showNotification('El nombre no puede estar vacío', 'warning'); return; }
+        if (!nombre) { this.showNotification(t('msgs.type_name_empty'), 'warning'); return; }
         try {
             await window.flowerShopAPI.actualizarCategoria(id, { nombre, icono });
             await this.renderListaCategorias();
             await this.refreshCategoriasSelect();
-            this.showNotification('Categoría actualizada', 'success');
+            this.showNotification(t('msgs.cat_updated'), 'success');
         } catch (e) {
-            this.showNotification('Error actualizando categoría', 'error');
+            this.showNotification(t('msgs.cat_update_error'), 'error');
         }
     }
 
     async crearCategoria() {
         const nombre = document.getElementById('nueva-categoria-nombre')?.value.trim();
         const icono = document.getElementById('nueva-categoria-icono')?.value.trim() || '🌿';
-        if (!nombre) { this.showNotification('Escribe un nombre para la categoría', 'warning'); return; }
+        if (!nombre) { this.showNotification(t('msgs.cat_name_required'), 'warning'); return; }
         try {
             await window.flowerShopAPI.crearCategoria({ nombre, icono });
             document.getElementById('nueva-categoria-nombre').value = '';
@@ -1957,22 +2544,22 @@ class FlowerShopApp {
             await this.renderListaCategorias();
             // Refrescar el select de categoría en el formulario de producto
             await this.refreshCategoriasSelect();
-            this.showNotification(`Categoría "${nombre}" creada`, 'success');
+            this.showNotification(t('msgs.cat_created'), 'success');
         } catch (e) {
-            this.showNotification('Error creando categoría', 'error');
+            this.showNotification(t('msgs.cat_create_error'), 'error');
         }
     }
 
     async eliminarCategoria(id, nombre) {
-        const ok = await this._confirm('Eliminar categoría', `¿Eliminar "<strong>${nombre}</strong>"?<br><small>Solo se puede eliminar si no tiene productos asociados.</small>`, 'Eliminar', 'btn-danger');
+        const ok = await this._confirm(t('confirms.delete_category_title'), `¿Eliminar "<strong>${nombre}</strong>"?<br><small>Solo se puede eliminar si no tiene productos asociados.</small>`, t('confirms.btn_delete'), 'btn-danger');
         if (!ok) return;
         try {
             await window.flowerShopAPI.eliminarCategoria(id);
             await this.renderListaCategorias();
             await this.refreshCategoriasSelect();
-            this.showNotification(`Categoría "${nombre}" eliminada`, 'success');
+            this.showNotification(t('msgs.cat_deleted'), 'success');
         } catch (e) {
-            this.showNotification(e.message || 'Error eliminando categoría', 'error');
+            this.showNotification(e.message || t('msgs.cat_delete_error'), 'error');
         }
     }
 
@@ -1990,10 +2577,12 @@ class FlowerShopApp {
     async nuevoCliente() {
         try {
             this.clearForm('form-cliente');
+            this._resetClienteFoto();
+            await this.cargarSelectTiposCliente();
             this.showModal('modal-cliente');
         } catch (error) {
             console.error('❌ Error abriendo modal de cliente:', error);
-            this.showNotification('Error abriendo formulario', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -2002,7 +2591,7 @@ class FlowerShopApp {
             const clientes = await window.flowerShopAPI.getClientes();
             const cliente = clientes.find(c => c.id === id);
             if (!cliente) {
-                this.showNotification('No se encontró el cliente', 'error');
+                this.showNotification(t('msgs.client_not_found'), 'error');
                 return;
             }
             const form = document.getElementById('form-cliente');
@@ -2013,16 +2602,20 @@ class FlowerShopApp {
             document.getElementById('cliente-email').value = cliente.email || '';
             document.getElementById('cliente-telefono').value = cliente.telefono || '';
             document.getElementById('cliente-direccion').value = cliente.direccion || '';
-            document.getElementById('cliente-fecha-nacimiento').value = cliente.fecha_nacimiento || '';
-            document.getElementById('cliente-tipo').value = cliente.tipo_cliente || 'nuevo';
+            await this.cargarSelectTiposCliente(cliente.tipo_cliente);
             document.getElementById('cliente-preferencias').value = cliente.preferencias || '';
             document.getElementById('cliente-presupuesto-habitual').value = cliente.presupuesto_habitual || '';
             document.getElementById('cliente-ocasiones-importantes').value = cliente.ocasiones_importantes || '';
             document.getElementById('cliente-notas').value = cliente.notas || '';
+            this._resetClienteFoto();
+            if (cliente.tiene_imagen) {
+                const img = await window.flowerShopAPI.getClienteImagen(id);
+                if (img) this._setClienteFotoPreview(img);
+            }
             this.showModal('modal-cliente');
         } catch (error) {
             console.error('❌ Error editando cliente:', error);
-            this.showNotification('Error abriendo editor', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -2034,17 +2627,19 @@ class FlowerShopApp {
             ]);
             const cliente = clientes.find(c => c.id === parseInt(id));
             if (!cliente) {
-                this.showNotification('Cliente no encontrado', 'error');
+                this.showNotification(t('msgs.client_not_found'), 'error');
                 return;
             }
 
             const pedidosCliente = pedidos.filter(p => p.cliente_id === parseInt(id));
             const totalPedidos = pedidosCliente.length;
-            const totalGastado = pedidosCliente.reduce((sum, p) => sum + (p.total || 0), 0);
+            const totalGastado = pedidosCliente
+                .filter(p => p.estado === 'aprobado')
+                .reduce((sum, p) => sum + (p.total || 0), 0);
             const fechaRegistro = cliente.created_at ? new Date(cliente.created_at).getFullYear() : new Date().getFullYear();
 
             document.getElementById('historial-cliente-nombre').textContent = `${cliente.nombre} ${cliente.apellidos || ''}`.trim();
-            document.getElementById('historial-cliente-email').textContent = cliente.email || 'Sin email';
+            document.getElementById('historial-cliente-email').textContent = cliente.email || t('clients.no_email');
             const elPed = document.getElementById('stat-pedidos-num') || document.getElementById('stat-pedidos');
             const elGas = document.getElementById('stat-gastado-num') || document.getElementById('stat-gastado');
             if (elPed) elPed.textContent = totalPedidos;
@@ -2059,6 +2654,7 @@ class FlowerShopApp {
             if (filtroEstado) filtroEstado.value = 'todos';
 
             this._historialPedidos = pedidosCliente;
+            this._clienteHistorial = cliente;
             this.mostrarHistorialPedidos(pedidosCliente);
 
             // Listeners de filtros (reemplazar para no acumular)
@@ -2081,7 +2677,7 @@ class FlowerShopApp {
             this.showModal('modal-historial-cliente');
         } catch (error) {
             console.error('❌ Error cargando historial del cliente:', error);
-            this.showNotification('Error cargando historial del cliente', 'error');
+            this.showNotification(t('msgs.error_historial'), 'error');
         }
     }
 
@@ -2089,7 +2685,7 @@ class FlowerShopApp {
         const container = document.getElementById('historial-pedidos-lista');
 
         if (pedidos.length === 0) {
-            container.innerHTML = `<div class="historial-empty">Sin pedidos registrados</div>`;
+            container.innerHTML = `<div class="historial-empty">${t('clients.no_data')}</div>`;
             return;
         }
 
@@ -2115,7 +2711,7 @@ class FlowerShopApp {
                             <td class="historial-fecha">${p.fecha_entrega ? window.flowerShopAPI.formatDate(p.fecha_entrega) : '—'}</td>
                             <td><span class="estado-badge ${p.estado}">${p.estado}</span></td>
                             <td class="historial-total text-right">${window.flowerShopAPI.formatCurrency(p.total || 0)}</td>
-                            <td><button class="btn btn-sm btn-secondary" onclick="app.verPedido(${p.id})">Ver</button></td>
+                            <td><button class="btn btn-sm btn-secondary" onclick="app.verPedido(${p.id})">${t('historial.view')}</button></td>
                         </tr>
                         ${p.notas ? `<tr class="historial-notas-row"><td colspan="6"><span class="historial-nota-text">${p.notas}</span></td></tr>` : ''}
                     `).join('')}
@@ -2129,14 +2725,14 @@ class FlowerShopApp {
             const clientes = await window.flowerShopAPI.getClientes();
             const cliente = clientes.find(c => c.id === parseInt(id));
             if (!cliente) {
-                this.showNotification('Cliente no encontrado', 'error');
+                this.showNotification(t('msgs.client_not_found'), 'error');
                 return;
             }
             await this.nuevoPedido(true);
             setTimeout(() => this.preseleccionarClienteEnModal(cliente, id), 200);
         } catch (error) {
             console.error('❌ Error abriendo formulario de pedido:', error);
-            this.showNotification('Error abriendo formulario de pedido', 'error');
+            this.showNotification(t('msgs.error_form_order'), 'error');
         }
     }
 
@@ -2156,24 +2752,294 @@ class FlowerShopApp {
         clienteSelect.parentNode.insertBefore(clienteInfo, clienteSelect.nextSibling);
     }
 
-    // Función auxiliar para ver detalles de un pedido desde el historial
-    async verDetallePedido(pedidoId) {
-        this.showNotification('Vista de detalles del pedido en desarrollo', 'info');
-    }
-
     // Función para exportar historial del cliente
     async exportarHistorialCliente() {
-        this.showNotification('Exportación de PDF en desarrollo', 'info');
+        const cliente  = this._clienteHistorial;
+        const pedidos  = this._historialPedidos || [];
+        if (!cliente) { this.showNotification(t('msgs.no_client'), 'warning'); return; }
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const empresa        = await window.flowerShopAPI.getConfiguracion();
+            const nombreEmpresa  = empresa?.empresa_nombre  || 'Mi Floristería';
+            const dirEmpresa     = empresa?.empresa_direccion || '';
+            const telEmpresa     = empresa?.empresa_telefono  || '';
+
+            const doc  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const PW   = doc.internal.pageSize.width;
+            const PH   = doc.internal.pageSize.height;
+
+            const C = {
+                primary:     [34, 90, 60],
+                primaryMid:  [52, 131, 88],
+                accent:      [74, 222, 128],
+                accentLight: [220, 252, 231],
+                headerText:  [255, 255, 255],
+                rowAlt:      [246, 250, 248],
+                rowBorder:   [209, 231, 221],
+                bodyText:    [30, 41, 59],
+                mutedText:   [100, 116, 139],
+                footerBg:    [241, 245, 249],
+            };
+
+            const fechaLarga = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            let pageNum = 1;
+
+            const drawHeader = () => {
+                doc.setFillColor(...C.primary);
+                doc.rect(0, 0, PW, 20, 'F');
+                doc.setFillColor(...C.primaryMid);
+                doc.rect(0, 20, PW, 3, 'F');
+                doc.setFillColor(...C.accent);
+                doc.rect(0, 23, PW, 1.5, 'F');
+
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(15);
+                doc.setTextColor(...C.headerText);
+                doc.text(nombreEmpresa, 14, 13);
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7.5);
+                doc.setTextColor(180, 230, 200);
+                if (telEmpresa || dirEmpresa) {
+                    doc.text([dirEmpresa, telEmpresa].filter(Boolean).join('  ·  '), 14, 18.5);
+                }
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7.5);
+                doc.setTextColor(...C.headerText);
+                doc.text(fechaLarga, PW - 14, 11, { align: 'right' });
+                doc.setFontSize(7);
+                doc.setTextColor(180, 230, 200);
+                doc.text(`Página ${pageNum}`, PW - 14, 17, { align: 'right' });
+                doc.setTextColor(0, 0, 0);
+            };
+
+            const drawFooter = () => {
+                doc.setFillColor(...C.footerBg);
+                doc.rect(0, PH - 9, PW, 9, 'F');
+                doc.setDrawColor(...C.rowBorder);
+                doc.line(0, PH - 9, PW, PH - 9);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7);
+                doc.setTextColor(...C.mutedText);
+                doc.text('Documento generado con Pétalo — Software de Gestión para Floristería', 14, PH - 4);
+                doc.text(fechaLarga, PW - 14, PH - 4, { align: 'right' });
+                doc.setTextColor(0, 0, 0);
+            };
+
+            const newPage = () => {
+                doc.addPage();
+                pageNum++;
+                drawHeader();
+                drawFooter();
+            };
+
+            drawHeader();
+            drawFooter();
+            let y = 32;
+
+            // ── Ficha del cliente ──────────────────────────────────────────
+            doc.setFillColor(...C.accentLight);
+            doc.roundedRect(14, y, PW - 28, 36, 2, 2, 'F');
+            doc.setDrawColor(...C.accent);
+            doc.roundedRect(14, y, PW - 28, 36, 2, 2, 'S');
+            doc.setFillColor(...C.primaryMid);
+            doc.roundedRect(14, y, 3.5, 36, 1.5, 1.5, 'F');
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(13);
+            doc.setTextColor(...C.primary);
+            const nombreCompleto = `${cliente.nombre} ${cliente.apellidos || ''}`.trim();
+            doc.text(nombreCompleto, 22, y + 9);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(...C.bodyText);
+            const filaInfo = [
+                cliente.email        ? `Email: ${cliente.email}`        : null,
+                cliente.telefono     ? `Tel: ${cliente.telefono}`       : null,
+                cliente.tipo_cliente ? `Tipo: ${cliente.tipo_cliente.charAt(0).toUpperCase() + cliente.tipo_cliente.slice(1)}` : null,
+                cliente.created_at   ? `Cliente desde ${new Date(cliente.created_at).getFullYear()}` : null,
+            ].filter(Boolean);
+            filaInfo.forEach((txt, i) => {
+                doc.text(txt, 22, y + 17 + i * 6);
+            });
+            if (cliente.notas) {
+                doc.setFontSize(7.5);
+                doc.setTextColor(...C.mutedText);
+                doc.text(`Notas: ${cliente.notas.slice(0, 80)}`, 22, y + 33);
+            }
+            doc.setTextColor(0, 0, 0);
+            y += 44;
+
+            // Título sección pedidos
+            doc.setFillColor(...C.accentLight);
+            doc.roundedRect(14, y, PW - 28, 9, 1.5, 1.5, 'F');
+            doc.setDrawColor(...C.accent);
+            doc.roundedRect(14, y, PW - 28, 9, 1.5, 1.5, 'S');
+            doc.setFillColor(...C.primaryMid);
+            doc.roundedRect(14, y, 3.5, 9, 1, 1, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(...C.primary);
+            doc.text('HISTORIAL DE PEDIDOS', 22, y + 6);
+            doc.setTextColor(0, 0, 0);
+            y += 14;
+
+            // ── Tabla de pedidos ──────────────────────────────────────────
+            const tableW = PW - 28;
+            const cols   = [
+                { label: 'Pedido',   w: 28 },
+                { label: 'Fecha',    w: 32 },
+                { label: 'Entrega',  w: 32 },
+                { label: 'Tipo',     w: 28 },
+                { label: 'Estado',   w: 28 },
+                { label: 'Total',    w: 34, right: true },
+            ];
+            const rowH = 6.5;
+
+            const estadoLabel = (e) => t('statuses.' + e) || e || '—';
+            const tipoLabel = (t) => {
+                const m = { venta_rapida: 'TPV', regular: 'Encargo' };
+                return m[t] || t || '—';
+            };
+
+            const drawTableHead = (startY) => {
+                doc.setFillColor(...C.primary);
+                doc.rect(14, startY, tableW, rowH + 1, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(7.5);
+                doc.setTextColor(...C.headerText);
+                let cx = 17;
+                cols.forEach(col => {
+                    if (col.right) doc.text(col.label, cx + col.w - 3, startY + 5, { align: 'right' });
+                    else           doc.text(col.label, cx, startY + 5);
+                    cx += col.w;
+                });
+                doc.setTextColor(0, 0, 0);
+                return startY + rowH + 1;
+            };
+
+            y = drawTableHead(y);
+
+            const pedidosOrdenados = [...pedidos].sort((a, b) => new Date(b.created_at || b.fecha_pedido) - new Date(a.created_at || a.fecha_pedido));
+
+            pedidosOrdenados.forEach((p, ri) => {
+                if (y + rowH > PH - 20) {
+                    newPage(); y = 32;
+                    doc.setFillColor(...C.accentLight);
+                    doc.roundedRect(14, y, PW - 28, 9, 1.5, 1.5, 'F');
+                    doc.setFillColor(...C.primaryMid);
+                    doc.roundedRect(14, y, 3.5, 9, 1, 1, 'F');
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(...C.primary);
+                    doc.text('HISTORIAL DE PEDIDOS (cont.)', 22, y + 6);
+                    doc.setTextColor(0, 0, 0);
+                    y += 14;
+                    y = drawTableHead(y);
+                }
+
+                if (ri % 2 === 0) {
+                    doc.setFillColor(...C.rowAlt);
+                    doc.rect(14, y, tableW, rowH, 'F');
+                }
+                doc.setDrawColor(...C.rowBorder);
+                doc.line(14, y + rowH, 14 + tableW, y + rowH);
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7.5);
+                doc.setTextColor(...C.bodyText);
+
+                const cells = [
+                    `#${p.numero_pedido || p.id}`,
+                    p.fecha_pedido ? p.fecha_pedido.slice(0, 10) : '—',
+                    p.fecha_entrega ? p.fecha_entrega.slice(0, 10) : '—',
+                    tipoLabel(p.tipo_pedido),
+                    estadoLabel(p.estado),
+                    window.flowerShopAPI.formatCurrency(p.total || 0),
+                ];
+                let cx = 17;
+                cols.forEach((col, i) => {
+                    if (col.right) doc.text(cells[i], cx + col.w - 3, y + 4.8, { align: 'right' });
+                    else           doc.text(String(cells[i]).slice(0, 18), cx, y + 4.8);
+                    cx += col.w;
+                });
+                y += rowH;
+            });
+
+            // Borde exterior tabla
+            const tableStartY = 32 + 44 + 14;
+            doc.setDrawColor(...C.primaryMid);
+            doc.rect(14, y - pedidosOrdenados.length * rowH - rowH - 1, tableW, pedidosOrdenados.length * rowH + rowH + 1);
+            y += 8;
+
+            // ── Caja resumen final ─────────────────────────────────────────
+            const aprobados      = pedidos.filter(p => p.estado === 'aprobado');
+            const totalGastado   = aprobados.reduce((s, p) => s + (p.total || 0), 0);
+            const ticketMedio    = aprobados.length ? totalGastado / aprobados.length : 0;
+            const saldoPendiente = pedidos.filter(p => p.estado !== 'cancelado').reduce((s, p) => s + (p.saldo_pendiente || 0), 0);
+            const ultimoPedido   = pedidosOrdenados[0];
+            const ultimaFecha    = ultimoPedido ? (ultimoPedido.fecha_pedido || ultimoPedido.created_at || '').slice(0, 10) : '—';
+
+            const sumH = 38;
+            if (y + sumH > PH - 14) { newPage(); y = 32; }
+
+            doc.setFillColor(...C.primary);
+            doc.roundedRect(14, y, PW - 28, sumH, 2, 2, 'F');
+            doc.setFillColor(...C.accent);
+            doc.roundedRect(14, y, 3.5, sumH, 1.5, 1.5, 'F');
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(...C.headerText);
+            doc.text('RESUMEN', 22, y + 8);
+
+            const sumCols = [
+                { label: 'Total de pedidos',    value: String(pedidos.length) },
+                { label: 'Pedidos aprobados',   value: String(aprobados.length) },
+                { label: 'Total facturado',     value: window.flowerShopAPI.formatCurrency(totalGastado) },
+                { label: 'Ticket medio',        value: window.flowerShopAPI.formatCurrency(ticketMedio) },
+                { label: 'Saldo pendiente',     value: window.flowerShopAPI.formatCurrency(saldoPendiente) },
+                { label: 'Último pedido',       value: ultimaFecha },
+            ];
+            const half = Math.ceil(sumCols.length / 2);
+            const colSumW = (PW - 28) / 2;
+            sumCols.forEach((item, i) => {
+                const col  = i < half ? 0 : 1;
+                const row  = i < half ? i : i - half;
+                const bx   = 22 + col * colSumW;
+                const by   = y + 16 + row * 7;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7.5);
+                doc.setTextColor(180, 230, 200);
+                doc.text(item.label + ':', bx, by);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...C.headerText);
+                doc.text(item.value, bx + 38, by);
+            });
+
+            doc.setTextColor(0, 0, 0);
+
+            const nombreArchivo = `petalo_historial_${nombreCompleto.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+            doc.save(nombreArchivo);
+            this.showNotification(t('msgs.pdf_ok'), 'success');
+        } catch (e) {
+            console.error('Error exportando historial:', e);
+            this.showNotification(t('msgs.pdf_error'), 'error');
+        }
     }
 
     // Eventos
     async nuevoEvento() {
         try {
             this.clearForm('form-evento');
+            await this.cargarSelectTiposEvento();
             this.showModal('modal-evento');
         } catch (error) {
             console.error('❌ Error abriendo modal de evento:', error);
-            this.showNotification('Error abriendo formulario', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -2183,7 +3049,7 @@ class FlowerShopApp {
             const eventos = await window.flowerShopAPI.getEventos();
             const evento = eventos.find(ev => ev.id === id);
             if (!evento) {
-                this.showNotification('No se encontró el evento', 'error');
+                this.showNotification(t('msgs.error_load'), 'error');
                 return;
             }
             // Rellenar el formulario
@@ -2194,6 +3060,7 @@ class FlowerShopApp {
             document.getElementById('evento-nombre').value = evento.nombre || '';
             document.getElementById('evento-fecha-inicio').value = evento.fecha_inicio || '';
             document.getElementById('evento-fecha-fin').value = evento.fecha_fin || '';
+            await this.cargarSelectTiposEvento();
             document.getElementById('evento-tipo').value = evento.tipo_evento || '';
             document.getElementById('evento-demanda').value = evento.demanda_esperada || '';
             document.getElementById('evento-descuento').value = evento.descuento_especial || '';
@@ -2202,19 +3069,19 @@ class FlowerShopApp {
             this.showModal('modal-evento');
         } catch (error) {
             console.error('❌ Error editando evento:', error);
-            this.showNotification('Error abriendo editor', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
     // Eliminar evento
     async eliminarEvento(id) {
-        const ok = await this._confirm('Eliminar evento', 'Esta acción no se puede deshacer. ¿Seguro que quieres eliminar este evento?');
+        const ok = await this._confirm(t('confirms.delete_event_title'), t('confirms.delete_product'), t('confirms.btn_delete'));
         if (!ok) return;
         try {
             await window.flowerShopAPI.eliminarEvento(id);
-            this.showNotification('Evento eliminado correctamente', 'success');
+            this.showNotification(t('msgs.event_deleted'), 'success');
             await this.loadEventosData();
         } catch (error) {
-            this.showNotification('Error al eliminar el evento', 'error');
+            this.showNotification(t('msgs.error_delete'), 'error');
             console.error('Error eliminando evento:', error);
         }
     }
@@ -2280,7 +3147,7 @@ class FlowerShopApp {
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="button" class="btn btn-secondary modal-close">${t('common.cancel')}</button>
                         <button type="button" class="btn btn-primary" id="btn-confirmar-evento-stock">Registrar Movimiento</button>
                     </div>
                 </div>
@@ -2298,7 +3165,7 @@ class FlowerShopApp {
                 const stockActual = parseInt(selectEl.selectedOptions[0]?.dataset.stock || 0);
                 const stockNuevo = tipo === 'entrada' ? stockActual + cantidad : stockActual - cantidad;
                 if (!productoId || !cantidad || cantidad < 1) {
-                    this.showNotification('Selecciona un producto y una cantidad válida', 'warning');
+                    this.showNotification(t('msgs.movement_product_qty'), 'warning');
                     return;
                 }
                 try {
@@ -2312,18 +3179,18 @@ class FlowerShopApp {
                         referencia: `Evento #${eventoId}`,
                         usuario: 'Usuario'
                     });
-                    this.showNotification('Movimiento registrado correctamente', 'success');
+                    this.showNotification(t('msgs.movement_ok'), 'success');
                     this.closeModal(modal);
                 } catch (err) {
                     console.error(err);
-                    this.showNotification('Error al registrar el movimiento', 'error');
+                    this.showNotification(t('msgs.movement_error'), 'error');
                 }
             });
 
             this.showModal('modal-evento-stock');
         } catch (e) {
             console.error(e);
-            this.showNotification('Error cargando datos del evento', 'error');
+            this.showNotification(t('msgs.error_event_data'), 'error');
         }
     }
 
@@ -2344,7 +3211,7 @@ class FlowerShopApp {
             // Clientes select
             const sel = document.getElementById('tpv-cliente');
             if (sel) {
-                sel.innerHTML = '<option value="">— Cliente ocasional —</option>' +
+                sel.innerHTML = `<option value="">— ${t('tpv.client_casual')} —</option>` +
                     clientes.map(c => `<option value="${c.id}">${c.nombre} ${c.apellidos || ''}</option>`).join('');
             }
 
@@ -2362,7 +3229,7 @@ class FlowerShopApp {
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } catch (error) {
             console.error('Error abriendo TPV:', error);
-            this.showNotification('Error abriendo venta rápida', 'error');
+            this.showNotification(t('msgs.error_tpv'), 'error');
         }
     }
 
@@ -2370,17 +3237,35 @@ class FlowerShopApp {
         const container = document.getElementById('tpv-catalogo');
         if (!container) return;
         if (!productos.length) {
-            container.innerHTML = '<p style="color:var(--s-400);font-size:0.82rem;padding:var(--sp-3)">Sin productos disponibles</p>';
+            container.innerHTML = `<p style="color:var(--s-400);font-size:0.82rem;padding:var(--sp-3)">${t('tpv.no_products')}</p>`;
             return;
         }
-        container.innerHTML = productos.map(p => `
-            <div class="tpv-producto-card ${p.stock_actual <= 0 ? 'sin-stock' : ''}" onclick="app.agregarAlCarritoTPV(${p.id})">
-                <div class="tpv-producto-emoji">${p.categoria_icono || '🌸'}</div>
+        container.innerHTML = productos.map(p => {
+            const enCarrito = (this._tpvCarrito || []).find(i => i.id === p.id)?.cantidad || 0;
+            const stockDisponible = p.stock_actual - enCarrito;
+            return `
+            <div class="tpv-producto-card ${stockDisponible <= 0 ? 'sin-stock' : ''}" id="tpv-card-${p.id}" onclick="app.agregarAlCarritoTPV(${p.id})">
+                ${p.tiene_imagen
+                    ? `<img src="" class="tpv-producto-img" alt="${p.nombre}" data-producto-id="${p.id}" data-lazy-img="1">`
+                    : `<div class="tpv-producto-emoji">${p.categoria_icono || '🌸'}</div>`
+                }
                 <div class="tpv-producto-nombre">${p.nombre}</div>
                 <div class="tpv-producto-precio">${window.flowerShopAPI.formatCurrency(p.precio_venta || 0)}</div>
-                <div class="tpv-producto-stock">${p.stock_actual <= 0 ? 'Sin stock' : `Stock: ${p.stock_actual}`}</div>
-            </div>
-        `).join('');
+                <div class="tpv-producto-stock" id="tpv-stock-${p.id}">${stockDisponible <= 0 ? t('tpv.no_stock') : t('tpv.stock_label', { count: stockDisponible })}</div>
+            </div>`;
+        }).join('');
+        this._lazyLoadProductImages();
+    }
+
+    _actualizarStocksCatalogoTPV() {
+        (this._tpvProductos || []).forEach(p => {
+            const enCarrito = (this._tpvCarrito || []).find(i => i.id === p.id)?.cantidad || 0;
+            const stockDisponible = p.stock_actual - enCarrito;
+            const stockEl = document.getElementById(`tpv-stock-${p.id}`);
+            const cardEl  = document.getElementById(`tpv-card-${p.id}`);
+            if (stockEl) stockEl.textContent = stockDisponible <= 0 ? t('tpv.no_stock') : t('tpv.stock_label', { count: stockDisponible });
+            if (cardEl)  cardEl.classList.toggle('sin-stock', stockDisponible <= 0);
+        });
     }
 
     filtrarCatalogoTPV(busqueda) {
@@ -2397,7 +3282,7 @@ class FlowerShopApp {
         const existente = this._tpvCarrito.find(i => i.id === productoId);
         if (existente) {
             if (existente.cantidad >= producto.stock_actual) {
-                this.showNotification('Stock máximo alcanzado', 'warning');
+                this.showNotification(t('msgs.stock_max'), 'warning');
                 return;
             }
             existente.cantidad++;
@@ -2405,19 +3290,31 @@ class FlowerShopApp {
             this._tpvCarrito.push({ id: productoId, nombre: producto.nombre, precio: producto.precio_venta || 0, cantidad: 1, stock: producto.stock_actual });
         }
         this.renderTicketTPV();
+        this._actualizarStocksCatalogoTPV();
     }
 
     cambiarCantidadTPV(productoId, delta) {
         const idx = this._tpvCarrito.findIndex(i => i.id === productoId);
         if (idx === -1) return;
-        this._tpvCarrito[idx].cantidad += delta;
-        if (this._tpvCarrito[idx].cantidad <= 0) this._tpvCarrito.splice(idx, 1);
+        const item = this._tpvCarrito[idx];
+        const nuevaCantidad = item.cantidad + delta;
+        if (nuevaCantidad > item.stock) {
+            this.showNotification(t('msgs.stock_units', { units: item.stock }), 'warning');
+            return;
+        }
+        if (nuevaCantidad <= 0) {
+            this._tpvCarrito.splice(idx, 1);
+        } else {
+            item.cantidad = nuevaCantidad;
+        }
         this.renderTicketTPV();
+        this._actualizarStocksCatalogoTPV();
     }
 
     limpiarTPV() {
         this._tpvCarrito = [];
         this.renderTicketTPV();
+        this._actualizarStocksCatalogoTPV();
     }
 
     renderTicketTPV() {
@@ -2427,7 +3324,7 @@ class FlowerShopApp {
         if (!lista) return;
 
         if (!this._tpvCarrito || this._tpvCarrito.length === 0) {
-            lista.innerHTML = '<p style="color:var(--s-400);font-size:0.8rem;text-align:center;padding:var(--sp-4)">Toca un producto para añadir</p>';
+            lista.innerHTML = `<p style="color:var(--s-400);font-size:0.8rem;text-align:center;padding:var(--sp-4)">${t('tpv.touch_to_add')}</p>`;
             if (elSubtotal) elSubtotal.textContent = '0,00 €';
             if (elTotal) elTotal.textContent = '0,00 €';
             return;
@@ -2457,19 +3354,28 @@ class FlowerShopApp {
 
     async cobrarTPV() {
         if (!this._tpvCarrito || this._tpvCarrito.length === 0) {
-            this.showNotification('Añade al menos un producto', 'warning');
+            this.showNotification(t('msgs.no_products'), 'warning');
             return;
         }
 
         const clienteId = document.getElementById('tpv-cliente')?.value || null;
         const total = this._tpvCarrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
 
+        if (this._tpvProcesando) return;
+        this._tpvProcesando = true;
+
+        const btnCobrar = document.getElementById('btn-cobrar-tpv');
+        if (btnCobrar) { btnCobrar.disabled = true; btnCobrar.textContent = t('tpv.processing'); }
+
         const pedido = {
             cliente_id: clienteId ? parseInt(clienteId) : null,
             fecha_pedido: new Date().toISOString().slice(0, 10),
             fecha_entrega: new Date().toISOString().slice(0, 10),
-            estado: 'completado',
-            notas: `Venta rápida · Pago: ${this._tpvMetodoPago}`,
+            estado: 'aprobado',
+            tipo_pedido: 'venta_rapida',
+            metodo_pago: this._tpvMetodoPago,
+            notas: `Venta rápida`,
+            subtotal: total,
             total,
             detalles: this._tpvCarrito.map(i => ({
                 producto_id: i.id,
@@ -2480,19 +3386,18 @@ class FlowerShopApp {
         };
 
         try {
-            const btnCobrar = document.getElementById('btn-cobrar-tpv');
-            if (btnCobrar) { btnCobrar.disabled = true; btnCobrar.textContent = 'Procesando…'; }
-
             await window.flowerShopAPI.crearPedido(pedido);
             this.hideModal('modal-tpv');
-            this.showNotification(`Venta de ${window.flowerShopAPI.formatCurrency(total)} registrada correctamente`, 'success');
+            this.showNotification(t('msgs.sale_ok', { amount: window.flowerShopAPI.formatCurrency(total) }), 'success');
+            await this.updateSidebarBadges();
             if (this.currentSection === 'dashboard') await this.loadDashboardData();
+            await this.generarNotificaciones();
         } catch (error) {
             console.error('Error registrando venta:', error);
-            this.showNotification('Error al registrar la venta', 'error');
-        } finally {
-            const btnCobrar = document.getElementById('btn-cobrar-tpv');
+            this.showNotification(t('msgs.sale_error'), 'error');
             if (btnCobrar) { btnCobrar.disabled = false; btnCobrar.innerHTML = '<i data-lucide="check-circle" style="width:18px;height:18px;margin-right:6px"></i>Cobrar'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
+        } finally {
+            this._tpvProcesando = false;
         }
     }
 
@@ -2510,18 +3415,18 @@ class FlowerShopApp {
                             <div class="modal-header-inner">
                                 <div class="modal-header-icon"><i data-lucide="clipboard-list"></i></div>
                                 <div>
-                                    <h2 class="modal-title-pro">Nuevo Pedido</h2>
-                                    <p class="modal-subtitle-pro">Selecciona productos y configura el pedido</p>
+                                    <h2 class="modal-title-pro">Nuevo Encargo</h2>
+                                    <p class="modal-subtitle-pro">Selecciona productos y configura el encargo</p>
                                 </div>
                             </div>
                             <button class="modal-close" aria-label="Cerrar">&times;</button>
                         </div>
                         <div class="modal-body" style="padding:0;display:grid;grid-template-columns:1fr 300px;min-height:420px">
                             <!-- Panel izquierdo: productos -->
-                            <div style="padding:var(--sp-5);border-right:1px solid var(--s-100);display:flex;flex-direction:column;gap:var(--sp-3)">
+                            <div style="padding:var(--sp-5);border-right:1px solid var(--s-100);display:flex;flex-direction:column;gap:var(--sp-3);min-height:520px">
                                 <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Productos</div>
                                 <input type="text" id="pedido-buscar-producto" class="form-input" placeholder="Buscar producto…" autocomplete="off">
-                                <div id="pedido-productos-catalogo" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-2);max-height:280px"></div>
+                                <div id="pedido-productos-catalogo" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-2);max-height:420px"></div>
                             </div>
                             <!-- Panel derecho: resumen + datos -->
                             <div style="padding:var(--sp-5);display:flex;flex-direction:column;gap:var(--sp-4)">
@@ -2546,14 +3451,24 @@ class FlowerShopApp {
                                     </div>
                                 </div>
                                 <div>
+                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Método de pago</div>
+                                    <select id="pedido-metodo-pago" class="form-select">
+                                        <option value="">Sin especificar</option>
+                                        <option value="efectivo">Efectivo</option>
+                                        <option value="tarjeta">Tarjeta</option>
+                                        <option value="transferencia">Transferencia</option>
+                                        <option value="bizum">Bizum</option>
+                                    </select>
+                                </div>
+                                <div>
                                     <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Notas</div>
                                     <textarea id="pedido-notas" name="notas" rows="2" class="form-input" placeholder="Instrucciones especiales…"></textarea>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary btn-cancel-pedido">Cancelar</button>
-                            <button type="button" id="btn-guardar-pedido" class="btn btn-primary">Guardar Pedido</button>
+                            <button type="button" class="btn btn-secondary btn-cancel-pedido">${t('common.cancel')}</button>
+                            <button type="button" id="btn-guardar-pedido" class="btn btn-primary">Guardar Encargo</button>
                         </div>
                     </div>
                 `;
@@ -2579,7 +3494,7 @@ class FlowerShopApp {
             // Mostrar modal
             this.showModal('modal-nuevo-pedido');
         } catch (error) {
-            this.showNotification('Error abriendo formulario de pedido', 'error');
+            this.showNotification(t('msgs.error_form_order'), 'error');
         }
     }
 
@@ -2597,7 +3512,7 @@ class FlowerShopApp {
 
     async cargarProductosEnPedido() {
         this._productosParaPedido = await window.flowerShopAPI.getProductos();
-        this._carritoProductos = this._carritoProductos || {};
+        this._carritoProductos = {};
         this.filtrarCatalogoProductos('');
     }
 
@@ -2608,7 +3523,7 @@ class FlowerShopApp {
             !busqueda || p.nombre.toLowerCase().includes(busqueda.toLowerCase())
         );
         if (productos.length === 0) {
-            catalogo.innerHTML = `<div style="font-size:0.82rem;color:var(--text-muted);text-align:center;padding:var(--sp-4) 0">Sin resultados</div>`;
+            catalogo.innerHTML = `<div style="font-size:0.82rem;color:var(--text-muted);text-align:center;padding:var(--sp-4) 0">${t('tpv.no_search')}</div>`;
             return;
         }
         catalogo.innerHTML = productos.map(p => `
@@ -2690,6 +3605,8 @@ class FlowerShopApp {
         if (fechaEntrega) fechaEntrega.value = '';
         const notas = document.getElementById('pedido-notas');
         if (notas) notas.value = '';
+        const metodo = document.getElementById('pedido-metodo-pago');
+        if (metodo) metodo.value = '';
         this._carritoProductos = {};
         this.renderCarrito();
     }
@@ -2699,10 +3616,11 @@ class FlowerShopApp {
             const clienteId = document.getElementById('pedido-cliente')?.value;
             const entrega = document.getElementById('pedido-entrega')?.value;
             const notas = document.getElementById('pedido-notas')?.value || '';
+            const metodoPago = document.getElementById('pedido-metodo-pago')?.value || null;
             const items = Object.values(this._carritoProductos || {}).filter(i => i.cantidad > 0);
 
             if (!clienteId || !entrega || items.length === 0) {
-                this.showNotification('Selecciona cliente, fecha de entrega y al menos un producto', 'warning');
+                this.showNotification(t('msgs.order_select_required'), 'warning');
                 return;
             }
 
@@ -2720,54 +3638,31 @@ class FlowerShopApp {
                 fecha_entrega: entrega,
                 notas,
                 estado: 'pendiente',
+                metodo_pago: metodoPago,
                 subtotal,
                 total: subtotal,
                 descuento: 0,
                 adelanto: 0,
                 saldo_pendiente: subtotal,
-                metodo_pago: '',
                 direccion_entrega: '',
                 instrucciones_especiales: notas,
                 detalles: detalles
             };
 
             await window.flowerShopAPI.crearPedido(pedidoData);
-            this.showNotification('Pedido creado correctamente', 'success');
+            this.showNotification(t('msgs.order_created_encargo'), 'success');
             this.limpiarYCerrarModalPedido();
             await this.loadPedidosData();
             await this.updateSidebarBadges();
         } catch (error) {
             console.error('Error creando pedido:', error);
-            this.showNotification('Error al crear el pedido', 'error');
+            this.showNotification(t('msgs.order_save_error_encargo'), 'error');
         }
     }
 
     limpiarYCerrarModalPedido() {
         this.limpiarFormularioPedido();
         this.hideModal('modal-nuevo-pedido');
-    }
-
-    agregarProductoAlPedido() {
-        const productos = this._productosParaPedido || [];
-        const list = document.getElementById('pedido-productos-list');
-        if (!list) return;
-        
-        // Crear fila de selección compacta
-        const row = document.createElement('div');
-        row.className = 'pedido-producto-row';
-        row.className = 'pedido-producto-row';
-        row.innerHTML = `
-            <select class="pedido-producto-select form-select" required>
-                <option value="">Seleccionar producto…</option>
-                ${productos.map(p => `<option value="${p.id}">${p.nombre} — €${parseFloat(p.precio_venta).toFixed(2)}</option>`).join('')}
-            </select>
-            <input type="number" class="pedido-producto-cantidad form-input" min="1" value="1" required />
-            <button type="button" class="btn-quitar-producto" title="Quitar">&times;</button>
-        `;
-        
-        // Quitar producto
-        row.querySelector('.btn-quitar-producto').onclick = () => row.remove();
-        list.appendChild(row);
     }
 
     async handleNuevoPedidoSubmit(e) {
@@ -2785,7 +3680,7 @@ class FlowerShopApp {
                 };
             }).filter(p => p.producto_id && p.cantidad > 0);
             if (!clienteId || !entrega || productos.length === 0) {
-                this.showNotification('Completa todos los campos obligatorios y agrega al menos un producto', 'warning');
+                this.showNotification(t('msgs.order_fill_all'), 'warning');
                 return;
             }
 
@@ -2836,12 +3731,12 @@ class FlowerShopApp {
                 detalles
             };
             await window.flowerShopAPI.crearPedido(pedido);
-            this.showNotification('Pedido creado correctamente', 'success');
+            this.showNotification(t('msgs.order_created_encargo'), 'success');
             this.limpiarYCerrarModalPedido();
             await this.loadPedidosData();
             await this.updateSidebarBadges();
         } catch (error) {
-            this.showNotification('Error guardando pedido', 'error');
+            this.showNotification(t('msgs.order_save_error_encargo'), 'error');
         }
     }
 
@@ -2927,12 +3822,13 @@ class FlowerShopApp {
                 temporada: formData.get('temporada') || 'todo_año',
                 perecedero: formData.get('perecedero') === 'on',
                 dias_caducidad: parseInt(formData.get('dias_caducidad')) || null,
-                proveedor: formData.get('proveedor') || ''
+                proveedor: formData.get('proveedor') || '',
+                imagen_url: form.getAttribute('data-imagen') || null
             };
 
             // Validación básica
             if (!producto.nombre || !producto.precio_venta || !producto.categoria_id) {
-                this.showNotification('Por favor completa los campos obligatorios', 'warning');
+                this.showNotification(t('msgs.fill_required'), 'warning');
                 return;
             }
 
@@ -2941,17 +3837,18 @@ class FlowerShopApp {
             if (editId) {
                 await window.flowerShopAPI.actualizarProducto(Number(editId), producto);
                 form.removeAttribute('data-edit-id');
-                this.showNotification('Producto actualizado correctamente', 'success');
+                this.showNotification(t('msgs.product_updated'), 'success');
             } else {
                 await window.flowerShopAPI.crearProducto(producto);
-                this.showNotification('Producto guardado correctamente', 'success');
+                this.showNotification(t('msgs.product_saved'), 'success');
             }
             this.hideModal('modal-producto');
             await this.loadProductosData();
             await this.updateSidebarBadges();
+            await this.generarNotificaciones();
         } catch (error) {
             console.error('❌ Error guardando producto:', error);
-            this.showNotification('Error guardando producto: ' + error.message, 'error');
+            this.showNotification(t('msgs.product_save_error'), 'error');
         }
     }
 
@@ -2968,31 +3865,31 @@ class FlowerShopApp {
                 email: formData.get('email'),
                 telefono: formData.get('telefono'),
                 direccion: formData.get('direccion'),
-                fecha_nacimiento: formData.get('fecha_nacimiento'),
                 tipo_cliente: formData.get('tipo_cliente') || 'nuevo',
                 preferencias: formData.get('preferencias'),
                 presupuesto_habitual: formData.get('presupuesto_habitual') ? parseFloat(formData.get('presupuesto_habitual')) : null,
                 ocasiones_importantes: formData.get('ocasiones_importantes'),
-                notas: formData.get('notas')
+                notas: formData.get('notas'),
+                imagen: document.getElementById('form-cliente')?.getAttribute('data-imagen') || null
             };
 
             if (!cliente.nombre) {
-                this.showNotification('El nombre completo es obligatorio', 'warning');
+                this.showNotification(t('msgs.client_name_required'), 'warning');
                 return;
             }
 
             // Validar email si se proporciona
             if (cliente.email && !cliente.email.includes('@')) {
-                this.showNotification('El formato del email no es válido', 'warning');
+                this.showNotification(t('msgs.client_email_invalid'), 'warning');
                 return;
             }
 
             if (editId) {
                 await window.flowerShopAPI.actualizarCliente(editId, cliente);
-                this.showNotification('Cliente actualizado correctamente', 'success');
+                this.showNotification(t('msgs.client_updated'), 'success');
             } else {
                 await window.flowerShopAPI.crearCliente(cliente);
-                this.showNotification('Cliente creado correctamente', 'success');
+                this.showNotification(t('msgs.client_saved'), 'success');
             }
             
             this.hideModal('modal-cliente');
@@ -3000,7 +3897,7 @@ class FlowerShopApp {
             await this.updateSidebarBadges();
         } catch (error) {
             console.error('❌ Error guardando cliente:', error);
-            this.showNotification('Error guardando cliente: ' + error.message, 'error');
+            this.showNotification(t('msgs.client_save_error'), 'error');
         }
     }
 
@@ -3021,7 +3918,7 @@ class FlowerShopApp {
             };
 
             if (!evento.nombre || !evento.fecha_inicio || !evento.fecha_fin) {
-                this.showNotification('Por favor completa los campos obligatorios', 'warning');
+                this.showNotification(t('msgs.fill_required'), 'warning');
                 return;
             }
 
@@ -3030,18 +3927,18 @@ class FlowerShopApp {
                 // Actualizar evento existente
                 await window.flowerShopAPI.actualizarEvento(Number(editId), evento);
                 form.removeAttribute('data-edit-id');
-                this.showNotification('Evento actualizado correctamente', 'success');
+                this.showNotification(t('msgs.event_updated'), 'success');
             } else {
                 // Crear nuevo evento
                 await window.flowerShopAPI.crearEvento(evento);
-                this.showNotification('Evento guardado correctamente', 'success');
+                this.showNotification(t('msgs.event_saved'), 'success');
             }
             this.hideModal('modal-evento');
             await this.loadEventosData();
             await this.updateSidebarBadges();
         } catch (error) {
             console.error('❌ Error guardando evento:', error);
-            this.showNotification('Error guardando evento: ' + error.message, 'error');
+            this.showNotification(t('msgs.event_save_error'), 'error');
         }
     }
 
@@ -3078,13 +3975,24 @@ class FlowerShopApp {
 
     // ========== EVENT LISTENERS ==========
     setupEventListeners() {
+        // Modal exportar — cerrar
+        const modalExportar = document.getElementById('modal-exportar');
+        if (modalExportar) {
+            modalExportar.querySelectorAll('.modal-close').forEach(b => b.addEventListener('click', () => this.hideModal('modal-exportar')));
+            modalExportar.addEventListener('click', (e) => { if (e.target === modalExportar) this.hideModal('modal-exportar'); });
+        }
+
         // Botones principales
         document.getElementById('btn-nuevo-producto')?.addEventListener('click', () => this.nuevoProducto());
         document.getElementById('btn-nuevo-cliente')?.addEventListener('click', () => this.nuevoCliente());
         document.getElementById('btn-nuevo-evento')?.addEventListener('click', () => this.nuevoEvento());
         document.getElementById('btn-nuevo-pedido')?.addEventListener('click', () => this.nuevoPedido());
         document.getElementById('btn-nuevo-pedido-section')?.addEventListener('click', () => this.nuevoPedido());
-        
+
+        document.querySelectorAll('.pedidos-tab').forEach(tab => {
+            tab.addEventListener('click', () => this._activarTabPedidos(tab.dataset.tabEstado));
+        });
+
         // Botones de inventario — use replaceWith to prevent duplicate stacking
         ['btn-generar-orden-auto','btn-nueva-orden','btn-nuevo-movimiento','btn-filtrar-movimientos'].forEach(id => {
             const el = document.getElementById(id);
@@ -3229,7 +4137,7 @@ class FlowerShopApp {
 
             const total = prodEncontrados.length + clientesEncontrados.length + pedidosEncontrados.length;
             if (total === 0) {
-                this.showNotification(`Sin resultados para "${termino}"`, 'info');
+                this.showNotification(t('msgs.search_no_results', { term: termino }), 'info');
                 return;
             }
 
@@ -3249,7 +4157,7 @@ class FlowerShopApp {
                 this.displayPedidos(pedidosEncontrados);
             }
 
-            this.showNotification(`${total} resultado(s) para "${termino}"`, 'success');
+            this.showNotification(t('msgs.search_results', { count: total, term: termino }), 'success');
         } catch (error) {
             console.error('❌ Error en búsqueda global:', error);
         }
@@ -3341,7 +4249,7 @@ class FlowerShopApp {
 
     mostrarAyuda() {
         this._showDialog({
-            title: '🌸 Ayuda',
+            title: 'Ayuda',
             content: `
                 <p class="dialog-lead">Aquí encontrarás los atajos y funciones principales del sistema.</p>
                 <ul class="dialog-list">
@@ -3360,20 +4268,19 @@ class FlowerShopApp {
 
     mostrarAcercaDe() {
         this._showDialog({
-            title: '🌸 Floristería Manager',
+            title: 'Pétalo — Floristería Manager',
             content: `
                 <div class="about-content">
-                    <div class="about-icon">🌷</div>
                     <p class="about-version">Versión 1.0.0</p>
                     <p class="dialog-lead">Sistema de gestión integral para floristerías</p>
-                    <p class="dialog-hint">© 2025 · Desarrollado con ❤️ para floristas</p>
+                    <p class="dialog-hint">© 2025 · Desarrollado para floristas</p>
                 </div>
             `,
             buttons: [{ label: 'Cerrar', type: 'secondary' }]
         });
     }
 
-    _confirm(title, message, confirmLabel = 'Eliminar', confirmClass = 'btn-danger') {
+    _confirm(title, message, confirmLabel = 'Eliminar', confirmClass = 'btn-danger', sizeClass = 'modal-sm') {
         return new Promise(resolve => {
             const existing = document.getElementById('_app-confirm');
             if (existing) existing.remove();
@@ -3382,7 +4289,7 @@ class FlowerShopApp {
             modal.id = '_app-confirm';
             modal.className = 'modal';
             modal.innerHTML = `
-                <div class="modal-content modal-sm">
+                <div class="modal-content ${sizeClass}">
                     <div class="modal-header">
                         <h3 class="modal-title-pro">${title}</h3>
                         <button class="modal-close" aria-label="Cerrar">&times;</button>
@@ -3391,7 +4298,7 @@ class FlowerShopApp {
                         <p class="modal-subtitle-pro">${message}</p>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-secondary _confirm-cancel">Cancelar</button>
+                        <button class="btn btn-secondary _confirm-cancel">${t('common.cancel')}</button>
                         <button class="btn ${confirmClass} _confirm-ok">${confirmLabel}</button>
                     </div>
                 </div>
@@ -3545,7 +4452,7 @@ class FlowerShopApp {
             
         } catch (error) {
             console.error('❌ Error al crear proveedor:', error);
-            this.showNotification('Error al abrir formulario de proveedor', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -3600,8 +4507,8 @@ class FlowerShopApp {
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-                    <button type="submit" form="form-proveedor" class="btn btn-primary">${isEdit ? 'Actualizar' : 'Guardar'}</button>
+                    <button type="button" class="btn btn-secondary modal-close">${t('common.cancel')}</button>
+                    <button type="submit" form="form-proveedor" class="btn btn-primary">${isEdit ? t('inventory.btn_update') : t('inventory.btn_save')}</button>
                 </div>
             </div>
         `;
@@ -3652,10 +4559,10 @@ class FlowerShopApp {
             if (isEdit) {
                 const id = parseInt(formData.get('id'));
                 await window.flowerShopAPI.actualizarProveedor(id, proveedor);
-                this.showNotification('Proveedor actualizado correctamente', 'success');
+                this.showNotification(t('msgs.supplier_saved'), 'success');
             } else {
                 await window.flowerShopAPI.crearProveedor(proveedor);
-                this.showNotification('Proveedor creado correctamente', 'success');
+                this.showNotification(t('msgs.supplier_saved'), 'success');
             }
             
             // Cerrar modal usando el método estándar
@@ -3664,7 +4571,7 @@ class FlowerShopApp {
             await this.loadProviders();
         } catch (error) {
             console.error('Error guardando proveedor:', error);
-            this.showNotification('Error al guardar proveedor', 'error');
+            this.showNotification(t('msgs.supplier_save_error'), 'error');
         }
     }
 
@@ -3672,17 +4579,17 @@ class FlowerShopApp {
         try {
             const alertas = await window.flowerShopAPI.getAlertasStock();
             if (!alertas || alertas.length === 0) {
-                this.showNotification('No hay productos que requieran reabastecimiento', 'info');
+                this.showNotification(t('msgs.auto_order_none'), 'info');
                 return;
             }
-            this.showNotification('Generando orden automática...', 'info');
+            this.showNotification(t('msgs.auto_order_generating'), 'info');
             const productos = alertas.map(a => ({ producto_id: a.producto_id, cantidad: Math.max(a.stock_minimo * 2 - a.stock_actual, 1) }));
             await window.flowerShopAPI.generarOrdenCompra(productos);
-            this.showNotification(`Orden automática generada con ${productos.length} productos`, 'success');
+            this.showNotification(t('msgs.auto_order_ok', { count: productos.length }), 'success');
             await this.loadOrdenesCompra();
         } catch (error) {
             console.error('Error generando orden automática:', error);
-            this.showNotification('Error al generar orden automática', 'error');
+            this.showNotification(t('msgs.auto_order_error'), 'error');
         }
     }
 
@@ -3708,7 +4615,7 @@ class FlowerShopApp {
             this.showModal('modal-orden');
         } catch (error) {
             console.error('Error al crear orden:', error);
-            this.showNotification('Error al abrir formulario de orden', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -3720,7 +4627,7 @@ class FlowerShopApp {
             this.showModal('modal-nuevo-movimiento');
         } catch (error) {
             console.error('Error al crear movimiento:', error);
-            this.showNotification('Error al abrir formulario de movimiento', 'error');
+            this.showNotification(t('msgs.error_open_form'), 'error');
         }
     }
 
@@ -3774,8 +4681,8 @@ class FlowerShopApp {
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-                    <button type="submit" form="form-movimiento" class="btn btn-primary">Registrar Movimiento</button>
+                    <button type="button" class="btn btn-secondary modal-close">${t('common.cancel')}</button>
+                    <button type="submit" form="form-movimiento" class="btn btn-primary">${t('inventory.btn_register_movement')}</button>
                 </div>
             </div>
         `;
@@ -3825,13 +4732,13 @@ class FlowerShopApp {
             };
 
             await window.flowerShopAPI.registrarMovimientoInventario(movimiento);
-            this.showNotification('Movimiento registrado correctamente', 'success');
+            this.showNotification(t('msgs.movement_ok'), 'success');
             const modal = document.getElementById('modal-nuevo-movimiento');
             if (modal) this.closeModal(modal);
             await this.loadMovimientosInventario();
         } catch (error) {
             console.error('Error guardando movimiento:', error);
-            this.showNotification('Error al registrar movimiento', 'error');
+            this.showNotification(t('msgs.movement_error'), 'error');
         }
     }
 
@@ -3842,7 +4749,7 @@ class FlowerShopApp {
             const proveedor = proveedores.find(p => p.id === id);
 
             if (!proveedor) {
-                this.showNotification('Proveedor no encontrado', 'error');
+                this.showNotification(t('msgs.supplier_not_found'), 'error');
                 return;
             }
 
@@ -3851,7 +4758,7 @@ class FlowerShopApp {
             this.showModal('modal-proveedor');
         } catch (error) {
             console.error('Error al editar proveedor:', error);
-            this.showNotification('Error al cargar datos del proveedor', 'error');
+            this.showNotification(t('msgs.error_supplier_data'), 'error');
         }
     }
 
@@ -3862,33 +4769,54 @@ class FlowerShopApp {
             const proveedor = proveedores.find(p => p.id === id);
             
             if (!proveedor) {
-                this.showNotification('Proveedor no encontrado', 'error');
+                this.showNotification(t('msgs.supplier_not_found'), 'error');
                 return;
             }
             
             // Confirmar eliminación
             const ok = await this._confirm(
-                `Eliminar proveedor`,
-                `¿Seguro que quieres eliminar "<strong>${proveedor.nombre}</strong>"?<br><br>Esta acción desactivará el proveedor pero mantendrá el historial de órdenes.`
+                t('confirms.delete_supplier_title'),
+                `¿Seguro que quieres eliminar "<strong>${proveedor.nombre}</strong>"?<br><br>${t('confirms.delete_supplier')}`
             );
             if (ok) {
                 await window.flowerShopAPI.eliminarProveedor(id);
-                this.showNotification(`Proveedor "${proveedor.nombre}" eliminado correctamente`, 'success');
+                this.showNotification(t('msgs.supplier_deleted'), 'success');
                 await this.loadProviders(); // Recargar lista
             }
             
         } catch (error) {
             console.error('❌ Error eliminando proveedor:', error);
-            this.showNotification('Error al eliminar proveedor: ' + error.message, 'error');
+            this.showNotification(t('msgs.supplier_delete_error'), 'error');
         }
     }
 
     async verOrden(id) {
         try {
-            const ordenes = await window.flowerShopAPI.getOrdenesCompra();
+            const [ordenes, detalles] = await Promise.all([
+                window.flowerShopAPI.getOrdenesCompra(),
+                window.flowerShopAPI.getDetallesOrden(id).catch(() => [])
+            ]);
             const orden = ordenes.find(o => o.id === id);
-            if (!orden) { this.showNotification('Orden no encontrada', 'error'); return; }
+            if (!orden) { this.showNotification(t('msgs.order_not_found'), 'error'); return; }
 
+            const estadoLabel = (e) => ({ pendiente: t('inventory.order_status_pending'), enviada: t('inventory.order_status_sent'), recibida: t('inventory.order_status_received'), cancelada: t('inventory.order_status_cancelled') }[e] || e);
+            const itemsHtml = detalles.length > 0
+                ? detalles.map(d => `
+                    <tr>
+                        <td>${d.producto_nombre || '—'}</td>
+                        <td style="text-align:center">${d.cantidad_pedida}</td>
+                        <td style="text-align:right">${window.flowerShopAPI.formatCurrency(d.precio_unitario || 0)}</td>
+                        <td style="text-align:right;font-weight:600">${window.flowerShopAPI.formatCurrency(d.subtotal || 0)}</td>
+                    </tr>`).join('')
+                : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:var(--sp-4)">${t('inventory.no_order_items')}</td></tr>`;
+
+            const accionBtn = orden.estado === 'pendiente'
+                ? `<button type="button" class="btn btn-secondary" onclick="app.markOrderSent(${id});this.closest('.modal').querySelector('.modal-close').click()"><i data-lucide="send" style="width:15px;height:15px;margin-right:6px"></i>${t('inventory.order_status_sent')}</button>`
+                : orden.estado === 'enviada'
+                ? `<button type="button" class="btn btn-success" onclick="app.markOrderReceived(${id});this.closest('.modal').querySelector('.modal-close').click()"><i data-lucide="package-check" style="width:15px;height:15px;margin-right:6px"></i>${t('confirms.reception_btn')}</button>`
+                : '';
+
+            document.getElementById('modal-ver-orden-' + id)?.remove();
             const modal = document.createElement('div');
             modal.id = 'modal-ver-orden-' + id;
             modal.className = 'modal';
@@ -3899,49 +4827,52 @@ class FlowerShopApp {
                             <div class="modal-header-icon"><i data-lucide="file-text"></i></div>
                             <div>
                                 <h2 class="modal-title-pro">${orden.numero_orden}</h2>
-                                <p class="modal-subtitle-pro">Detalle de la orden de compra</p>
+                                <p class="modal-subtitle-pro">${orden.proveedor_nombre || '—'} · <span class="estado-badge ${orden.estado}" style="font-size:0.7rem">${estadoLabel(orden.estado)}</span></p>
                             </div>
                         </div>
                         <button class="modal-close" aria-label="Cerrar">&times;</button>
                     </div>
-                    <div class="modal-body">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
+                    <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);background:var(--s-50);border-radius:var(--r-lg);padding:var(--sp-4)">
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Proveedor</span>
-                                <span style="font-size:0.95rem;font-weight:500;color:var(--text-primary)">${orden.proveedor_nombre || '—'}</span>
+                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Fecha orden</span>
+                                <span style="font-size:0.92rem;color:var(--text-primary)">${window.flowerShopAPI.formatDate(orden.fecha_orden)}</span>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Fecha</span>
-                                <span style="font-size:0.95rem;color:var(--text-primary)">${window.flowerShopAPI.formatDate(orden.fecha_orden)}</span>
-                            </div>
-                            <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Estado</span>
-                                <span><span class="estado-badge ${orden.estado}">${orden.estado}</span></span>
-                            </div>
-                            <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Total</span>
-                                <span style="font-size:0.95rem;font-weight:600;color:var(--text-primary)">${window.flowerShopAPI.formatCurrency(orden.total || 0)}</span>
+                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Total</span>
+                                <span style="font-size:0.95rem;font-weight:700;color:var(--text-primary)">${window.flowerShopAPI.formatCurrency(orden.total || 0)}</span>
                             </div>
                             ${orden.notas ? `
-                            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:var(--sp-1);padding-top:var(--sp-2);border-top:1px solid var(--s-100)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Notas</span>
-                                <span style="font-size:0.9rem;color:var(--text-secondary)">${orden.notas}</span>
+                            <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:var(--sp-1)">
+                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Notas</span>
+                                <span style="font-size:0.88rem;color:var(--text-secondary)">${orden.notas}</span>
                             </div>` : ''}
+                        </div>
+                        <div>
+                            <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Productos pedidos</div>
+                            <div style="border:1px solid var(--s-100);border-radius:var(--r-lg);overflow:hidden">
+                                <table class="table" style="margin:0">
+                                    <thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead>
+                                    <tbody>${itemsHtml}</tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
-                        <button type="button" class="btn btn-primary" onclick="app.editarOrden(${id})">Editar</button>
+                        ${accionBtn}
+                        ${orden.estado !== 'recibida' && orden.estado !== 'cancelada' ? `<button type="button" class="btn btn-primary" onclick="app.editarOrden(${id})"><i data-lucide="edit-2" style="width:15px;height:15px;margin-right:6px"></i>${t('common.edit')}</button>` : ''}
                     </div>
                 </div>`;
-            modal.addEventListener('click', e => { if (e.target === modal) this.closeModal(modal); });
-            modal.querySelectorAll('.modal-close').forEach(b => b.addEventListener('click', () => this.closeModal(modal)));
+            const close = () => { this.closeModal(modal); setTimeout(() => modal.remove(), 300); };
+            modal.querySelectorAll('.modal-close').forEach(b => b.addEventListener('click', close));
+            modal.addEventListener('click', e => { if (e.target === modal) close(); });
             document.body.appendChild(modal);
             this.showModal(modal.id);
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } catch (error) {
             console.error('Error al ver orden:', error);
-            this.showNotification('Error al cargar la orden', 'error');
+            this.showNotification(t('msgs.error_order_load'), 'error');
         }
     }
 
@@ -3992,8 +4923,8 @@ class FlowerShopApp {
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-                    <button type="submit" form="form-orden" class="btn btn-primary">${isEdit ? 'Actualizar' : 'Crear Orden'}</button>
+                    <button type="button" class="btn btn-secondary modal-close">${t('common.cancel')}</button>
+                    <button type="submit" form="form-orden" class="btn btn-primary">${isEdit ? t('inventory.btn_update') : t('inventory.btn_create_order')}</button>
                 </div>
             </div>
         `;
@@ -4044,25 +4975,25 @@ class FlowerShopApp {
             };
 
             if (!orden.proveedor_id) {
-                this.showNotification('Selecciona un proveedor', 'warning');
+                this.showNotification(t('msgs.no_supplier'), 'warning');
                 return;
             }
 
             if (isEdit) {
                 orden.id = parseInt(formData.get('id'));
                 await window.flowerShopAPI.actualizarOrdenCompra(orden.id, orden.estado);
-                this.showNotification('Orden actualizada correctamente', 'success');
+                this.showNotification(orden.estado === 'recibida' ? t('msgs.order_received_auto') : t('msgs.order_update_ok'), 'success');
             } else {
                 await window.flowerShopAPI.crearOrdenDirecta(orden);
-                this.showNotification('Orden creada correctamente', 'success');
+                this.showNotification(t('msgs.order_save_ok'), 'success');
             }
-            
+
             const modal = document.getElementById('modal-orden');
             if (modal) this.closeModal(modal);
             await this.loadOrdenesCompra();
         } catch (error) {
             console.error('Error guardando orden:', error);
-            this.showNotification('Error al guardar orden', 'error');
+            this.showNotification(t('msgs.order_save_error_purchase'), 'error');
         }
     }
 
@@ -4072,7 +5003,7 @@ class FlowerShopApp {
             const orden = ordenes.find(o => o.id === id);
             
             if (!orden) {
-                this.showNotification('Orden no encontrada', 'error');
+                this.showNotification(t('msgs.order_not_found'), 'error');
                 return;
             }
 
@@ -4083,7 +5014,7 @@ class FlowerShopApp {
             
         } catch (error) {
             console.error('Error al editar orden:', error);
-            this.showNotification('Error al cargar datos de la orden', 'error');
+            this.showNotification(t('msgs.error_order_load'), 'error');
         }
     }
 
@@ -4092,7 +5023,7 @@ class FlowerShopApp {
             const movimientos = await window.flowerShopAPI.getMovimientosInventario({});
             const movimiento = movimientos.find(m => m.id === id);
 
-            if (!movimiento) { this.showNotification('Movimiento no encontrado', 'error'); return; }
+            if (!movimiento) { this.showNotification(t('msgs.movement_not_found'), 'error'); return; }
 
             document.getElementById('modal-ver-movimiento')?.remove();
             const modal = document.createElement('div');
@@ -4167,7 +5098,7 @@ class FlowerShopApp {
             if (typeof lucide !== 'undefined') lucide.createIcons();
         } catch (error) {
             console.error('Error al ver movimiento:', error);
-            this.showNotification('Error al cargar datos del movimiento', 'error');
+            this.showNotification(t('msgs.error_movement_load'), 'error');
         }
     }
 
@@ -4178,7 +5109,7 @@ class FlowerShopApp {
             const producto = productos.find(p => p.id === productoId);
             
             if (!producto) {
-                this.showNotification('Producto no encontrado', 'error');
+                this.showNotification(t('msgs.product_not_found'), 'error');
                 return;
             }
 
@@ -4215,8 +5146,8 @@ class FlowerShopApp {
                                 <textarea id="notas-orden" name="notas" rows="3" placeholder="Notas adicionales para la orden..."></textarea>
                             </div>
                             <div class="form-actions">
-                                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">📦 Generar Orden</button>
+                                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">${t('common.cancel')}</button>
+                                <button type="submit" class="btn btn-primary">📦 ${t('inventory.btn_create_order')}</button>
                             </div>
                         </form>
                     </div>
@@ -4254,19 +5185,19 @@ class FlowerShopApp {
                 
                 try {
                     await window.flowerShopAPI.generarOrdenCompra(orden.productos);
-                    this.showNotification('Orden generada correctamente', 'success');
+                    this.showNotification(t('msgs.order_generate_ok'), 'success');
                     modal.style.display = 'none';
                     modal.remove();
                     await this.loadOrdenesCompra();
                 } catch (error) {
                     console.error('Error creando orden:', error);
-                    this.showNotification('Error al generar orden', 'error');
+                    this.showNotification(t('msgs.order_generate_error'), 'error');
                 }
             });
             
         } catch (error) {
             console.error('Error al generar orden:', error);
-            this.showNotification('Error al cargar datos del producto', 'error');
+            this.showNotification(t('msgs.error_load'), 'error');
         }
     }
 
@@ -4287,24 +5218,6 @@ class FlowerShopApp {
         } catch (error) {
             console.error('Error cargando alertas:', error);
             this.renderAlertasStock([]);
-        }
-    }
-
-    async loadPrediccionDemanda(periodo = 30) {
-        try {
-            // Simulamos predicciones basadas en datos existentes
-            const productos = await window.flowerShopAPI.getProductos();
-            const prediccion = productos.slice(0, 10).map(p => ({
-                producto_nombre: p.nombre,
-                stock_actual: p.stock,
-                demanda_prevista: Math.floor(Math.random() * 20) + 5,
-                stock_proyectado: p.stock - (Math.floor(Math.random() * 15) + 5)
-            }));
-            
-            this.renderPrediccionDemanda(prediccion);
-        } catch (error) {
-            console.error('Error cargando predicción:', error);
-            this.renderPrediccionDemanda([]);
         }
     }
 
@@ -4364,9 +5277,8 @@ class FlowerShopApp {
     renderPrediccionDemanda(prediccion) {
         const tbody = document.querySelector('#prediction-table tbody');
         if (!tbody) return;
-
         if (!prediccion || prediccion.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay datos de predicción disponibles</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center">${t('inventory.no_prediction')}</td></tr>`;
             return;
         }
 
@@ -4377,9 +5289,9 @@ class FlowerShopApp {
                 <td>${p.demanda_prevista || 0}</td>
                 <td class="${(p.stock_proyectado || 0) < 0 ? 'text-danger' : ''}">${p.stock_proyectado || 0}</td>
                 <td>
-                    ${(p.stock_proyectado || 0) < 0 ? 
-                        '<span class="badge badge-danger">Reabastecer</span>' : 
-                        '<span class="badge badge-success">OK</span>'
+                    ${(p.stock_proyectado || 0) < 0 ?
+                        `<span class="badge badge-danger">${t('statuses.restock')}</span>` :
+                        `<span class="badge badge-success">${t('statuses.ok')}</span>`
                     }
                 </td>
             </tr>
@@ -4408,14 +5320,14 @@ class FlowerShopApp {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Stock Actual',
+                        label: t('inventory.stock_title'),
                         data: stockActual,
                         backgroundColor: 'rgba(34, 197, 94, 0.6)',
                         borderColor: 'rgba(34, 197, 94, 1)',
                         borderWidth: 1
                     },
                     {
-                        label: 'Demanda Prevista',
+                        label: t('reports.chart_predicted'),
                         data: demandaPrevista,
                         backgroundColor: 'rgba(217, 70, 239, 0.6)',
                         borderColor: 'rgba(217, 70, 239, 1)',
@@ -4432,7 +5344,7 @@ class FlowerShopApp {
                     },
                     title: {
                         display: true,
-                        text: 'Predicción de Demanda vs Stock Actual'
+                        text: t('reports.chart_demand_title')
                     }
                 },
                 scales: {
@@ -4440,7 +5352,7 @@ class FlowerShopApp {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Cantidad'
+                            text: t('reports.chart_quantity')
                         }
                     }
                 }
@@ -4451,35 +5363,39 @@ class FlowerShopApp {
     renderOrdenesCompra(ordenes) {
         const tbody = document.querySelector('#ordenes-table tbody');
         if (!tbody) return;
-
         if (!ordenes || ordenes.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7">
                 <div class="table-empty-state">
                     <div class="table-empty-icon"><i data-lucide="file-x"></i></div>
-                    <p class="table-empty-title">Sin órdenes de compra</p>
-                    <p class="table-empty-sub">Crea la primera orden con el botón "Nueva Orden"</p>
+                    <p class="table-empty-title">${t('inventory.no_orders_empty')}</p>
+                    <p class="table-empty-sub">${t('inventory.no_orders_sub')}</p>
                 </div>
             </td></tr>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
 
-        tbody.innerHTML = ordenes.map(orden => `
+        tbody.innerHTML = ordenes.map(orden => {
+            let acciones = `<button class="btn btn-sm btn-secondary" onclick="app.verOrden(${orden.id})">${t('historial.view')}</button>`;
+            if (orden.estado === 'pendiente') {
+                acciones += `<button class="btn btn-sm btn-outline-primary" onclick="app.markOrderSent(${orden.id})"><i data-lucide="send" style="width:13px;height:13px;margin-right:4px"></i>${t('inventory.order_status_sent')}</button>`;
+                acciones += `<button class="btn btn-sm btn-primary" onclick="app.editarOrden(${orden.id})">${t('common.edit')}</button>`;
+            } else if (orden.estado === 'enviada') {
+                acciones += `<button class="btn btn-sm btn-success" onclick="app.markOrderReceived(${orden.id})"><i data-lucide="package-check" style="width:13px;height:13px;margin-right:4px"></i>${t('inventory.order_status_received')}</button>`;
+                acciones += `<button class="btn btn-sm btn-primary" onclick="app.editarOrden(${orden.id})">${t('common.edit')}</button>`;
+            }
+            return `
             <tr>
                 <td class="historial-num">#${orden.numero_orden || orden.id}</td>
                 <td>${orden.proveedor_nombre || '—'}</td>
                 <td class="historial-fecha">${orden.fecha_orden ? orden.fecha_orden.split('T')[0] : '—'}</td>
                 <td>${orden.total_items || 0}</td>
-                <td>${window.flowerShopAPI.formatCurrency(orden.subtotal || orden.total || 0)}</td>
-                <td><span class="estado-badge ${orden.estado}">${orden.estado}</span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn btn-sm btn-secondary" onclick="app.verOrden(${orden.id})">Ver</button>
-                        <button class="btn btn-sm btn-primary" onclick="app.editarOrden(${orden.id})">Editar</button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
+                <td>${window.flowerShopAPI.formatCurrency(orden.total || 0)}</td>
+                <td><span class="estado-badge ${orden.estado}">${({ pendiente: t('inventory.order_status_pending'), enviada: t('inventory.order_status_sent'), recibida: t('inventory.order_status_received'), cancelada: t('inventory.order_status_cancelled') }[orden.estado] || orden.estado)}</span></td>
+                <td><div class="action-buttons">${acciones}</div></td>
+            </tr>`;
+        }).join('');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
     renderMovimientosInventario(movimientos) {
@@ -4490,8 +5406,8 @@ class FlowerShopApp {
             tbody.innerHTML = `<tr><td colspan="6">
                 <div class="table-empty-state">
                     <div class="table-empty-icon"><i data-lucide="activity"></i></div>
-                    <p class="table-empty-title">Sin movimientos registrados</p>
-                    <p class="table-empty-sub">Registra el primer movimiento con el botón "Registrar"</p>
+                    <p class="table-empty-title">${t('inventory.no_movements_empty')}</p>
+                    <p class="table-empty-sub">${t('inventory.no_orders_sub')}</p>
                 </div>
             </td></tr>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -4499,10 +5415,10 @@ class FlowerShopApp {
         }
 
         const tipoCfg = {
-            entrada:    { label: 'Entrada',    signo: '+', color: 'var(--g-600)' },
-            salida:     { label: 'Salida',     signo: '−', color: 'var(--r-500)' },
-            ajuste:     { label: 'Ajuste',     signo: '±', color: '#3730a3'      },
-            devolucion: { label: 'Devolución', signo: '+', color: '#6b21a8'      },
+            entrada:    { label: t('inventory.movement_entrada'),    signo: '+', color: 'var(--g-600)' },
+            salida:     { label: t('inventory.movement_salida'),     signo: '−', color: 'var(--r-500)' },
+            ajuste:     { label: t('inventory.movement_ajuste'),     signo: '±', color: '#3730a3'      },
+            devolucion: { label: t('inventory.movement_devolucion'), signo: '+', color: '#6b21a8'      },
         };
         tbody.innerHTML = movimientos.map(mov => {
             const tipo = (mov.tipo_movimiento || '').toLowerCase();
@@ -4515,7 +5431,7 @@ class FlowerShopApp {
                 <td><span class="estado-badge ${tipo}">${cfg.label}</span></td>
                 <td><span style="font-weight:700;color:${cfg.color}">${cfg.signo}${cantAbs}</span></td>
                 <td style="color:var(--text-muted);font-size:0.85rem">${mov.motivo || '—'}</td>
-                <td><button class="btn btn-sm btn-secondary" onclick="app.verMovimiento(${mov.id})">Ver</button></td>
+                <td><button class="btn btn-sm btn-secondary" onclick="app.verMovimiento(${mov.id})">${t('historial.view')}</button></td>
             </tr>`;
         }).join('');
     }
@@ -4525,7 +5441,7 @@ class FlowerShopApp {
             await this.loadDashboardData();
         } catch (error) {
             console.error('Error cargando datos iniciales:', error);
-            this.showNotification('Error cargando datos iniciales', 'error');
+            this.showNotification(t('msgs.error_initial'), 'error');
         }
     }
 
@@ -4535,7 +5451,7 @@ class FlowerShopApp {
         try {
             const productos = await window.flowerShopAPI.getProductos();
             const producto = productos.find(p => p.id === id);
-            if (!producto) { this.showNotification('Producto no encontrado', 'error'); return; }
+            if (!producto) { this.showNotification(t('msgs.product_not_found'), 'error'); return; }
 
             const currentMin = producto.stock_minimo || 10;
             await new Promise(resolve => {
@@ -4556,8 +5472,8 @@ class FlowerShopApp {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button class="btn btn-secondary _smin-cancel">Cancelar</button>
-                            <button class="btn btn-primary _smin-ok">Guardar</button>
+                            <button class="btn btn-secondary _smin-cancel">${t('common.cancel')}</button>
+                            <button class="btn btn-primary _smin-ok">${t('common.save')}</button>
                         </div>
                     </div>
                 `;
@@ -4574,8 +5490,9 @@ class FlowerShopApp {
                         const val = parseInt(input.value);
                         if (!isNaN(val) && val >= 0) {
                             await window.flowerShopAPI.actualizarProducto(id, { stock_minimo: val });
-                            this.showNotification('Stock mínimo actualizado', 'success');
+                            this.showNotification(t('msgs.stock_adjusted_ok'), 'success');
                             await this.loadInventoryAlerts();
+                            await this.generarNotificaciones();
                         }
                     }
                     resolve();
@@ -4588,20 +5505,110 @@ class FlowerShopApp {
             });
         } catch (error) {
             console.error('Error ajustando stock mínimo:', error);
-            this.showNotification('Error ajustando stock mínimo', 'error');
+            this.showNotification(t('msgs.error_save'), 'error');
         }
     }
 
     async crearOrdenCompra(productos) {
         try {
-            this.showNotification('Creando orden de compra...', 'info');
-            await window.flowerShopAPI.generarOrdenCompra(productos);
-            this.showNotification('Orden de compra creada', 'success');
+            const ordenes = await window.flowerShopAPI.generarOrdenCompra(productos);
+            if (!ordenes || ordenes.length === 0) {
+                this.showNotification(t('msgs.auto_order_no_provider'), 'warning');
+                return;
+            }
+            this.showNotification(t('msgs.order_created'), 'success');
             await this.loadOrdenesCompra();
+            await this.generarNotificaciones();
         } catch (error) {
             console.error('Error creando orden:', error);
-            this.showNotification('Error creando orden de compra', 'error');
+            this.showNotification(t('msgs.order_error'), 'error');
         }
+    }
+
+    async crearOrdenCompraDesdeAlerta(productoId, cantidad) {
+        // Intentar con proveedor principal primero
+        const ordenes = await window.flowerShopAPI.generarOrdenCompra([{ producto_id: productoId, cantidad }]).catch(() => []);
+        if (ordenes && ordenes.length > 0) {
+            this.showNotification(t('msgs.order_created'), 'success');
+            await this.loadOrdenesCompra();
+            await this.generarNotificaciones();
+            return;
+        }
+
+        // Sin proveedor principal — pedir al usuario que seleccione uno
+        const proveedores = await window.flowerShopAPI.getProveedores().catch(() => []);
+        if (!proveedores.length) {
+            this.showNotification(t('msgs.no_suppliers'), 'warning');
+            return;
+        }
+
+        const productos = await window.flowerShopAPI.getProductos().catch(() => []);
+        const producto = productos.find(p => p.id === productoId);
+
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <div class="modal-header-inner">
+                        <div class="modal-header-icon"><i data-lucide="shopping-cart"></i></div>
+                        <div>
+                            <h2 class="modal-title-pro">Crear orden de compra</h2>
+                            <p class="modal-subtitle-pro">${producto?.nombre || 'Producto'} — ${cantidad} unidades</p>
+                        </div>
+                    </div>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Proveedor</label>
+                        <select id="_orden-proveedor-sel" class="form-select">
+                            <option value="">Seleccionar proveedor…</option>
+                            ${proveedores.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" id="_orden-cantidad-inp" class="form-input" value="${cantidad}" min="1">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary modal-close">${t('common.cancel')}</button>
+                    <button class="btn btn-primary" id="_orden-confirmar-btn">
+                        <i data-lucide="check" style="width:15px;height:15px;margin-right:6px"></i>${t('inventory.btn_create_order')}
+                    </button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        const close = () => { this.hideModal(modal.id); setTimeout(() => modal.remove(), 300); };
+        modal.id = '_modal-orden-alerta';
+        modal.querySelectorAll('.modal-close').forEach(b => b.addEventListener('click', close));
+        modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+        modal.querySelector('#_orden-confirmar-btn').onclick = async () => {
+            const proveedorId = parseInt(modal.querySelector('#_orden-proveedor-sel').value);
+            const cant = parseInt(modal.querySelector('#_orden-cantidad-inp').value) || cantidad;
+            if (!proveedorId) { this.showNotification(t('msgs.no_supplier'), 'warning'); return; }
+            try {
+                await window.flowerShopAPI.crearOrdenDirecta({
+                    proveedor_id: proveedorId,
+                    fecha_orden: new Date().toISOString().slice(0, 10),
+                    estado: 'pendiente',
+                    notas: `Pedido desde alerta de stock`,
+                    items: [{ producto_id: productoId, cantidad: cant }]
+                });
+                this.showNotification(t('msgs.order_created'), 'success');
+                close();
+                await this.loadOrdenesCompra();
+                await this.generarNotificaciones();
+            } catch (e) {
+                this.showNotification(t('msgs.order_error'), 'error');
+            }
+        };
+
+        this.showModal('_modal-orden-alerta');
     }
 
     async viewProviderOrders(id) {
@@ -4610,7 +5617,7 @@ class FlowerShopApp {
             const proveedor = proveedores.find(p => p.id === id);
             
             if (!proveedor) {
-                this.showNotification('Proveedor no encontrado', 'error');
+                this.showNotification(t('msgs.supplier_not_found'), 'error');
                 return;
             }
             
@@ -4626,7 +5633,7 @@ class FlowerShopApp {
             
         } catch (error) {
             console.error('❌ Error cargando órdenes del proveedor:', error);
-            this.showNotification('Error cargando órdenes del proveedor', 'error');
+            this.showNotification(t('msgs.error_supplier_orders'), 'error');
         }
     }
 
@@ -4644,7 +5651,7 @@ class FlowerShopApp {
         const ordenesHtml = ordenes.length === 0 
             ? `<div class="no-data-message">
                  <div class="no-data-icon">📋</div>
-                 <p>No hay órdenes de compra registradas para este proveedor</p>
+                 <p>${t('inventory.no_orders_empty')}</p>
                </div>`
             : ordenes.map(orden => `
                 <div class="order-item-pro">
@@ -4653,7 +5660,7 @@ class FlowerShopApp {
                             <span class="order-number">Orden #${orden.numero_orden || orden.id}</span>
                             <span class="order-date">${window.flowerShopAPI.formatDate(orden.created_at)}</span>
                         </div>
-                        <span class="order-status ${orden.estado}">${orden.estado}</span>
+                        <span class="order-status ${orden.estado}">${{ pendiente: t('inventory.order_status_pending'), enviada: t('inventory.order_status_sent'), recibida: t('inventory.order_status_received'), cancelada: t('inventory.order_status_cancelled') }[orden.estado] || orden.estado}</span>
                     </div>
                     <div class="order-details-row">
                         <div class="order-detail-group">
@@ -4704,7 +5711,7 @@ class FlowerShopApp {
                         <div class="modal-header-icon"><i data-lucide="building-2"></i></div>
                         <div>
                             <h2 class="modal-title-pro">${proveedor.nombre}</h2>
-                            <p class="modal-subtitle-pro">Historial de órdenes de compra</p>
+                            <p class="modal-subtitle-pro">${t('inventory.provider_orders_title')}</p>
                         </div>
                     </div>
                     <button class="modal-close" type="button" aria-label="Cerrar">&times;</button>
@@ -4725,20 +5732,20 @@ class FlowerShopApp {
                         </div>
                         <div class="pedido-detalle-field">
                             <span class="pedido-detalle-label">Estado</span>
-                            <span class="pedido-detalle-value">${proveedor.activo ? 'Activo' : 'Inactivo'}</span>
+                            <span class="pedido-detalle-value">${proveedor.activo ? t('common.active') : t('common.inactive')}</span>
                         </div>
                     </div>
                     <div class="prov-orders-summary">
-                        <div class="prov-orders-stat"><span class="prov-orders-num">${totalOrdenes}</span><span class="prov-orders-lbl">Total órdenes</span></div>
-                        <div class="prov-orders-stat"><span class="prov-orders-num">${ordenesPendientes}</span><span class="prov-orders-lbl">Pendientes</span></div>
-                        <div class="prov-orders-stat"><span class="prov-orders-num">${window.flowerShopAPI.formatCurrency(valorTotal)}</span><span class="prov-orders-lbl">Valor total</span></div>
+                        <div class="prov-orders-stat"><span class="prov-orders-num">${totalOrdenes}</span><span class="prov-orders-lbl">${t('inventory.total_orders')}</span></div>
+                        <div class="prov-orders-stat"><span class="prov-orders-num">${ordenesPendientes}</span><span class="prov-orders-lbl">${t('inventory.order_status_pending')}</span></div>
+                        <div class="prov-orders-stat"><span class="prov-orders-num">${window.flowerShopAPI.formatCurrency(valorTotal)}</span><span class="prov-orders-lbl">${t('inventory.total_value')}</span></div>
                     </div>
-                    <div class="form-section-title" style="margin-top:var(--sp-4)"><span class="form-section-dot"></span>Historial de órdenes</div>
+                    <div class="form-section-title" style="margin-top:var(--sp-4)"><span class="form-section-dot"></span>${t('inventory.provider_orders_title')}</div>
                     <div class="historial-lista" style="margin-top:var(--sp-2)">${ordenesTableHtml}</div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
-                    <button type="button" class="btn btn-primary" onclick="app.nuevaOrdenCompraProveedor(${proveedor.id})">Nueva Orden</button>
+                    <button type="button" class="btn btn-primary" onclick="app.nuevaOrdenCompraProveedor(${proveedor.id})">${t('inventory.provider_orders_btn')}</button>
                 </div>
             </div>
         `;
@@ -4776,28 +5783,400 @@ class FlowerShopApp {
             
         } catch (error) {
             console.error('❌ Error creando nueva orden:', error);
-            this.showNotification('Error creando nueva orden', 'error');
+            this.showNotification(t('msgs.error_order_new'), 'error');
         }
     }
 
     async viewOrderDetails(id) {
-        this.showNotification(`Viendo detalles de la orden ${id}`, 'info');
+        this.showNotification(t('msgs.order_detail_viewing', { id }), 'info');
     }
 
     async markOrderReceived(id) {
+        let detalles = [];
         try {
-            await window.flowerShopAPI.actualizarOrdenCompra(id, { estado: 'recibida' });
-            this.showNotification('Orden marcada como recibida', 'success');
-            await this.loadPurchaseOrders();
+            detalles = await window.flowerShopAPI.getDetallesOrden(id) || [];
+        } catch (_) {}
+
+        const productos = await window.flowerShopAPI.getProductos().catch(() => []);
+        const stockMap = Object.fromEntries(productos.map(p => [p.id, p.stock_actual]));
+
+        const filasHTML = detalles.length
+            ? detalles.map(d => {
+                const stockActual = stockMap[d.producto_id] ?? '—';
+                const stockNuevo  = typeof stockActual === 'number' ? stockActual + d.cantidad : '—';
+                return `<tr>
+                    <td style="padding:6px 8px;font-weight:500">${d.producto_nombre || d.nombre || '—'}</td>
+                    <td style="padding:6px 8px;text-align:center;font-weight:700;color:var(--p-600)">+${d.cantidad}</td>
+                    <td style="padding:6px 8px;text-align:center;color:var(--text-muted)">${stockActual}</td>
+                    <td style="padding:6px 8px;text-align:center;font-weight:600;color:var(--g-600)">${stockNuevo}</td>
+                </tr>`;
+            }).join('')
+            : `<tr><td colspan="4" style="padding:10px;text-align:center;color:var(--text-muted)">Sin detalles disponibles</td></tr>`;
+
+        const bodyHTML = `
+            <p style="margin:0 0 12px;color:var(--text-secondary);font-size:0.9rem">El stock de los siguientes productos se actualizará automáticamente al confirmar:</p>
+            <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--s-200)">
+                <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+                    <thead>
+                        <tr style="background:var(--s-50)">
+                            <th style="padding:7px 8px;text-align:left;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Producto</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Cantidad</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Stock actual</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Stock nuevo</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filasHTML}</tbody>
+                </table>
+            </div>`;
+
+        const ok = await this._confirm(t('confirms.reception_title'), bodyHTML, t('confirms.reception_btn'), 'btn-primary', 'modal-md');
+        if (!ok) return;
+        try {
+            await window.flowerShopAPI.actualizarOrdenCompra(id, 'recibida');
+            this.showNotification(t('msgs.order_received_stock'), 'success');
+            await this.loadOrdenesCompra();
+            await this.generarNotificaciones();
         } catch (error) {
             console.error('Error marcando orden:', error);
-            this.showNotification('Error marcando orden como recibida', 'error');
+            this.showNotification(t('msgs.order_update_error'), 'error');
+        }
+    }
+
+    async markOrderSent(id) {
+        try {
+            await window.flowerShopAPI.actualizarOrdenCompra(id, 'enviada');
+            this.showNotification(t('msgs.order_mark_sent'), 'success');
+            await this.loadOrdenesCompra();
+        } catch (error) {
+            this.showNotification(t('msgs.order_update_error'), 'error');
         }
     }
 
     // Funciones de productos, clientes, eventos que pueden estar faltando
     async loadConfiguracionData() {
-        // Configuración pendiente de implementar
+        try {
+            const config = await window.flowerShopAPI.getConfiguracion();
+            if (config.empresa_nombre)    document.getElementById('empresa-nombre').value    = config.empresa_nombre;
+            if (config.empresa_direccion) document.getElementById('empresa-direccion').value = config.empresa_direccion;
+            if (config.empresa_telefono)  document.getElementById('empresa-telefono').value  = config.empresa_telefono;
+        } catch (_) {}
+
+        const form = document.getElementById('empresa-form');
+        if (form && !form._handler) {
+            form._handler = true;
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await window.flowerShopAPI.setConfiguracion({
+                    empresa_nombre:    document.getElementById('empresa-nombre').value.trim(),
+                    empresa_direccion: document.getElementById('empresa-direccion').value.trim(),
+                    empresa_telefono:  document.getElementById('empresa-telefono').value.trim(),
+                });
+                this.showNotification(t('msgs.company_saved'), 'success');
+            });
+        }
+    }
+
+    // ========== NOTIFICACIONES ==========
+
+    _notifKey() { return 'petalo_notifs'; }
+
+    _cargarNotifs() {
+        try { return JSON.parse(localStorage.getItem(this._notifKey()) || '[]'); }
+        catch (_) { return []; }
+    }
+
+    _guardarNotifs(notifs) {
+        localStorage.setItem(this._notifKey(), JSON.stringify(notifs));
+    }
+
+    _tocarSonido() {
+        try {
+            const prefs = JSON.parse(localStorage.getItem('perfil_prefs') || '{}');
+            if (prefs.notifSonido === false) return;
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.4);
+        } catch (_) {}
+    }
+
+    async generarNotificaciones() {
+        try {
+            const [productos, pedidos, eventos, ordenesCompra] = await Promise.all([
+                window.flowerShopAPI.getProductos(),
+                window.flowerShopAPI.getPedidos(),
+                window.flowerShopAPI.getEventos(),
+                window.flowerShopAPI.getOrdenesCompra().catch(() => []),
+            ]);
+
+            await this._checkStockNotifs(productos);
+            await this._checkEventosNotifs(eventos);
+            await this._checkEncargosNotifs(pedidos);
+            await this._checkOrdenesNotifs(ordenesCompra);
+
+        } catch (e) { console.error('Error generando notificaciones:', e); }
+
+        this._actualizarBadgeNotifs();
+    }
+
+    async _checkStockNotifs(productos) {
+        let notifs = this._cargarNotifs();
+        const ahora = new Date().toISOString();
+        let huboNuevas = false;
+
+        for (const p of productos.filter(p => p.activo)) {
+            const idBajo    = `stock_bajo_${p.id}`;
+            const idAgotado = `stock_agotado_${p.id}`;
+            const estaAgotado = p.stock_actual === 0;
+            const estaBajo    = p.stock_actual > 0 && p.stock_actual <= p.stock_minimo;
+            const tieneNotifBajo    = notifs.find(n => n.id === idBajo);
+            const tieneNotifAgotado = notifs.find(n => n.id === idAgotado);
+
+            // Si el stock se ha repuesto por encima del mínimo, eliminar notificaciones anteriores
+            // para que vuelvan a dispararse la próxima vez que bajen
+            if (p.stock_actual > p.stock_minimo) {
+                notifs = notifs.filter(n => n.id !== idBajo && n.id !== idAgotado);
+                continue;
+            }
+
+            // Agotado: si pasa de bajo a 0, reemplazar notif de bajo por agotado
+            if (estaAgotado && !tieneNotifAgotado) {
+                notifs = notifs.filter(n => n.id !== idBajo);
+                notifs.unshift({
+                    id: idAgotado, tipo: 'stock_bajo', nivel: 'urgente', grupo: 'stock',
+                    titulo: t('notifPanel.no_stock_title'),
+                    mensaje: t('notifPanel.no_stock_msg', { name: p.nombre }),
+                    fecha: ahora, leida: false,
+                    accion: "app.showSection('inventario')"
+                });
+                huboNuevas = true;
+            }
+
+            // Stock bajo (primera vez)
+            if (estaBajo && !tieneNotifBajo && !tieneNotifAgotado) {
+                notifs.unshift({
+                    id: idBajo, tipo: 'stock_bajo', nivel: 'warning', grupo: 'stock',
+                    titulo: t('notifPanel.low_stock_title'),
+                    mensaje: t('notifPanel.low_stock_msg', { name: p.nombre, current: p.stock_actual, min: p.stock_minimo }),
+                    fecha: ahora, leida: false,
+                    accion: "app.showSection('inventario')"
+                });
+                huboNuevas = true;
+            }
+        }
+
+        this._guardarNotifs(notifs);
+        if (huboNuevas) this._tocarSonido();
+    }
+
+    async _checkEventosNotifs(eventos) {
+        let notifs = this._cargarNotifs();
+        const ids = new Set(notifs.map(n => n.id));
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        const nuevas = [];
+        const DIAS_AVISO = [30, 14, 7];
+
+        eventos.filter(e => e.activo).forEach(e => {
+            const fechaEvento = new Date(e.fecha_inicio); fechaEvento.setHours(0,0,0,0);
+            DIAS_AVISO.forEach(dias => {
+                const diasRestantes = Math.round((fechaEvento - hoy) / 86400000);
+                if (diasRestantes !== dias) return;
+                const id = `evento_${e.id}_${dias}d`;
+                if (!ids.has(id)) nuevas.push({
+                    id, tipo: 'evento_recordatorio', nivel: dias <= 7 ? 'urgente' : 'warning', grupo: 'gestion',
+                    titulo: t('notifPanel.event_title', { days: dias, suffix: dias > 1 ? 's' : '' }),
+                    mensaje: t('notifPanel.event_msg', { name: e.nombre, date: window.flowerShopAPI.formatDate(e.fecha_inicio) }),
+                    fecha: new Date().toISOString(), leida: false,
+                    accion: "app.showSection('eventos')"
+                });
+            });
+        });
+
+        if (nuevas.length > 0) {
+            this._guardarNotifs([...nuevas, ...notifs]);
+            this._tocarSonido();
+        }
+    }
+
+    async _checkEncargosNotifs(pedidos) {
+        let notifs = this._cargarNotifs();
+        const ids = new Set(notifs.map(n => n.id));
+        const hace3dias = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10);
+        const nuevas = [];
+
+        // Limpiar notifs de encargos que ya no están pendientes
+        notifs = notifs.filter(n => {
+            if (n.tipo !== 'encargo_sin_gestionar') return true;
+            const pedidoId = parseInt(n.id.replace('encargo_sin_gestionar_', ''));
+            const pedido = pedidos.find(p => p.id === pedidoId);
+            return pedido && pedido.estado === 'pendiente';
+        });
+
+        pedidos.filter(p => p.estado === 'pendiente' && (p.fecha_pedido || '').slice(0, 10) <= hace3dias).forEach(p => {
+            const id = `encargo_sin_gestionar_${p.id}`;
+            if (!ids.has(id)) nuevas.push({
+                id, tipo: 'encargo_sin_gestionar', nivel: 'warning', grupo: 'gestion',
+                titulo: t('notifPanel.order_title'),
+                mensaje: t('notifPanel.order_msg', { client: p.cliente_nombre || 'cliente' }),
+                fecha: new Date().toISOString(), leida: false,
+                accion: `app.verPedido(${p.id})`
+            });
+        });
+
+        this._guardarNotifs([...nuevas, ...notifs]);
+        if (nuevas.length > 0) this._tocarSonido();
+    }
+
+    async _checkOrdenesNotifs(ordenesCompra) {
+        let notifs = this._cargarNotifs();
+        const ids = new Set(notifs.map(n => n.id));
+        const nuevas = [];
+
+        // Limpiar notifs de órdenes ya recibidas
+        notifs = notifs.filter(n => {
+            if (n.tipo !== 'orden_pendiente') return true;
+            const ordenId = parseInt(n.id.replace('orden_pendiente_', ''));
+            const orden = ordenesCompra.find(o => o.id === ordenId);
+            return orden && (orden.estado === 'enviada' || orden.estado === 'pendiente');
+        });
+
+        ordenesCompra.filter(o => o.estado === 'enviada' || o.estado === 'pendiente').forEach(o => {
+            const id = `orden_pendiente_${o.id}`;
+            if (!ids.has(id)) nuevas.push({
+                id, tipo: 'orden_pendiente', nivel: 'info', grupo: 'gestion',
+                titulo: t('notifPanel.purchase_title'),
+                mensaje: t('notifPanel.purchase_msg', { id: String(o.id).slice(-6) }),
+                fecha: new Date().toISOString(), leida: false,
+                accion: "app.showSection('inventario')"
+            });
+        });
+
+        this._guardarNotifs([...nuevas, ...notifs]);
+        if (nuevas.length > 0) this._tocarSonido();
+    }
+
+    _actualizarBadgeNotifs() {
+        const notifs = this._cargarNotifs();
+        const noLeidas = notifs.filter(n => !n.leida).length;
+        const badge = document.getElementById('badge-notificaciones');
+        if (badge) {
+            badge.textContent = noLeidas > 99 ? '99+' : noLeidas;
+            badge.style.display = noLeidas > 0 ? 'flex' : 'none';
+        }
+        const subtitle = document.getElementById('notif-subtitle');
+        if (subtitle) subtitle.textContent = noLeidas > 0 ? t('notifPanel.unread', { count: noLeidas }) : t('notifPanel.up_to_date');
+    }
+
+    loadNotificacionesData() {
+        this._tabNotifActiva = this._tabNotifActiva || 'no-leidas';
+        this._renderNotificaciones();
+        this._actualizarBadgeNotifs();
+
+        document.querySelectorAll('[data-notif-tab]').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('[data-notif-tab]').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                this._tabNotifActiva = tab.dataset.notifTab;
+                this._renderNotificaciones();
+            };
+        });
+    }
+
+    _renderNotificaciones() {
+        const container = document.getElementById('notificaciones-list');
+        if (!container) return;
+        const todas = this._cargarNotifs();
+        const lista = this._tabNotifActiva === 'no-leidas' ? todas.filter(n => !n.leida) : todas;
+
+        // Actualizar contadores tabs
+        const noLeidas = todas.filter(n => !n.leida).length;
+        const elTodas = document.getElementById('ntab-count-todas');
+        const elNL = document.getElementById('ntab-count-noleidas');
+        if (elTodas) elTodas.textContent = todas.length;
+        if (elNL)    elNL.textContent    = noLeidas;
+
+        if (lista.length === 0) {
+            container.innerHTML = `<div class="notif-empty"><i data-lucide="bell-off"></i><p>${this._tabNotifActiva === 'no-leidas' ? t('notifPanel.no_unread') : t('notifPanel.no_notifs')}</p></div>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            return;
+        }
+
+        const iconMap = {
+            stock_bajo: 'alert-triangle', evento_recordatorio: 'calendar-clock',
+            encargo_sin_gestionar: 'clock', orden_pendiente: 'package'
+        };
+
+        const tiempoRelativo = (iso) => {
+            const diff = Date.now() - new Date(iso).getTime();
+            const m = Math.floor(diff / 60000);
+            if (m < 1)  return 'Ahora mismo';
+            if (m < 60) return `Hace ${m} min`;
+            const h = Math.floor(m / 60);
+            if (h < 24) return `Hace ${h}h`;
+            const d = Math.floor(h / 24);
+            return `Hace ${d} día${d > 1 ? 's' : ''}`;
+        };
+
+        const renderItem = n => `
+            <div class="notif-item ${n.leida ? 'leida' : ''}" onclick="app._clickNotif('${n.id}', ${JSON.stringify(n.accion || '')})">
+                <div class="notif-icon ${n.nivel || 'info'}">
+                    <i data-lucide="${iconMap[n.tipo] || 'bell'}"></i>
+                </div>
+                <div class="notif-body">
+                    <div class="notif-title">${n.titulo}</div>
+                    <div class="notif-msg">${n.mensaje}</div>
+                    <div class="notif-time">${tiempoRelativo(n.fecha)}</div>
+                </div>
+                ${!n.leida ? '<div class="notif-unread-dot"></div>' : ''}
+            </div>`;
+
+        const stockNotifs = lista.filter(n => n.grupo === 'stock');
+        const gestionNotifs = lista.filter(n => n.grupo !== 'stock');
+        let html = '';
+
+        if (stockNotifs.length > 0) {
+            html += `<div class="notif-group-header"><i data-lucide="package-x"></i> Notificaciones de Stock</div>`;
+            html += stockNotifs.map(renderItem).join('');
+        }
+        if (gestionNotifs.length > 0) {
+            html += `<div class="notif-group-header"><i data-lucide="calendar-clock"></i> Eventos &amp; Encargos</div>`;
+            html += gestionNotifs.map(renderItem).join('');
+        }
+
+        container.innerHTML = html;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    _clickNotif(id, accion) {
+        const notifs = this._cargarNotifs();
+        const n = notifs.find(n => n.id === id);
+        if (n) { n.leida = true; this._guardarNotifs(notifs); }
+        this._actualizarBadgeNotifs();
+        this._renderNotificaciones();
+        if (accion) { try { eval(accion); } catch (_) {} }
+    }
+
+    marcarTodasLeidas() {
+        const notifs = this._cargarNotifs().map(n => ({ ...n, leida: true }));
+        this._guardarNotifs(notifs);
+        this._actualizarBadgeNotifs();
+        this._renderNotificaciones();
+        this.showNotification(t('msgs.notifs_read'), 'success');
+    }
+
+    limpiarNotificaciones() {
+        const notifs = this._cargarNotifs().filter(n => !n.leida);
+        this._guardarNotifs(notifs);
+        this._actualizarBadgeNotifs();
+        this._renderNotificaciones();
+        this.showNotification(t('msgs.notifs_cleared'), 'success');
     }
 
     // ========== PERFIL ==========
@@ -4809,13 +6188,9 @@ class FlowerShopApp {
             if (saved.email)  document.getElementById('perfil-email').value  = saved.email;
             if (saved.telefono) document.getElementById('perfil-telefono').value = saved.telefono;
 
-            // Avatar color
-            const avatarColor = localStorage.getItem('perfil_avatar_color') || 'var(--p-500)';
-            const avatarEl = document.getElementById('perfil-avatar-circle');
-            if (avatarEl) {
-                avatarEl.style.background = avatarColor;
-                avatarEl.textContent = (saved.nombre || 'A').charAt(0).toUpperCase();
-            }
+            // Avatar
+            const avatarImg = localStorage.getItem('perfil_avatar_img');
+            this.updateAvatarEverywhere(avatarImg || null);
 
             // Hero
             const heroNombre = document.getElementById('perfil-hero-nombre');
@@ -4832,23 +6207,18 @@ class FlowerShopApp {
             if (prefs.notifSonido !== undefined) document.getElementById('pref-notif-sonido').checked = prefs.notifSonido;
 
             // Stats desde la BD
-            const [pedidos, clientes, productos, movimientos] = await Promise.all([
+            const [pedidos, clientes, productos] = await Promise.all([
                 window.flowerShopAPI.getPedidos(),
                 window.flowerShopAPI.getClientes(),
-                window.flowerShopAPI.getProductos(),
-                window.flowerShopAPI.getMovimientosInventario({}).catch(() => [])
+                window.flowerShopAPI.getProductos()
             ]);
 
-            const hoy = new Date().toISOString().slice(0, 10);
-            const semanaAtras = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
-            const pedidosHoy = pedidos.filter(p => (p.fecha_pedido || '').slice(0, 10) === hoy).length;
-            const movSemana  = movimientos.filter(m => (m.fecha_movimiento || '').slice(0, 10) >= semanaAtras).length;
-
-            this.updateElement('pstat-pedidos',  pedidos.length);
-            this.updateElement('pstat-clientes', clientes.length);
-            this.updateElement('pstat-productos', productos.length);
-            this.updateElement('pstat-hoy', pedidosHoy);
-            this.updateElement('pstat-semana', movSemana);
+            this.updateElement('pstat-pedidos',   pedidos.length);
+            this.updateElement('pstat-pedidos2',  pedidos.length);
+            this.updateElement('pstat-clientes',  clientes.length);
+            this.updateElement('pstat-clientes2', clientes.length);
+            this.updateElement('pstat-productos',  productos.length);
+            this.updateElement('pstat-productos2', productos.length);
 
             const ultimoAcceso = localStorage.getItem('perfil_ultimo_acceso') || '—';
             this.updateElement('pstat-ultimo-acceso', ultimoAcceso);
@@ -4865,7 +6235,7 @@ class FlowerShopApp {
         const telefono = document.getElementById('perfil-telefono')?.value?.trim();
 
         if (!nombre || !email) {
-            this.showNotification('El nombre y el email son obligatorios', 'warning');
+            this.showNotification(t('msgs.profile_fill'), 'warning');
             return;
         }
         localStorage.setItem('perfil_usuario', JSON.stringify({ nombre, email, telefono }));
@@ -4875,68 +6245,249 @@ class FlowerShopApp {
         const heroEmail  = document.getElementById('perfil-hero-email');
         if (heroNombre) heroNombre.textContent = nombre;
         if (heroEmail)  heroEmail.textContent  = email;
-        const avatarEl = document.getElementById('perfil-avatar-circle');
-        if (avatarEl) avatarEl.textContent = nombre.charAt(0).toUpperCase();
         const topbarName = document.querySelector('.user-name');
         if (topbarName) topbarName.textContent = nombre;
+        if (!localStorage.getItem('perfil_avatar_img')) {
+            this.updateAvatarEverywhere(null);
+        }
 
-        this.showNotification('Perfil actualizado correctamente', 'success');
+        this.showNotification(t('msgs.profile_updated'), 'success');
     }
 
-    cambiarPassword() {
+    async cambiarPassword() {
         const actual   = document.getElementById('perfil-pass-actual')?.value;
         const nueva    = document.getElementById('perfil-pass-nueva')?.value;
         const confirm  = document.getElementById('perfil-pass-confirm')?.value;
 
         if (!actual || !nueva || !confirm) {
-            this.showNotification('Completa todos los campos de contraseña', 'warning');
+            this.showNotification(t('msgs.password_fill'), 'warning');
             return;
         }
         if (nueva !== confirm) {
-            this.showNotification('Las contraseñas no coinciden', 'error');
+            this.showNotification(t('msgs.password_mismatch'), 'error');
             return;
         }
         if (nueva.length < 6) {
-            this.showNotification('La contraseña debe tener al menos 6 caracteres', 'warning');
+            this.showNotification(t('msgs.password_min'), 'warning');
             return;
         }
-        // En una app real aquí iría el IPC call. Por ahora feedback visual.
+        const verify = await window.electronAPI.verifyPassword(actual);
+        if (!verify.ok) {
+            this.showNotification(t('msgs.password_wrong'), 'error');
+            return;
+        }
+        await window.electronAPI.savePassword(nueva);
         document.getElementById('perfil-pass-actual').value = '';
         document.getElementById('perfil-pass-nueva').value  = '';
         document.getElementById('perfil-pass-confirm').value = '';
-        this.showNotification('Contraseña actualizada correctamente', 'success');
+        this.showNotification(t('msgs.password_changed'), 'success');
     }
 
-    guardarPreferencias() {
+    async guardarPreferencias() {
         const prefs = {
-            moneda:      document.getElementById('pref-moneda')?.value,
-            fecha:       document.getElementById('pref-fecha')?.value,
-            idioma:      document.getElementById('pref-idioma')?.value,
-            notifStock:  document.getElementById('pref-notif-stock')?.checked,
-            notifSonido: document.getElementById('pref-notif-sonido')?.checked,
+            moneda:  document.getElementById('pref-moneda')?.value,
+            fecha:   document.getElementById('pref-fecha')?.value,
+            idioma:  document.getElementById('pref-idioma')?.value,
         };
         localStorage.setItem('perfil_prefs', JSON.stringify(prefs));
-        this.showNotification('Preferencias guardadas', 'success');
+        // Cambiar idioma en vivo
+        if (window.i18n && prefs.idioma) window.i18n.setLocale(prefs.idioma);
+        this.showNotification(t('msgs.prefs_saved'), 'success');
+        await this.loadInitialData();
     }
 
     cambiarAvatar() {
-        const colores = ['#7c3aed','#db2777','#0891b2','#059669','#d97706','#dc2626','#4f46e5','#0284c7'];
-        const actual  = localStorage.getItem('perfil_avatar_color') || colores[0];
-        const idx     = colores.indexOf(actual);
-        const nuevo   = colores[(idx + 1) % colores.length];
-        localStorage.setItem('perfil_avatar_color', nuevo);
-        const avatarEl = document.getElementById('perfil-avatar-circle');
-        if (avatarEl) avatarEl.style.background = nuevo;
+        const input = document.getElementById('avatar-file-input');
+        if (!input) return;
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const base64 = ev.target.result;
+                localStorage.setItem('perfil_avatar_img', base64);
+                this.updateAvatarEverywhere(base64);
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        };
+        input.click();
     }
 
-    exportarDatos() {
-        this.showNotification('Exportación de datos no disponible en esta versión', 'info');
+    updateAvatarEverywhere(imgSrc) {
+        const initial = (JSON.parse(localStorage.getItem('perfil_usuario') || '{}').nombre || 'A').charAt(0).toUpperCase();
+        const perfil = document.getElementById('perfil-avatar-circle');
+        const navbar = document.querySelector('.user-avatar-placeholder');
+        [perfil, navbar].forEach(el => {
+            if (!el) return;
+            if (imgSrc) {
+                el.style.backgroundImage = `url('${imgSrc}')`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+                el.style.backgroundColor = 'transparent';
+                el.textContent = '';
+            } else {
+                el.style.backgroundImage = '';
+                el.style.backgroundColor = '';
+                el.textContent = initial;
+            }
+        });
+    }
+
+    _lazyLoadProductImages() {
+        const imgs = document.querySelectorAll('img[data-lazy-img="1"]');
+        imgs.forEach(async img => {
+            const id = parseInt(img.dataset.productoId);
+            if (!id) return;
+            const src = await window.flowerShopAPI.getProductoImagen(id);
+            if (src) img.src = src;
+        });
+    }
+
+    _lazyLoadClienteImages() {
+        const imgs = document.querySelectorAll('img[data-lazy-cliente]');
+        imgs.forEach(async img => {
+            const id = parseInt(img.dataset.lazyCliente);
+            if (!id) return;
+            const src = await window.flowerShopAPI.getClienteImagen(id);
+            if (src) {
+                img.src = src;
+                img.style.display = 'block';
+                const avatar = img.closest('.cliente-avatar');
+                if (avatar) avatar.style.backgroundColor = 'transparent';
+            }
+        });
+    }
+
+    _resetClienteFoto() {
+        const form = document.getElementById('form-cliente');
+        if (form) form.removeAttribute('data-imagen');
+        const preview = document.getElementById('cliente-foto-preview');
+        const placeholder = document.getElementById('cliente-foto-placeholder');
+        if (preview) { preview.src = ''; preview.style.display = 'none'; }
+        if (placeholder) placeholder.style.display = 'flex';
+    }
+
+    _setClienteFotoPreview(src) {
+        const form = document.getElementById('form-cliente');
+        if (form) form.setAttribute('data-imagen', src);
+        const preview = document.getElementById('cliente-foto-preview');
+        const placeholder = document.getElementById('cliente-foto-placeholder');
+        if (preview) { preview.src = src; preview.style.display = 'block'; }
+        if (placeholder) placeholder.style.display = 'none';
+    }
+
+    setupClienteImageInput() {
+        const uploadZone = document.getElementById('cliente-foto-upload');
+        const input = document.getElementById('cliente-foto-input');
+        if (!uploadZone || !input) return;
+        uploadZone.addEventListener('click', () => input.click());
+        input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => this._setClienteFotoPreview(ev.target.result);
+            reader.readAsDataURL(file);
+            input.value = '';
+        });
+    }
+
+    _setProductoImagePreview(src) {
+        const preview = document.getElementById('producto-img-preview');
+        const placeholder = document.getElementById('producto-img-placeholder');
+        const removeBtn = document.getElementById('producto-img-remove');
+        if (!preview) return;
+        if (src) {
+            preview.src = src;
+            preview.style.display = 'block';
+            if (placeholder) placeholder.style.display = 'none';
+            if (removeBtn) removeBtn.style.display = 'flex';
+        } else {
+            preview.src = '';
+            preview.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
+            if (removeBtn) removeBtn.style.display = 'none';
+        }
+    }
+
+    removeProductoImagen() {
+        document.getElementById('form-producto')?.setAttribute('data-imagen', '');
+        this._setProductoImagePreview(null);
+    }
+
+    setupProductoImageInput() {
+        const input = document.getElementById('producto-imagen-input');
+        if (!input) return;
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const base64 = ev.target.result;
+                document.getElementById('form-producto')?.setAttribute('data-imagen', base64);
+                this._setProductoImagePreview(base64);
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        };
+    }
+
+    async exportarDatos() {
+        try {
+            const [productos, clientes, pedidos] = await Promise.all([
+                window.flowerShopAPI.getProductos(),
+                window.flowerShopAPI.getClientes(),
+                window.flowerShopAPI.getPedidos()
+            ]);
+
+            const hoy = new Date().toISOString().slice(0, 10);
+            const sep = (title) => [`--- ${title} ---`];
+
+            const rows = [
+                sep('PRODUCTOS'),
+                ['Código', 'Nombre', 'Categoría', 'Precio Venta (€)', 'Precio Compra (€)', 'Stock', 'Stock Mínimo', 'Temporada'],
+                ...productos.map(p => [
+                    p.codigo_producto || '', p.nombre, p.categoria_nombre || '',
+                    p.precio_venta, p.precio_compra || 0, p.stock_actual, p.stock_minimo, p.temporada || ''
+                ]),
+                [],
+                sep('CLIENTES'),
+                ['Nombre', 'Email', 'Teléfono', 'Tipo'],
+                ...clientes.map(c => [
+                    `${c.nombre} ${c.apellidos || ''}`.trim(), c.email || '', c.telefono || '', c.tipo_cliente || ''
+                ]),
+                [],
+                sep('ENCARGOS'),
+                ['ID', 'Cliente', 'Fecha Entrega', 'Estado', 'Total (€)'],
+                ...pedidos.map(p => [
+                    p.id, p.cliente_nombre || 'Cliente ocasional',
+                    p.fecha_entrega || '', p.estado, p.total
+                ]),
+            ];
+
+            this._downloadCSV(rows, `petalo_exportacion_${hoy}.csv`);
+            this.showNotification(t('msgs.data_exported'), 'success');
+        } catch (e) {
+            console.error(e);
+            this.showNotification(t('msgs.export_error'), 'error');
+        }
+    }
+
+    _downloadCSV(rows, filename) {
+        const bom = '﻿';
+        const csv = bom + rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
     }
 
     limpiarCache() {
         const keys = ['perfil_ultimo_acceso'];
         keys.forEach(k => localStorage.removeItem(k));
-        this.showNotification('Caché limpiada correctamente', 'success');
+        this.showNotification(t('msgs.cache_cleared'), 'success');
     }
 }
 
@@ -4970,9 +6521,46 @@ window.eliminarProveedor = (id) => window.app?.eliminarProveedor(id);
 window.viewProviderOrders = (id) => window.app?.viewProviderOrders(id);
 window.viewOrderDetails = (id) => window.app?.viewOrderDetails(id);
 window.markOrderReceived = (id) => window.app?.markOrderReceived(id);
+window.markOrderSent = (id) => window.app?.markOrderSent(id);
 window.ajustarStockMinimo = (id) => window.app?.ajustarStockMinimo(id);
 window.crearOrdenCompra = (productos) => window.app?.crearOrdenCompra(productos);
+window.crearOrdenCompraDesdeAlerta = (id, cantidad) => window.app?.crearOrdenCompraDesdeAlerta(id, cantidad);
 window.generarOrdenProducto = (id) => window.app?.generarOrdenProducto(id);
 window.verMovimiento = (id) => window.app?.verMovimiento(id);
 window.verOrden = (id) => window.app?.verOrden(id);
 window.editarOrden = (id) => window.app?.editarOrden(id);
+
+// Password change form
+document.addEventListener('DOMContentLoaded', () => {
+    const pwdForm = document.getElementById('pwd-form');
+    if (!pwdForm) return;
+    pwdForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const current = document.getElementById('pwd-current').value;
+        const newPwd  = document.getElementById('pwd-new').value;
+        const confirm = document.getElementById('pwd-confirm').value;
+        const msg     = document.getElementById('pwd-msg');
+
+        // Verify current password
+        const check = await window.electronAPI.verifyPassword(current);
+        if (!check.ok) {
+            msg.style.color = '#f87171';
+            msg.textContent = t('config.pwd_wrong');
+            return;
+        }
+        if (newPwd.length < 4) {
+            msg.style.color = '#f87171';
+            msg.textContent = t('config.pwd_short');
+            return;
+        }
+        if (newPwd !== confirm) {
+            msg.style.color = '#f87171';
+            msg.textContent = t('config.pwd_mismatch');
+            return;
+        }
+        await window.electronAPI.savePassword(newPwd);
+        msg.style.color = '#86efac';
+        msg.textContent = t('config.pwd_updated');
+        pwdForm.reset();
+    });
+});

@@ -8,7 +8,9 @@
         "dev": "electron . --dev",
         "build": "electron-builder",
         "pack": "electron-builder --dir",
-        "dist": "electron-builder --publish=never"
+        "dist": "electron-builder --publish=never",
+        "postinstall": "electron-rebuild -f -w better-sqlite3",
+        "rebuild": "electron-rebuild -f -w better-sqlite3"
     },
     "keywords": [
         "floristeria",
@@ -22,11 +24,15 @@
     "author": "Tu Nombre",
     "license": "MIT",
     "devDependencies": {
+        "@electron/rebuild": "^3.7.2",
         "electron": "^30.0.0",
         "electron-builder": "^24.6.3"
     },
     "dependencies": {
-        "sqlite3": "^5.1.7"
+        "better-sqlite3": "^12.10.0",
+        "jspdf": "^4.2.1",
+        "node-machine-id": "^1.1.12",
+        "xlsx": "^0.18.5"
     },
     "build": {
         "appId": "com.tuempresa.floristeria",

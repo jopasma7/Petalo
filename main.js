@@ -1,9 +1,11 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, shell } = require('electron');
 const path = require('path');
 const FlowerShopDatabase = require('./src/database/database');
+const licenseManager = require('./src/license');
 
 // Variables globales
 let mainWindow;
+let activationWindow;
 let dbManager;
 
 // Función para crear la ventana principal
@@ -39,6 +41,14 @@ function createMainWindow() {
     if (process.env.NODE_ENV === 'development') {
         mainWindow.webContents.openDevTools();
     }
+
+    mainWindow.webContents.on('before-input-event', (_e, input) => {
+        if (input.key === 'F12') {
+            mainWindow.webContents.isDevToolsOpened()
+                ? mainWindow.webContents.closeDevTools()
+                : mainWindow.webContents.openDevTools();
+        }
+    });
 }
 
 // Crear menú de la aplicación
@@ -149,8 +159,7 @@ function createMenu() {
         }
     ];
 
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
+    Menu.setApplicationMenu(null);
 }
 
 // Manejadores IPC para comunicación con el renderer
@@ -160,6 +169,15 @@ ipcMain.handle('get-productos', async () => {
     } catch (error) {
         console.error('Error obteniendo productos:', error);
         throw error;
+    }
+});
+
+ipcMain.handle('get-producto-imagen', async (_e, id) => {
+    try {
+        return dbManager.getProductoImagen(id);
+    } catch (error) {
+        console.error('Error obteniendo imagen producto:', error);
+        return null;
     }
 });
 
@@ -199,6 +217,16 @@ ipcMain.handle('get-detalles-pedido', async (event, pedidoId) => {
     }
 });
 
+ipcMain.handle('get-configuracion', async () => {
+    try { return dbManager.getConfiguracion(); }
+    catch (error) { console.error('Error obteniendo configuración:', error); throw error; }
+});
+
+ipcMain.handle('set-configuracion', async (_e, datos) => {
+    try { dbManager.setConfiguracion(datos); return { ok: true }; }
+    catch (error) { console.error('Error guardando configuración:', error); throw error; }
+});
+
 ipcMain.handle('get-estadisticas', async () => {
     try {
         return await dbManager.getEstadisticasGenerales();
@@ -206,6 +234,44 @@ ipcMain.handle('get-estadisticas', async () => {
         console.error('Error obteniendo estadísticas:', error);
         throw error;
     }
+});
+
+ipcMain.handle('get-tipos-cliente', async () => {
+    try { return dbManager.allQuery('SELECT * FROM tipos_cliente ORDER BY nombre'); }
+    catch (e) { throw e; }
+});
+ipcMain.handle('crear-tipo-cliente', async (_e, tipo) => {
+    try { return dbManager.runQuery('INSERT INTO tipos_cliente (nombre, color) VALUES (?, ?)', [tipo.nombre, tipo.color || '#6b7280']); }
+    catch (e) { throw e; }
+});
+ipcMain.handle('actualizar-tipo-cliente', async (_e, id, tipo) => {
+    try { return dbManager.runQuery('UPDATE tipos_cliente SET nombre = ?, color = ? WHERE id = ?', [tipo.nombre, tipo.color || '#6b7280', id]); }
+    catch (e) { throw e; }
+});
+ipcMain.handle('eliminar-tipo-cliente', async (_e, id) => {
+    try {
+        const enUso = dbManager.getQuery('SELECT COUNT(*) as n FROM clientes WHERE tipo_cliente = (SELECT nombre FROM tipos_cliente WHERE id = ?)', [id]);
+        if (enUso.n > 0) throw new Error('Este tipo tiene clientes asociados');
+        return dbManager.runQuery('DELETE FROM tipos_cliente WHERE id = ?', [id]);
+    } catch (e) { throw e; }
+});
+
+ipcMain.handle('get-tipos-evento', async () => {
+    try { return dbManager.allQuery('SELECT * FROM tipos_evento ORDER BY nombre'); }
+    catch (e) { throw e; }
+});
+ipcMain.handle('crear-tipo-evento', async (_e, tipo) => {
+    try { return dbManager.runQuery('INSERT INTO tipos_evento (nombre, color) VALUES (?, ?)', [tipo.nombre, tipo.color || '#6b7280']); }
+    catch (e) { throw e; }
+});
+ipcMain.handle('actualizar-tipo-evento', async (_e, id, tipo) => {
+    try { return dbManager.runQuery('UPDATE tipos_evento SET nombre = ?, color = ? WHERE id = ?', [tipo.nombre, tipo.color || '#6b7280', id]); }
+    catch (e) { throw e; }
+});
+ipcMain.handle('eliminar-tipo-evento', async (_e, id) => {
+    try {
+        return dbManager.runQuery('DELETE FROM tipos_evento WHERE id = ?', [id]);
+    } catch (e) { throw e; }
 });
 
 ipcMain.handle('get-categorias', async () => {
@@ -256,14 +322,14 @@ ipcMain.handle('eliminar-categoria', async (event, id) => {
 ipcMain.handle('actualizar-producto', async (event, id, producto) => {
     try {
         const result = await dbManager.runQuery(
-            `UPDATE productos SET nombre=?, categoria_id=?, descripcion=?, precio_compra=?, 
-             precio_venta=?, stock_actual=?, stock_minimo=?, unidad_medida=?, temporada=?, 
-             perecedero=?, dias_caducidad=?, proveedor=?, codigo_producto=?, updated_at=CURRENT_TIMESTAMP 
-             WHERE id=?`,
+            `UPDATE productos SET nombre=?, categoria_id=?, descripcion=?, precio_compra=?,
+             precio_venta=?, stock_actual=?, stock_minimo=?, unidad_medida=?, temporada=?,
+             perecedero=?, dias_caducidad=?, proveedor=?, codigo_producto=?, imagen_url=?,
+             updated_at=CURRENT_TIMESTAMP WHERE id=?`,
             [producto.nombre, producto.categoria_id, producto.descripcion, producto.precio_compra,
              producto.precio_venta, producto.stock_actual, producto.stock_minimo, producto.unidad_medida,
-             producto.temporada, producto.perecedero, producto.dias_caducidad, producto.proveedor,
-             producto.codigo_producto, id]
+             producto.temporada, producto.perecedero ? 1 : 0, producto.dias_caducidad ?? null, producto.proveedor,
+             producto.codigo_producto, producto.imagen_url ?? null, id]
         );
         return result;
     } catch (error) {
@@ -272,19 +338,28 @@ ipcMain.handle('actualizar-producto', async (event, id, producto) => {
     }
 });
 
+ipcMain.handle('get-cliente-imagen', async (event, id) => {
+    try {
+        return dbManager.getClienteImagen(id);
+    } catch (error) {
+        console.error('Error obteniendo imagen cliente:', error);
+        return null;
+    }
+});
+
 ipcMain.handle('actualizar-cliente', async (event, id, cliente) => {
     try {
-        // Dividir el nombre completo en nombre y apellidos
         const nombreCompleto = cliente.nombre || '';
         const partes = nombreCompleto.trim().split(' ');
         const nombre = partes[0] || '';
         const apellidos = partes.slice(1).join(' ') || '';
-        
+
         const result = await dbManager.runQuery(
-            `UPDATE clientes SET nombre=?, apellidos=?, telefono=?, email=?, direccion=?, 
-             fecha_nacimiento=?, tipo_cliente=?, notas=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
+            `UPDATE clientes SET nombre=?, apellidos=?, telefono=?, email=?, direccion=?,
+             fecha_nacimiento=?, tipo_cliente=?, notas=?, imagen=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
             [nombre, apellidos, cliente.telefono, cliente.email, cliente.direccion,
-             cliente.fecha_nacimiento, cliente.tipo_cliente, cliente.notas, id]
+             cliente.fecha_nacimiento, cliente.tipo_cliente, cliente.notas,
+             cliente.imagen ?? null, id]
         );
         return result;
     } catch (error) {
@@ -353,13 +428,13 @@ ipcMain.handle('eliminar-evento', async (event, id) => {
 ipcMain.handle('crear-producto', async (event, producto) => {
     try {
         const result = await dbManager.runQuery(
-            `INSERT INTO productos (nombre, categoria_id, descripcion, precio_compra, precio_venta, 
-             stock_actual, stock_minimo, unidad_medida, temporada, perecedero, dias_caducidad, 
-             proveedor, codigo_producto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO productos (nombre, categoria_id, descripcion, precio_compra, precio_venta,
+             stock_actual, stock_minimo, unidad_medida, temporada, perecedero, dias_caducidad,
+             proveedor, codigo_producto, imagen_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [producto.nombre, producto.categoria_id, producto.descripcion, producto.precio_compra,
              producto.precio_venta, producto.stock_actual, producto.stock_minimo, producto.unidad_medida,
-             producto.temporada, producto.perecedero, producto.dias_caducidad, producto.proveedor,
-             producto.codigo_producto]
+             producto.temporada, producto.perecedero ? 1 : 0, producto.dias_caducidad ?? null, producto.proveedor,
+             producto.codigo_producto, producto.imagen_url || null]
         );
         return result;
     } catch (error) {
@@ -370,17 +445,17 @@ ipcMain.handle('crear-producto', async (event, producto) => {
 
 ipcMain.handle('crear-cliente', async (event, cliente) => {
     try {
-        // Dividir el nombre completo en nombre y apellidos
         const nombreCompleto = cliente.nombre || '';
         const partes = nombreCompleto.trim().split(' ');
         const nombre = partes[0] || '';
         const apellidos = partes.slice(1).join(' ') || '';
-        
+
         const result = await dbManager.runQuery(
-            `INSERT INTO clientes (nombre, apellidos, telefono, email, direccion, fecha_nacimiento, 
-             tipo_cliente, notas) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO clientes (nombre, apellidos, telefono, email, direccion, fecha_nacimiento,
+             tipo_cliente, notas, imagen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [nombre, apellidos, cliente.telefono, cliente.email, cliente.direccion,
-             cliente.fecha_nacimiento, cliente.tipo_cliente, cliente.notas]
+             cliente.fecha_nacimiento, cliente.tipo_cliente, cliente.notas,
+             cliente.imagen ?? null]
         );
         return result;
     } catch (error) {
@@ -408,10 +483,31 @@ ipcMain.handle('crear-evento', async (event, evento) => {
 
 ipcMain.handle('actualizar-estado-pedido', async (event, id, estado) => {
     try {
+        // Obtener estado anterior antes de actualizar
+        const pedidoActual = dbManager.getQuery(
+            `SELECT estado FROM pedidos WHERE id=?`, [id]
+        );
         const result = await dbManager.runQuery(
             `UPDATE pedidos SET estado=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
             [estado, id]
         );
+        // Decrementar stock al aprobar (solo si venía de pendiente)
+        if (estado === 'aprobado' && pedidoActual && pedidoActual.estado === 'pendiente') {
+            const detalles = dbManager.allQuery(
+                `SELECT producto_id, cantidad FROM pedido_detalles WHERE pedido_id=?`, [id]
+            );
+            for (const d of detalles) {
+                const prod = dbManager.getQuery('SELECT stock_actual FROM productos WHERE id = ?', [d.producto_id]);
+                const stockAnterior = prod ? prod.stock_actual : 0;
+                const stockNuevo = Math.max(0, stockAnterior - d.cantidad);
+                await dbManager.runQuery(
+                    `UPDATE productos SET stock_actual = MAX(0, stock_actual - ?) WHERE id = ?`,
+                    [d.cantidad, d.producto_id]
+                );
+                dbManager._insertMovimiento(d.producto_id, 'salida', d.cantidad, stockAnterior, stockNuevo,
+                    'Encargo aprobado', `Pedido #${id}`);
+            }
+        }
         return result;
     } catch (error) {
         console.error('Error actualizando estado del pedido:', error);
@@ -435,18 +531,29 @@ ipcMain.handle('crear-pedido', async (event, pedido) => {
              pedido.instrucciones_especiales, pedido.notas]
         );
         
-        // Insertar detalles del pedido
+        // Insertar detalles y descontar stock si el pedido está aprobado
         if (pedido.detalles && pedido.detalles.length > 0) {
             for (const detalle of pedido.detalles) {
                 await dbManager.runQuery(
-                    `INSERT INTO pedido_detalles (pedido_id, producto_id, cantidad, precio_unitario, 
+                    `INSERT INTO pedido_detalles (pedido_id, producto_id, cantidad, precio_unitario,
                      subtotal, personalizacion) VALUES (?, ?, ?, ?, ?, ?)`,
                     [result.id, detalle.producto_id, detalle.cantidad, detalle.precio_unitario,
                      detalle.subtotal, detalle.personalizacion]
                 );
+                if (pedido.estado === 'aprobado') {
+                    const prod = dbManager.getQuery('SELECT stock_actual FROM productos WHERE id = ?', [detalle.producto_id]);
+                    const stockAnterior = prod ? prod.stock_actual : 0;
+                    const stockNuevo = Math.max(0, stockAnterior - detalle.cantidad);
+                    await dbManager.runQuery(
+                        `UPDATE productos SET stock_actual = MAX(0, stock_actual - ?) WHERE id = ?`,
+                        [detalle.cantidad, detalle.producto_id]
+                    );
+                    dbManager._insertMovimiento(detalle.producto_id, 'salida', detalle.cantidad, stockAnterior, stockNuevo,
+                        pedido.tipo_pedido === 'venta_rapida' ? 'Venta TPV' : 'Encargo creado aprobado', `Pedido #${result.id}`);
+                }
             }
         }
-        
+
         return { ...result, numero_pedido: numeroPedido };
     } catch (error) {
         console.error('Error creando pedido:', error);
@@ -633,6 +740,11 @@ ipcMain.handle('actualizar-orden-compra', async (event, id, estado, fechaEntrega
     }
 });
 
+ipcMain.handle('get-detalles-orden', async (event, ordenId) => {
+    try { return dbManager.getDetallesOrden(ordenId); }
+    catch (error) { console.error('Error obteniendo detalles de orden:', error); throw error; }
+});
+
 // Análisis de inventario
 ipcMain.handle('get-analisis-inventario', async () => {
     try {
@@ -672,9 +784,100 @@ ipcMain.handle('get-movimientos-inventario', async (event, filtros = {}) => {
     }
 });
 
-// Eventos de la aplicación
-app.whenReady().then(async () => {
-    // Inicializar base de datos
+// ── Login window ──────────────────────────────────────────────────────────────
+let loginWindow;
+
+function createLoginWindow() {
+    loginWindow = new BrowserWindow({
+        width: 900, height: 580,
+        resizable: false, center: true,
+        icon: path.join(__dirname, 'assets', 'icon.png'),
+        webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'src', 'preload.js') },
+        show: false, frame: true,
+        title: 'Pétalo'
+    });
+    loginWindow.loadFile(path.join(__dirname, 'src', 'views', 'login.html'));
+    loginWindow.once('ready-to-show', () => loginWindow.show());
+    loginWindow.setMenuBarVisibility(false);
+}
+
+function getStoredPassword() {
+    const fs = require('fs');
+    const pwdPath = path.join(app.getPath('userData'), 'pwd.dat');
+    try { return require('fs').readFileSync(pwdPath, 'utf8').trim(); } catch { return '1234'; }
+}
+
+ipcMain.handle('login-attempt', async (_e, pwd) => {
+    if (pwd === getStoredPassword()) {
+        if (loginWindow) { loginWindow.close(); loginWindow = null; }
+        await launchApp();
+        return { ok: true };
+    }
+    return { ok: false };
+});
+
+ipcMain.handle('verify-password', (_e, pwd) => {
+    return { ok: pwd === getStoredPassword() };
+});
+
+ipcMain.handle('save-password', async (_e, pwd) => {
+    const fs = require('fs');
+    const pwdPath = path.join(app.getPath('userData'), 'pwd.dat');
+    fs.writeFileSync(pwdPath, pwd, 'utf8');
+    return { ok: true };
+});
+
+// ── Activation window ─────────────────────────────────────────────────────────
+function createActivationWindow(reason) {
+    activationWindow = new BrowserWindow({
+        width: 480,
+        height: 520,
+        resizable: false,
+        center: true,
+        icon: path.join(__dirname, 'assets', 'icon.png'),
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'src', 'preload.js')
+        },
+        show: false,
+        titleBarStyle: 'hiddenInset',
+        frame: true
+    });
+    activationWindow.loadFile(path.join(__dirname, 'src', 'views', 'activation.html'));
+    activationWindow.once('ready-to-show', () => {
+        activationWindow.show();
+        if (reason) activationWindow.webContents.send('activation-reason', reason);
+        activationWindow.webContents.send('activation-icon',
+            path.join(__dirname, 'assets', 'icon.png'));
+    });
+}
+
+// ── License IPC handlers ──────────────────────────────────────────────────────
+ipcMain.handle('license-activate', async (_e, key) => {
+    const result = await licenseManager.activate(key);
+    return result;
+});
+
+ipcMain.handle('license-check', async () => {
+    return await licenseManager.check();
+});
+
+ipcMain.handle('license-info', () => {
+    return licenseManager.getCachedLicense();
+});
+
+ipcMain.handle('activation-success', async () => {
+    if (activationWindow) { activationWindow.close(); activationWindow = null; }
+    createLoginWindow();
+});
+
+ipcMain.handle('open-external', (_e, url) => {
+    shell.openExternal(url);
+});
+
+// ── App launch ────────────────────────────────────────────────────────────────
+async function launchApp() {
     dbManager = new FlowerShopDatabase();
     try {
         await dbManager.connect();
@@ -682,9 +885,19 @@ app.whenReady().then(async () => {
     } catch (error) {
         console.error('Error inicializando base de datos:', error);
     }
-
     createMainWindow();
     createMenu();
+}
+
+// Eventos de la aplicación
+app.whenReady().then(async () => {
+    const licenseStatus = await licenseManager.check();
+
+    if (!licenseStatus.valid) {
+        createActivationWindow(licenseStatus.reason);
+    } else {
+        createLoginWindow();
+    }
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
