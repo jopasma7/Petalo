@@ -271,7 +271,7 @@ class FlowerShopApp {
         const entregasManana = pedidos.filter(p => p.estado === 'pendiente' && (p.fecha_entrega || '').slice(0, 10) === manana).length;
         if (entregasHoy > 0) {
             const orderWord = entregasHoy > 1 ? t('common.orders') : t('common.order');
-            items.push({ color: '#f59e0b', icon: 'clock', text: `<b>${entregasHoy} ${orderWord} ${t('statuses.pending').toLowerCase()} hoy</b>`, action: `app._irPendientesHoy()` });
+            items.push({ color: '#f59e0b', icon: 'clock', text: `<b>${entregasHoy} ${orderWord} ${t('statuses.pending').toLowerCase()} ${t('dashboard.for_today')}</b>`, action: `app._irPendientesHoy()` });
         }
         if (entregasManana > 0) {
             const deliveryWord = entregasManana > 1 ? t('common.deliveries') : t('common.delivery');
@@ -1919,7 +1919,7 @@ class FlowerShopApp {
                     doc.text(fechaLarga, PW - 14, 11, { align: 'right' });
                     doc.setFontSize(7);
                     doc.setTextColor(180, 230, 200);
-                    doc.text(`Página ${pageNum}`, PW - 14, 17, { align: 'right' });
+                    doc.text(`${t('inventory.pdf_page')} ${pageNum}`, PW - 14, 17, { align: 'right' });
 
                     doc.setTextColor(0, 0, 0);
                 };
@@ -2249,7 +2249,7 @@ class FlowerShopApp {
                 `<option value="${t.nombre}" ${t.nombre === valorActual ? 'selected' : ''}>${t.nombre}</option>`
             ).join('');
         } catch (_) {
-            select.innerHTML = `<option value="Regular">Regular</option>`;
+            select.innerHTML = `<option value="Regular">${t('clients.occasional')}</option>`;
         }
     }
 
@@ -2837,7 +2837,7 @@ class FlowerShopApp {
                 doc.text(fechaLarga, PW - 14, 11, { align: 'right' });
                 doc.setFontSize(7);
                 doc.setTextColor(180, 230, 200);
-                doc.text(`Página ${pageNum}`, PW - 14, 17, { align: 'right' });
+                doc.text(`${t('inventory.pdf_page')} ${pageNum}`, PW - 14, 17, { align: 'right' });
                 doc.setTextColor(0, 0, 0);
             };
 
@@ -2894,7 +2894,7 @@ class FlowerShopApp {
             if (cliente.notas) {
                 doc.setFontSize(7.5);
                 doc.setTextColor(...C.mutedText);
-                doc.text(`Notas: ${cliente.notas.slice(0, 80)}`, 22, y + 33);
+                doc.text(`${t('inventory.pdf_notes')} ${cliente.notas.slice(0, 80)}`, 22, y + 33);
             }
             doc.setTextColor(0, 0, 0);
             y += 44;
@@ -3137,7 +3137,7 @@ class FlowerShopApp {
                         <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <div class="form-section-title"><span class="form-section-dot"></span>${t('inventory.stock_adjust')}</div>
+                        <div class="form-section-title"><span class="form-section-dot"></span>${t('events.stock_adjust')}</div>
                         <div class="pedido-form-grid" style="margin-bottom:var(--sp-4)">
                             <div class="form-group">
                                 <label>${t('common.product')}</label>
@@ -3162,7 +3162,7 @@ class FlowerShopApp {
                                 <input type="text" id="evento-stock-notas" class="form-input" placeholder="${t('common.optional_hint')}">
                             </div>
                         </div>
-                        <div class="form-section-title"><span class="form-section-dot"></span>Inventario actual</div>
+                        <div class="form-section-title"><span class="form-section-dot"></span>${t('events.stock_current')}</div>
                         <div class="evento-stock-lista">
                             ${productos.slice(0, 20).map(p => `
                                 <div class="evento-stock-row">
@@ -4073,14 +4073,11 @@ class FlowerShopApp {
         });
 
         // Topbar: Notificaciones, Configuración, Perfil
-        document.querySelector('.nav-action-btn[title="Notificaciones"]')?.addEventListener('click', () => {
-            this.showSection('notificaciones');
-        });
-        document.querySelector('.nav-action-btn[title="Configuración"]')?.addEventListener('click', () => {
-            this.showSection('configuracion');
-        });
-        document.querySelector('.user-menu')?.addEventListener('click', () => {
-            this.showSection('perfil');
+        // Usamos delegación con closest() para capturar clicks en iconos SVG hijos
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.nav-action-btn[data-section]');
+            if (btn) { this.showSection(btn.dataset.section); return; }
+            if (e.target.closest('.user-menu')) { this.showSection('perfil'); }
         });
     }
 
@@ -4306,7 +4303,8 @@ class FlowerShopApp {
         });
     }
 
-    _confirm(title, message, confirmLabel = 'Eliminar', confirmClass = 'btn-danger', sizeClass = 'modal-sm') {
+    _confirm(title, message, confirmLabel = null, confirmClass = 'btn-danger', sizeClass = 'modal-sm') {
+        if (!confirmLabel) confirmLabel = t('common.delete');
         return new Promise(resolve => {
             const existing = document.getElementById('_app-confirm');
             if (existing) existing.remove();
@@ -5056,7 +5054,7 @@ class FlowerShopApp {
             modal.id = 'modal-ver-movimiento';
             modal.className = 'modal';
             const tipo = (movimiento.tipo_movimiento || movimiento.tipo || '').toLowerCase();
-            const tipoLabel = tipo === 'entrada' ? 'ENTRADA' : tipo === 'salida' ? 'SALIDA' : tipo.toUpperCase() || '—';
+            const tipoLabel = (tipo === 'entrada' ? t('inventory.movement_entrada') : tipo === 'salida' ? t('inventory.movement_salida') : tipo ? t(`inventory.movement_${tipo}`) || tipo.toUpperCase() : '—').toUpperCase();
             const cantLabel = movimiento.cantidad > 0 ? `+${movimiento.cantidad}` : `${movimiento.cantidad}`;
             const hasStock = movimiento.stock_anterior != null && movimiento.stock_nuevo != null
                              && !(movimiento.stock_anterior === 0 && movimiento.stock_nuevo === 0);
@@ -5081,7 +5079,7 @@ class FlowerShopApp {
                         <div class="modal-header-inner">
                             <div class="modal-header-icon"><i data-lucide="activity"></i></div>
                             <div>
-                                <h2 class="modal-title-pro">Movimiento #${movimiento.id}</h2>
+                                <h2 class="modal-title-pro">${t('inventory.movement_detail')} #${movimiento.id}</h2>
                                 <p class="modal-subtitle-pro">${window.flowerShopAPI.formatDateTime(movimiento.fecha_movimiento)}</p>
                             </div>
                         </div>
@@ -5090,15 +5088,15 @@ class FlowerShopApp {
                     <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1);grid-column:1/-1">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Producto</span>
+                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('common.product')}</span>
                                 <span style="font-size:1rem;font-weight:500;color:var(--text-primary)">${movimiento.producto_nombre || '—'}</span>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Tipo</span>
+                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('common.type')}</span>
                                 <span><span class="estado-badge ${tipo}">${tipoLabel}</span></span>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Cantidad</span>
+                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('common.quantity')}</span>
                                 <span style="font-size:0.95rem;font-weight:600;color:var(--text-primary)">${cantLabel}</span>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
@@ -5336,7 +5334,7 @@ class FlowerShopApp {
             this.predictionChart.destroy();
         }
 
-        const labels = prediccion.map(p => p.producto_nombre || 'Producto');
+        const labels = prediccion.map(p => p.producto_nombre || t('common.product'));
         const stockActual = prediccion.map(p => p.stock_actual || 0);
         const demandaPrevista = prediccion.map(p => p.demanda_prevista || 0);
 
@@ -5580,7 +5578,7 @@ class FlowerShopApp {
                         <div class="modal-header-icon"><i data-lucide="shopping-cart"></i></div>
                         <div>
                             <h2 class="modal-title-pro">${t('inventory.create_order_title')}</h2>
-                            <p class="modal-subtitle-pro">${producto?.nombre || 'Producto'} — ${cantidad} unidades</p>
+                            <p class="modal-subtitle-pro">${producto?.nombre || t('common.product')} — ${cantidad} ${t('common.units')}</p>
                         </div>
                     </div>
                     <button class="modal-close">&times;</button>
@@ -5716,7 +5714,7 @@ class FlowerShopApp {
                    <p>${t('inventory.provider_no_orders_sub')}</p>
                </div>`
             : `<table class="historial-table">
-                   <thead><tr><th>Orden</th><th>Fecha</th><th>Items</th><th class="text-right">Total</th><th>Estado</th></tr></thead>
+                   <thead><tr><th>${t('inventory.col_number')}</th><th>${t('common.date')}</th><th>${t('inventory.col_items')}</th><th class="text-right">Total</th><th>${t('common.status')}</th></tr></thead>
                    <tbody>
                        ${ordenes.map(o => `
                            <tr>
@@ -5753,11 +5751,11 @@ class FlowerShopApp {
                             <span class="pedido-detalle-value">${proveedor.email || '—'}</span>
                         </div>
                         <div class="pedido-detalle-field">
-                            <span class="pedido-detalle-label">Ciudad</span>
+                            <span class="pedido-detalle-label">${t('common.city')}</span>
                             <span class="pedido-detalle-value">${proveedor.ciudad || proveedor.direccion || '—'}</span>
                         </div>
                         <div class="pedido-detalle-field">
-                            <span class="pedido-detalle-label">Estado</span>
+                            <span class="pedido-detalle-label">${t('common.status')}</span>
                             <span class="pedido-detalle-value">${proveedor.activo ? t('common.active') : t('common.inactive')}</span>
                         </div>
                     </div>
@@ -5770,7 +5768,7 @@ class FlowerShopApp {
                     <div class="historial-lista" style="margin-top:var(--sp-2)">${ordenesTableHtml}</div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
+                    <button type="button" class="btn btn-secondary modal-close">${t('common.close')}</button>
                     <button type="button" class="btn btn-primary" onclick="app.nuevaOrdenCompraProveedor(${proveedor.id})">${t('inventory.provider_orders_btn')}</button>
                 </div>
             </div>
@@ -5907,7 +5905,11 @@ class FlowerShopApp {
     _notifKey() { return 'petalo_notifs'; }
 
     _cargarNotifs() {
-        try { return JSON.parse(localStorage.getItem(this._notifKey()) || '[]'); }
+        try {
+            const all = JSON.parse(localStorage.getItem(this._notifKey()) || '[]');
+            // Migrate old entries that stored translated text instead of keys
+            return all.filter(n => n.tk || n.mk);
+        }
         catch (_) { return []; }
     }
 
@@ -5977,8 +5979,7 @@ class FlowerShopApp {
                 notifs = notifs.filter(n => n.id !== idBajo);
                 notifs.unshift({
                     id: idAgotado, tipo: 'stock_bajo', nivel: 'urgente', grupo: 'stock',
-                    titulo: t('notifPanel.no_stock_title'),
-                    mensaje: t('notifPanel.no_stock_msg', { name: p.nombre }),
+                    tk: 'notifPanel.no_stock_title', mk: 'notifPanel.no_stock_msg', mp: { name: p.nombre },
                     fecha: ahora, leida: false,
                     accion: "app.showSection('inventario')"
                 });
@@ -5989,8 +5990,7 @@ class FlowerShopApp {
             if (estaBajo && !tieneNotifBajo && !tieneNotifAgotado) {
                 notifs.unshift({
                     id: idBajo, tipo: 'stock_bajo', nivel: 'warning', grupo: 'stock',
-                    titulo: t('notifPanel.low_stock_title'),
-                    mensaje: t('notifPanel.low_stock_msg', { name: p.nombre, current: p.stock_actual, min: p.stock_minimo }),
+                    tk: 'notifPanel.low_stock_title', mk: 'notifPanel.low_stock_msg', mp: { name: p.nombre, current: p.stock_actual, min: p.stock_minimo },
                     fecha: ahora, leida: false,
                     accion: "app.showSection('inventario')"
                 });
@@ -6017,8 +6017,8 @@ class FlowerShopApp {
                 const id = `evento_${e.id}_${dias}d`;
                 if (!ids.has(id)) nuevas.push({
                     id, tipo: 'evento_recordatorio', nivel: dias <= 7 ? 'urgente' : 'warning', grupo: 'gestion',
-                    titulo: t('notifPanel.event_title', { days: dias, suffix: dias > 1 ? 's' : '' }),
-                    mensaje: t('notifPanel.event_msg', { name: e.nombre, date: window.flowerShopAPI.formatDate(e.fecha_inicio) }),
+                    tk: 'notifPanel.event_title', tp: { days: dias, suffix: dias > 1 ? 's' : '' },
+                    mk: 'notifPanel.event_msg', mp: { name: e.nombre, date: window.flowerShopAPI.formatDate(e.fecha_inicio) },
                     fecha: new Date().toISOString(), leida: false,
                     accion: "app.showSection('eventos')"
                 });
@@ -6049,8 +6049,8 @@ class FlowerShopApp {
             const id = `encargo_sin_gestionar_${p.id}`;
             if (!ids.has(id)) nuevas.push({
                 id, tipo: 'encargo_sin_gestionar', nivel: 'warning', grupo: 'gestion',
-                titulo: t('notifPanel.order_title'),
-                mensaje: t('notifPanel.order_msg', { client: p.cliente_nombre || 'cliente' }),
+                tk: 'notifPanel.order_title',
+                mk: 'notifPanel.order_msg', mp: { client: p.cliente_nombre || t('common.client') },
                 fecha: new Date().toISOString(), leida: false,
                 accion: `app.verPedido(${p.id})`
             });
@@ -6077,8 +6077,8 @@ class FlowerShopApp {
             const id = `orden_pendiente_${o.id}`;
             if (!ids.has(id)) nuevas.push({
                 id, tipo: 'orden_pendiente', nivel: 'info', grupo: 'gestion',
-                titulo: t('notifPanel.purchase_title'),
-                mensaje: t('notifPanel.purchase_msg', { id: String(o.id).slice(-6) }),
+                tk: 'notifPanel.purchase_title',
+                mk: 'notifPanel.purchase_msg', mp: { id: String(o.id).slice(-6) },
                 fecha: new Date().toISOString(), leida: false,
                 accion: "app.showSection('inventario')"
             });
@@ -6147,7 +6147,7 @@ class FlowerShopApp {
             const h = Math.floor(m / 60);
             if (h < 24) return `${t('inventory.time_ago_prefix')} ${h}h`;
             const d = Math.floor(h / 24);
-            return `${t('inventory.time_ago_prefix')} ${d} día${d > 1 ? 's' : ''}`;
+            return `${t('inventory.time_ago_prefix')} ${d} ${t('common.days')}`;
         };
 
         const renderItem = n => `
@@ -6156,8 +6156,8 @@ class FlowerShopApp {
                     <i data-lucide="${iconMap[n.tipo] || 'bell'}"></i>
                 </div>
                 <div class="notif-body">
-                    <div class="notif-title">${n.titulo}</div>
-                    <div class="notif-msg">${n.mensaje}</div>
+                    <div class="notif-title">${n.tk ? t(n.tk, n.tp) : (n.titulo || '')}</div>
+                    <div class="notif-msg">${n.mk ? t(n.mk, n.mp) : (n.mensaje || '')}</div>
                     <div class="notif-time">${tiempoRelativo(n.fecha)}</div>
                 </div>
                 ${!n.leida ? '<div class="notif-unread-dot"></div>' : ''}

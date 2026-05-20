@@ -43,11 +43,11 @@
 
         <div class="nav-right">
             <div class="nav-actions">
-                <button class="nav-action-btn" data-i18n-title="nav.notifications">
+                <button class="nav-action-btn" data-section="notificaciones" data-i18n-title="nav.notifications">
                     <i data-lucide="bell"></i>
                     <span class="badge" id="badge-notificaciones" style="display:none;"></span>
                 </button>
-                <button class="nav-action-btn" data-i18n-title="nav.config">
+                <button class="nav-action-btn" data-section="configuracion" data-i18n-title="nav.config">
                     <i data-lucide="settings"></i>
                 </button>
                 <div class="user-menu">
@@ -391,7 +391,7 @@
                             <div class="kpi-icon"><i data-lucide="archive"></i></div>
                             <div class="kpi-content">
                                 <h3 id="inventario-total-productos">—</h3>
-                                <p>Total Productos</p>
+                                <p data-i18n="inventory.kpi_total"></p>
                                 <span class="kpi-trend" id="trend-productos">+0%</span>
                             </div>
                         </div>
@@ -399,15 +399,15 @@
                             <div class="kpi-icon"><i data-lucide="alert-triangle"></i></div>
                             <div class="kpi-content">
                                 <h3 id="inventario-stock-bajo">—</h3>
-                                <p>Stock Bajo</p>
-                                <span class="kpi-trend negative" id="trend-stock">0 críticos</span>
+                                <p data-i18n="inventory.kpi_low_stock"></p>
+                                <span class="kpi-trend negative" id="trend-stock">—</span>
                             </div>
                         </div>
                         <div class="kpi-card">
                             <div class="kpi-icon"><i data-lucide="dollar-sign"></i></div>
                             <div class="kpi-content">
                                 <h3 id="inventario-valor-inventario">—</h3>
-                                <p>Valor Inventario</p>
+                                <p data-i18n="inventory.kpi_value"></p>
                                 <span class="kpi-trend positive" id="trend-valor">+0%</span>
                             </div>
                         </div>
@@ -415,34 +415,34 @@
                             <div class="kpi-icon"><i data-lucide="refresh-cw"></i></div>
                             <div class="kpi-content">
                                 <h3 id="inventario-rotacion-promedio">—</h3>
-                                <p>Rotación Promedio</p>
-                                <span class="kpi-trend" id="trend-rotacion">días</span>
+                                <p data-i18n="inventory.kpi_rotation"></p>
+                                <span class="kpi-trend" id="trend-rotacion">—</span>
                             </div>
                         </div>
                     </div>
                     <div class="inventory-charts">
                         <div class="chart-card">
-                            <h3>Análisis de Rotación</h3>
+                            <h3 data-i18n="inventory.rotation_analysis"></h3>
                             <div class="chart-container"><canvas id="rotation-analysis-chart"></canvas></div>
                             <div class="chart-legend">
                                 <div class="legend-item">
                                     <span class="legend-color legend-green"></span>
-                                    <div class="legend-text"><strong>Rotación Rápida:</strong> Stock alto (&gt;30 uds)</div>
+                                    <div class="legend-text"><strong data-i18n="inventory.rotation_fast"></strong> <span data-i18n="inventory.rotation_fast_desc"></span></div>
                                 </div>
                                 <div class="legend-item">
                                     <span class="legend-color legend-yellow"></span>
-                                    <div class="legend-text"><strong>Rotación Lenta:</strong> Stock medio (10-30 uds)</div>
+                                    <div class="legend-text"><strong data-i18n="inventory.rotation_slow"></strong> <span data-i18n="inventory.rotation_slow_desc"></span></div>
                                 </div>
                                 <div class="legend-item">
                                     <span class="legend-color legend-red"></span>
-                                    <div class="legend-text"><strong>Stock Bajo:</strong> Stock crítico (&lt;10 uds)</div>
+                                    <div class="legend-text"><strong data-i18n="inventory.low_stock_label"></strong> <span data-i18n="inventory.low_stock_desc"></span></div>
                                 </div>
                             </div>
                         </div>
                         <div class="chart-card">
-                            <h3>Productos Sin Movimiento</h3>
+                            <h3 data-i18n="inventory.no_movement"></h3>
                             <div class="ranking-list" id="productos-sin-movimiento">
-                                <div class="no-data">Cargando análisis…</div>
+                                <div class="no-data" data-i18n="inventory.loading_no_movement"></div>
                             </div>
                         </div>
                     </div>
@@ -527,7 +527,7 @@
                         </div>
                     </div>
                     <div class="providers-grid" id="proveedores-grid">
-                        <div class="no-data">Cargando proveedores…</div>
+                        <div class="no-data" data-i18n="inventory.loading_suppliers"></div>
                     </div>
                 </div>
 
@@ -678,10 +678,10 @@
                 <div class="reports-grid">
                     <div class="report-card report-card-wide">
                         <div class="report-card-header">
-                            <h3>Ventas por Período</h3>
+                            <h3 data-i18n="reports.sales_chart"></h3>
                             <div class="chart-controls">
-                                <button class="chart-btn active" data-chart="ventas" data-type="diario">Diario</button>
-                                <button class="chart-btn" data-chart="ventas" data-type="semanal">Semanal</button>
+                                <button class="chart-btn active" data-chart="ventas" data-type="diario" data-i18n="reports.daily"></button>
+                                <button class="chart-btn" data-chart="ventas" data-type="semanal" data-i18n="reports.weekly"></button>
                             </div>
                         </div>
                         <div class="chart-container chart-lg">
@@ -689,13 +689,13 @@
                         </div>
                     </div>
                     <div class="report-card">
-                        <h3>Estados de Pedidos</h3>
+                        <h3 data-i18n="reports.orders_status"></h3>
                         <div class="chart-container chart-md">
                             <canvas id="orders-status-chart"></canvas>
                         </div>
                     </div>
                     <div class="report-card">
-                        <h3>Rotación por Categoría</h3>
+                        <h3 data-i18n="reports.rotation_category"></h3>
                         <div class="chart-container chart-md">
                             <canvas id="inventory-rotation-chart"></canvas>
                         </div>
@@ -704,15 +704,15 @@
 
                 <div class="reports-rankings">
                     <div class="ranking-card">
-                        <h3>Productos Más Vendidos</h3>
+                        <h3 data-i18n="reports.top_products"></h3>
                         <div id="top-products" class="ranking-list"></div>
                     </div>
                     <div class="ranking-card">
-                        <h3>Segmentación de Clientes</h3>
+                        <h3 data-i18n="reports.client_segments"></h3>
                         <div id="clients-type" class="segment-list"></div>
                     </div>
                     <div class="ranking-card">
-                        <h3>Eventos Más Rentables</h3>
+                        <h3 data-i18n="reports.top_events"></h3>
                         <div id="top-events" class="ranking-list"></div>
                     </div>
                 </div>
@@ -813,9 +813,9 @@
                             <div class="form-group">
                                 <label data-i18n="config.currency"></label>
                                 <select id="pref-moneda" class="form-select">
-                                    <option value="EUR">Euro (€)</option>
-                                    <option value="USD">Dólar ($)</option>
-                                    <option value="GBP">Libra (£)</option>
+                                    <option value="EUR" data-i18n="config.currency_eur"></option>
+                                    <option value="USD" data-i18n="config.currency_usd"></option>
+                                    <option value="GBP" data-i18n="config.currency_gbp"></option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -844,17 +844,17 @@
                             <h3 data-i18n="config.system_title"></h3>
                         </div>
                         <div class="config-sys-grid">
-                            <div class="config-sys-row"><span class="config-sys-lbl">Versión</span><span class="config-sys-val">1.0.0</span></div>
-                            <div class="config-sys-row"><span class="config-sys-lbl">Base de datos</span><span class="config-sys-val">SQLite</span></div>
-                            <div class="config-sys-row"><span class="config-sys-lbl">Desarrollador</span><span class="config-sys-val">Alejandro</span></div>
-                            <div class="config-sys-row"><span class="config-sys-lbl">Soporte</span><span class="config-sys-val">bblottus@gmail.com</span></div>
+                            <div class="config-sys-row"><span class="config-sys-lbl" data-i18n="config.version"></span><span class="config-sys-val">1.0.0</span></div>
+                            <div class="config-sys-row"><span class="config-sys-lbl" data-i18n="config.database"></span><span class="config-sys-val">SQLite</span></div>
+                            <div class="config-sys-row"><span class="config-sys-lbl" data-i18n="config.developer"></span><span class="config-sys-val">Alejandro</span></div>
+                            <div class="config-sys-row"><span class="config-sys-lbl" data-i18n="config.support"></span><span class="config-sys-val">bblottus@gmail.com</span></div>
                         </div>
                         <div class="config-card-actions">
                             <button type="button" class="btn btn-secondary" onclick="app.abrirModalExportar('todo')">
-                                <i data-lucide="download" style="width:15px;height:15px;margin-right:6px"></i>Exportar datos
+                                <i data-lucide="download" style="width:15px;height:15px;margin-right:6px"></i><span data-i18n="config.export_data"></span>
                             </button>
                             <button type="button" class="btn btn-secondary" onclick="app.limpiarCache()">
-                                <i data-lucide="trash-2" style="width:15px;height:15px;margin-right:6px"></i>Limpiar caché
+                                <i data-lucide="trash-2" style="width:15px;height:15px;margin-right:6px"></i><span data-i18n="config.clear_cache"></span>
                             </button>
                         </div>
                     </div>
@@ -966,81 +966,81 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="box"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Producto</h2>
-                    <p class="modal-subtitle-pro">Registra o actualiza un artículo del catálogo</p>
+                    <h2 class="modal-title-pro" data-i18n="products.modal_new"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="products.modal_subtitle"></p>
                 </div>
             </div>
-            <button class="modal-close" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body">
             <form id="form-producto" class="form">
-                <div class="form-section-title"><span class="form-section-dot"></span>Imagen</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="products.sec_image"></span></div>
                 <div class="form-group form-group-full">
                     <div class="producto-img-upload" id="producto-img-upload" onclick="document.getElementById('producto-imagen-input').click()">
                         <img id="producto-img-preview" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:var(--r-md)">
                         <div id="producto-img-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);color:var(--text-muted)">
                             <i data-lucide="image-plus" style="width:28px;height:28px"></i>
-                            <span style="font-size:0.82rem">Haz clic para agregar imagen</span>
+                            <span style="font-size:0.82rem" data-i18n="products.image_click"></span>
                         </div>
                         <button type="button" id="producto-img-remove" onclick="event.stopPropagation();app.removeProductoImagen()" style="display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;color:#fff;font-size:14px;line-height:1;display:none;align-items:center;justify-content:center">&times;</button>
                     </div>
                     <input type="file" id="producto-imagen-input" accept="image/*" style="display:none">
                 </div>
-                <div class="form-section-title"><span class="form-section-dot"></span>Identificación</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="products.sec_identification"></span></div>
                 <div class="form-group">
-                    <label for="producto-nombre">Nombre *</label>
-                    <input type="text" id="producto-nombre" name="nombre" class="form-input" required placeholder="Nombre del producto">
+                    <label for="producto-nombre" data-i18n="common.name"></label>
+                    <input type="text" id="producto-nombre" name="nombre" class="form-input" required data-i18n-placeholder="products.name_ph">
                 </div>
                 <div class="form-group">
-                    <label for="producto-codigo">Código</label>
-                    <input type="text" id="producto-codigo" name="codigo_producto" class="form-input form-input-readonly" readonly placeholder="Generado automáticamente">
+                    <label for="producto-codigo" data-i18n="products.col_code"></label>
+                    <input type="text" id="producto-codigo" name="codigo_producto" class="form-input form-input-readonly" readonly data-i18n-placeholder="products.code_autogenerated">
                 </div>
                 <div class="form-group">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-1)">
-                        <label for="producto-categoria" style="margin:0">Categoría *</label>
-                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarCategorias()">+ Gestionar</button>
+                        <label for="producto-categoria" style="margin:0" data-i18n="products.category"></label>
+                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarCategorias()" data-i18n="common.manage"></button>
                     </div>
                     <select id="producto-categoria" name="categoria_id" class="form-select" required>
-                        <option value="">Seleccionar categoría…</option>
+                        <option value="" data-i18n="common.select_category"></option>
                     </select>
                 </div>
-                <div class="form-section-title"><span class="form-section-dot"></span>Precios</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="products.sec_prices"></span></div>
                 <div class="form-group">
-                    <label for="producto-precio-compra">Precio Compra (€)</label>
+                    <label for="producto-precio-compra" data-i18n="products.buy_price"></label>
                     <input type="number" id="producto-precio-compra" name="precio_compra" class="form-input" step="0.01" min="0" placeholder="0.00">
                 </div>
                 <div class="form-group">
-                    <label for="producto-precio-venta">Precio Venta (€) *</label>
+                    <label for="producto-precio-venta" data-i18n="products.sell_price"></label>
                     <input type="number" id="producto-precio-venta" name="precio_venta" class="form-input" step="0.01" min="0" required placeholder="0.00">
                 </div>
                 <div class="form-group">
-                    <label for="producto-temporada">Temporada</label>
+                    <label for="producto-temporada" data-i18n="products.season_label"></label>
                     <select id="producto-temporada" name="temporada" class="form-select">
-                        <option value="todo_año">Todo el año</option>
-                        <option value="primavera">Primavera</option>
-                        <option value="verano">Verano</option>
-                        <option value="otoño">Otoño</option>
-                        <option value="invierno">Invierno</option>
+                        <option value="todo_año" data-i18n="products.season_allyear"></option>
+                        <option value="primavera" data-i18n="products.season_spring"></option>
+                        <option value="verano" data-i18n="products.season_summer"></option>
+                        <option value="otoño" data-i18n="products.season_fall"></option>
+                        <option value="invierno" data-i18n="products.season_winter"></option>
                     </select>
                 </div>
-                <div class="form-section-title"><span class="form-section-dot"></span>Inventario</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="products.sec_inventory_sec"></span></div>
                 <div class="form-group">
-                    <label for="producto-stock">Stock Actual</label>
+                    <label for="producto-stock" data-i18n="products.stock"></label>
                     <input type="number" id="producto-stock" name="stock_actual" class="form-input" value="0" min="0">
                 </div>
                 <div class="form-group">
-                    <label for="producto-stock-minimo">Stock Mínimo</label>
+                    <label for="producto-stock-minimo" data-i18n="products.min_stock"></label>
                     <input type="number" id="producto-stock-minimo" name="stock_minimo" class="form-input" value="5" min="0">
                 </div>
                 <div class="form-group form-group-full">
-                    <label for="producto-descripcion">Descripción</label>
-                    <textarea id="producto-descripcion" name="descripcion" class="form-input" rows="3" placeholder="Descripción opcional del producto…"></textarea>
+                    <label for="producto-descripcion" data-i18n="products.description"></label>
+                    <textarea id="producto-descripcion" name="descripcion" class="form-input" rows="3" data-i18n-placeholder="products.description_ph"></textarea>
                 </div>
             </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-            <button type="submit" form="form-producto" class="btn btn-primary">Guardar Producto</button>
+            <button type="button" class="btn btn-secondary modal-close" data-i18n="common.cancel"></button>
+            <button type="submit" form="form-producto" class="btn btn-primary" data-i18n="products.save"></button>
         </div>
     </div>
 </div>
@@ -1052,18 +1052,18 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="user-round"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Cliente</h2>
-                    <p class="modal-subtitle-pro">Registra o actualiza la ficha del cliente</p>
+                    <h2 class="modal-title-pro" data-i18n="clients.modal_new"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="clients.modal_subtitle"></p>
                 </div>
             </div>
-            <button class="modal-close" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body">
             <form id="form-cliente" class="form">
-                <div class="form-section-title"><span class="form-section-dot"></span>Datos Personales</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="clients.sec_personal"></span></div>
                 <div class="cliente-nombre-foto-row">
                     <div class="cliente-foto-upload-wrap">
-                        <div class="cliente-foto-upload" id="cliente-foto-upload" title="Haz clic para subir foto">
+                        <div class="cliente-foto-upload" id="cliente-foto-upload" data-i18n-title="clients.photo_title">
                             <div class="cliente-foto-placeholder" id="cliente-foto-placeholder">
                                 <i data-lucide="camera" style="width:18px;height:18px;color:var(--s-400)"></i>
                             </div>
@@ -1072,51 +1072,51 @@
                         <input type="file" id="cliente-foto-input" accept="image/*" style="display:none">
                     </div>
                     <div class="form-group" style="flex:1;margin-bottom:0">
-                        <label for="cliente-nombre-completo">Nombre Completo *</label>
-                        <input type="text" id="cliente-nombre-completo" name="nombre_completo" class="form-input" required placeholder="Nombre completo del cliente">
+                        <label for="cliente-nombre-completo" data-i18n="clients.full_name_label"></label>
+                        <input type="text" id="cliente-nombre-completo" name="nombre_completo" class="form-input" required data-i18n-placeholder="clients.full_name_label">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="cliente-email">Email</label>
-                    <input type="email" id="cliente-email" name="email" class="form-input" placeholder="ejemplo@correo.com">
+                    <label for="cliente-email" data-i18n="common.email"></label>
+                    <input type="email" id="cliente-email" name="email" class="form-input" data-i18n-placeholder="clients.email_ph">
                 </div>
                 <div class="form-group">
-                    <label for="cliente-telefono">Teléfono</label>
-                    <input type="tel" id="cliente-telefono" name="telefono" class="form-input" placeholder="+34 600 000 000">
+                    <label for="cliente-telefono" data-i18n="common.phone"></label>
+                    <input type="tel" id="cliente-telefono" name="telefono" class="form-input" data-i18n-placeholder="clients.phone_ph">
                 </div>
                 <div class="form-group">
-                    <label for="cliente-direccion">Dirección</label>
-                    <input type="text" id="cliente-direccion" name="direccion" class="form-input" placeholder="Calle, número, ciudad…">
+                    <label for="cliente-direccion" data-i18n="common.address"></label>
+                    <input type="text" id="cliente-direccion" name="direccion" class="form-input" data-i18n-placeholder="clients.direction_ph">
                 </div>
-                <div class="form-section-title"><span class="form-section-dot"></span>Perfil Comercial</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="clients.sec_commercial"></span></div>
                 <div class="form-group">
                     <div style="display:flex;align-items:center;justify-content:space-between">
-                        <label for="cliente-tipo" style="margin:0">Tipo de Cliente</label>
-                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarTiposCliente()">+ Gestionar</button>
+                        <label for="cliente-tipo" style="margin:0" data-i18n="clients.client_type"></label>
+                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarTiposCliente()" data-i18n="common.manage"></button>
                     </div>
                     <select id="cliente-tipo" name="tipo_cliente" class="form-select"></select>
                 </div>
                 <div class="form-group">
-                    <label for="cliente-presupuesto-habitual">Presupuesto Habitual (€)</label>
+                    <label for="cliente-presupuesto-habitual" data-i18n="clients.budget_label"></label>
                     <input type="number" id="cliente-presupuesto-habitual" name="presupuesto_habitual" class="form-input" step="0.01" min="0" placeholder="0.00">
                 </div>
                 <div class="form-group">
-                    <label for="cliente-preferencias">Preferencias Florales</label>
-                    <input type="text" id="cliente-preferencias" name="preferencias" class="form-input" placeholder="Rosas, Tulipanes, Sin perfume…">
+                    <label for="cliente-preferencias" data-i18n="clients.floral_prefs_label"></label>
+                    <input type="text" id="cliente-preferencias" name="preferencias" class="form-input" data-i18n-placeholder="clients.floral_prefs_ph">
                 </div>
                 <div class="form-group">
-                    <label for="cliente-ocasiones-importantes">Ocasiones Importantes</label>
-                    <input type="text" id="cliente-ocasiones-importantes" name="ocasiones_importantes" class="form-input" placeholder="Aniversario, cumpleaños…">
+                    <label for="cliente-ocasiones-importantes" data-i18n="clients.occasions_label"></label>
+                    <input type="text" id="cliente-ocasiones-importantes" name="ocasiones_importantes" class="form-input" data-i18n-placeholder="clients.occasions_ph">
                 </div>
                 <div class="form-group form-group-full">
-                    <label for="cliente-notas">Notas</label>
-                    <textarea id="cliente-notas" name="notas" class="form-input" rows="3" placeholder="Observaciones sobre el cliente…"></textarea>
+                    <label for="cliente-notas" data-i18n="common.notes"></label>
+                    <textarea id="cliente-notas" name="notas" class="form-input" rows="3" data-i18n-placeholder="clients.notes_ph"></textarea>
                 </div>
             </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-            <button type="submit" form="form-cliente" class="btn btn-primary">Guardar Cliente</button>
+            <button type="button" class="btn btn-secondary modal-close" data-i18n="common.cancel"></button>
+            <button type="submit" form="form-cliente" class="btn btn-primary" data-i18n="clients.save"></button>
         </div>
     </div>
 </div>
@@ -1128,40 +1128,40 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="download"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Exportar datos</h2>
-                    <p class="modal-subtitle-pro" id="export-modal-subtitle">Selecciona el formato de exportación</p>
+                    <h2 class="modal-title-pro" data-i18n="export_modal.title"></h2>
+                    <p class="modal-subtitle-pro" id="export-modal-subtitle" data-i18n="export_modal.subtitle"></p>
                 </div>
             </div>
-            <button class="modal-close" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body">
             <div id="export-dataset-wrap" style="margin-bottom:var(--sp-4)">
-                <p style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">¿Qué datos exportar?</p>
+                <p style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)" data-i18n="export_modal.what_to_export"></p>
                 <div id="export-dataset-options" class="export-dataset-options"></div>
             </div>
-            <p style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-3)">Formato</p>
+            <p style="font-size:0.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-3)" data-i18n="export_modal.format_label"></p>
             <div class="export-format-grid">
                 <button class="export-format-btn active" data-format="csv">
                     <i data-lucide="file-text"></i>
                     <span class="export-format-name">CSV</span>
-                    <span class="export-format-desc">Compatible con Excel, Sheets…</span>
+                    <span class="export-format-desc" data-i18n="export_modal.csv_desc"></span>
                 </button>
                 <button class="export-format-btn" data-format="excel">
                     <i data-lucide="table-2"></i>
                     <span class="export-format-name">Excel</span>
-                    <span class="export-format-desc">Archivo .xlsx nativo</span>
+                    <span class="export-format-desc" data-i18n="export_modal.excel_desc"></span>
                 </button>
                 <button class="export-format-btn" data-format="pdf">
                     <i data-lucide="file-type-2"></i>
                     <span class="export-format-name">PDF</span>
-                    <span class="export-format-desc">Para imprimir o compartir</span>
+                    <span class="export-format-desc" data-i18n="export_modal.pdf_desc"></span>
                 </button>
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+            <button type="button" class="btn btn-secondary modal-close" data-i18n="common.cancel"></button>
             <button type="button" class="btn btn-primary" id="btn-export-confirmar">
-                <i data-lucide="download" style="width:15px;height:15px"></i> Exportar
+                <i data-lucide="download" style="width:15px;height:15px"></i> <span data-i18n="common.export"></span>
             </button>
         </div>
     </div>
@@ -1174,61 +1174,61 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="calendar"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Evento</h2>
-                    <p class="modal-subtitle-pro">Registra o actualiza un evento especial</p>
+                    <h2 class="modal-title-pro" data-i18n="events.modal_new"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="events.modal_subtitle"></p>
                 </div>
             </div>
-            <button class="modal-close" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body">
             <form id="form-evento" class="form">
-                <div class="form-section-title"><span class="form-section-dot"></span>Información del Evento</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="events.sec_info"></span></div>
                 <div class="form-group">
-                    <label for="evento-nombre">Nombre del Evento *</label>
-                    <input type="text" id="evento-nombre" name="nombre" class="form-input" required placeholder="Nombre del evento">
+                    <label for="evento-nombre" data-i18n="events.event_name"></label>
+                    <input type="text" id="evento-nombre" name="nombre" class="form-input" required data-i18n-placeholder="events.event_name">
                 </div>
                 <div class="form-group">
                     <div style="display:flex;align-items:center;justify-content:space-between">
-                        <label for="evento-tipo" style="margin:0">Tipo de Evento</label>
-                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarTiposEvento()">+ Gestionar</button>
+                        <label for="evento-tipo" style="margin:0" data-i18n="events.event_type"></label>
+                        <button type="button" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;color:var(--p-600)" onclick="app.gestionarTiposEvento()" data-i18n="common.manage"></button>
                     </div>
                     <select id="evento-tipo" name="tipo_evento" class="form-select"></select>
                 </div>
                 <div class="form-group">
-                    <label for="evento-demanda">Demanda Esperada</label>
+                    <label for="evento-demanda" data-i18n="events.demand"></label>
                     <select id="evento-demanda" name="demanda_esperada" class="form-select">
-                        <option value="baja">Baja</option>
-                        <option value="media">Media</option>
-                        <option value="alta">Alta</option>
-                        <option value="extrema">Extrema</option>
+                        <option value="baja" data-i18n="events.demand_low"></option>
+                        <option value="media" data-i18n="events.demand_medium"></option>
+                        <option value="alta" data-i18n="events.demand_high"></option>
+                        <option value="extrema" data-i18n="events.demand_extreme"></option>
                     </select>
                 </div>
-                <div class="form-section-title"><span class="form-section-dot"></span>Fechas y Condiciones</div>
+                <div class="form-section-title"><span class="form-section-dot"></span><span data-i18n="events.sec_dates"></span></div>
                 <div class="form-group">
-                    <label for="evento-fecha-inicio">Fecha Inicio *</label>
+                    <label for="evento-fecha-inicio" data-i18n="events.start_date"></label>
                     <input type="date" id="evento-fecha-inicio" name="fecha_inicio" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label for="evento-fecha-fin">Fecha Fin *</label>
+                    <label for="evento-fecha-fin" data-i18n="events.end_date"></label>
                     <input type="date" id="evento-fecha-fin" name="fecha_fin" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label for="evento-descuento">Descuento (%)</label>
+                    <label for="evento-descuento" data-i18n="events.discount"></label>
                     <input type="number" id="evento-descuento" name="descuento_especial" class="form-input" min="0" max="100" step="0.01" placeholder="0">
                 </div>
                 <div class="form-group">
-                    <label for="evento-preparacion">Días de Preparación</label>
+                    <label for="evento-preparacion" data-i18n="events.prep_days"></label>
                     <input type="number" id="evento-preparacion" name="preparacion_dias" class="form-input" value="7" min="0">
                 </div>
                 <div class="form-group form-group-full">
-                    <label for="evento-descripcion">Descripción</label>
-                    <textarea id="evento-descripcion" name="descripcion" class="form-input" rows="3" placeholder="Descripción del evento…"></textarea>
+                    <label for="evento-descripcion" data-i18n="events.description"></label>
+                    <textarea id="evento-descripcion" name="descripcion" class="form-input" rows="3" data-i18n-placeholder="events.description_ph"></textarea>
                 </div>
             </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
-            <button type="submit" form="form-evento" class="btn btn-primary">Guardar Evento</button>
+            <button type="button" class="btn btn-secondary modal-close" data-i18n="common.cancel"></button>
+            <button type="submit" form="form-evento" class="btn btn-primary" data-i18n="events.save"></button>
         </div>
     </div>
 </div>
@@ -1240,11 +1240,11 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="clock"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Historial de Compras</h2>
-                    <p class="modal-subtitle-pro">Registro de encargos del cliente</p>
+                    <h2 class="modal-title-pro" data-i18n="historial.modal_title"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="historial.modal_sub"></p>
                 </div>
             </div>
-            <button class="modal-close" onclick="app.hideModal('modal-historial-cliente')" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" onclick="app.hideModal('modal-historial-cliente')" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body" style="padding:var(--sp-4) var(--sp-6)">
             <div style="display:flex;align-items:center;gap:var(--sp-3);padding-bottom:var(--sp-3);border-bottom:1px solid var(--s-100);margin-bottom:var(--sp-3)">
@@ -1256,31 +1256,31 @@
                     <div style="font-size:0.78rem;color:var(--text-muted)" id="historial-cliente-email">—</div>
                 </div>
                 <div style="display:flex;gap:var(--sp-4);flex-shrink:0;font-size:0.78rem;color:var(--text-muted);text-align:center">
-                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-pedidos-num">0</div><div>encargos</div></div>
-                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-gastado-num">0 €</div><div>gastado</div></div>
+                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-pedidos-num">0</div><div data-i18n="historial.orders_stat"></div></div>
+                    <div><div style="font-weight:700;font-size:0.95rem;color:var(--text-primary)" id="stat-gastado-num">0 €</div><div data-i18n="historial.spent_stat"></div></div>
                 </div>
             </div>
             <div style="display:flex;gap:var(--sp-3);margin-bottom:var(--sp-3)">
                 <select id="filtro-periodo" class="form-select form-select-sm" style="flex:1">
-                    <option value="todos">Todos los períodos</option>
-                    <option value="30">Últimos 30 días</option>
-                    <option value="90">Últimos 3 meses</option>
-                    <option value="365">Último año</option>
+                    <option value="todos" data-i18n="historial.filter_all_periods"></option>
+                    <option value="30" data-i18n="historial.filter_30"></option>
+                    <option value="90" data-i18n="historial.filter_90"></option>
+                    <option value="365" data-i18n="historial.filter_year"></option>
                 </select>
                 <select id="filtro-estado" class="form-select form-select-sm" style="flex:1">
-                    <option value="todos">Todos los estados</option>
-                    <option value="completado">Completado</option>
-                    <option value="pendiente">Pendiente</option>
-                    <option value="cancelado">Cancelado</option>
+                    <option value="todos" data-i18n="historial.filter_all_statuses"></option>
+                    <option value="completado" data-i18n="historial.filter_completed"></option>
+                    <option value="pendiente" data-i18n="historial.filter_pending"></option>
+                    <option value="cancelado" data-i18n="historial.filter_cancelled"></option>
                 </select>
             </div>
             <div class="historial-lista" id="historial-pedidos-lista">
-                <div class="no-data">Cargando historial…</div>
+                <div class="no-data" data-i18n="historial.loading"></div>
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="app.hideModal('modal-historial-cliente')">Cerrar</button>
-            <button type="button" class="btn btn-primary" onclick="app.exportarHistorialCliente()">Exportar PDF</button>
+            <button type="button" class="btn btn-secondary" onclick="app.hideModal('modal-historial-cliente')" data-i18n="common.close"></button>
+            <button type="button" class="btn btn-primary" onclick="app.exportarHistorialCliente()" data-i18n="historial.export_pdf"></button>
         </div>
     </div>
 </div>
@@ -1292,18 +1292,18 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="tag"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Categorías</h2>
-                    <p class="modal-subtitle-pro">Gestiona las categorías de productos</p>
+                    <h2 class="modal-title-pro" data-i18n="categories.title"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="categories.sub"></p>
                 </div>
             </div>
-            <button class="modal-close" onclick="app.hideModal('modal-categorias')" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" onclick="app.hideModal('modal-categorias')" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body">
             <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-2);align-items:center">
-                <button type="button" id="btn-icono-selector" class="cat-icono-btn" onclick="app.toggleEmojiPicker()" title="Elegir icono">🌿</button>
+                <button type="button" id="btn-icono-selector" class="cat-icono-btn" onclick="app.toggleEmojiPicker()" data-i18n-title="categories.icon_hint">🌿</button>
                 <input type="hidden" id="nueva-categoria-icono" value="🌿">
-                <input type="text" id="nueva-categoria-nombre" class="form-input" placeholder="Nombre de categoría" style="flex:1">
-                <button class="btn btn-primary" onclick="app.crearCategoria()">Añadir</button>
+                <input type="text" id="nueva-categoria-nombre" class="form-input" data-i18n-placeholder="categories.name_ph" style="flex:1">
+                <button class="btn btn-primary" onclick="app.crearCategoria()" data-i18n="categories.add"></button>
             </div>
             <div id="emoji-picker" class="cat-emoji-picker" style="display:none">
                 <div class="cat-emoji-grid" id="emoji-grid"></div>
@@ -1311,7 +1311,7 @@
             <div id="categorias-lista" style="display:flex;flex-direction:column;gap:var(--sp-2);max-height:260px;overflow-y:auto;margin-top:var(--sp-3)"></div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-categorias')">Cerrar</button>
+            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-categorias')" data-i18n="common.close"></button>
         </div>
     </div>
 </div>
@@ -1323,22 +1323,22 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="users"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Tipos de Cliente</h2>
-                    <p class="modal-subtitle-pro">Gestiona los tipos de cliente disponibles</p>
+                    <h2 class="modal-title-pro" data-i18n="client_types.title"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="client_types.sub"></p>
                 </div>
             </div>
-            <button class="modal-close" onclick="app.hideModal('modal-tipos-cliente')" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" onclick="app.hideModal('modal-tipos-cliente')" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body">
             <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-2);align-items:center">
                 <input type="color" id="nuevo-tipo-color" value="#6b7280" style="width:36px;height:36px;border:none;border-radius:var(--r-md);cursor:pointer;padding:2px;background:none">
-                <input type="text" id="nuevo-tipo-nombre" class="form-input" placeholder="Nombre del tipo" style="flex:1">
-                <button class="btn btn-primary" onclick="app.crearTipoCliente()">Añadir</button>
+                <input type="text" id="nuevo-tipo-nombre" class="form-input" data-i18n-placeholder="client_types.name_ph" style="flex:1">
+                <button class="btn btn-primary" onclick="app.crearTipoCliente()" data-i18n="client_types.add"></button>
             </div>
             <div id="tipos-cliente-lista" style="display:flex;flex-direction:column;gap:var(--sp-2);max-height:280px;overflow-y:auto;margin-top:var(--sp-3)"></div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-tipos-cliente')">Cerrar</button>
+            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-tipos-cliente')" data-i18n="common.close"></button>
         </div>
     </div>
 </div>
@@ -1350,22 +1350,22 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon"><i data-lucide="calendar"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Tipos de Evento</h2>
-                    <p class="modal-subtitle-pro">Gestiona los tipos de evento disponibles</p>
+                    <h2 class="modal-title-pro" data-i18n="event_types.title"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="event_types.sub"></p>
                 </div>
             </div>
-            <button class="modal-close" onclick="app.hideModal('modal-tipos-evento')" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" onclick="app.hideModal('modal-tipos-evento')" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body">
             <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-2);align-items:center">
                 <input type="color" id="nuevo-tipo-evento-color" value="#6b7280" style="width:36px;height:36px;border:none;border-radius:var(--r-md);cursor:pointer;padding:2px;background:none">
-                <input type="text" id="nuevo-tipo-evento-nombre" class="form-input" placeholder="Nombre del tipo" style="flex:1">
-                <button class="btn btn-primary" onclick="app.crearTipoEvento()">Añadir</button>
+                <input type="text" id="nuevo-tipo-evento-nombre" class="form-input" data-i18n-placeholder="event_types.name_ph" style="flex:1">
+                <button class="btn btn-primary" onclick="app.crearTipoEvento()" data-i18n="event_types.add"></button>
             </div>
             <div id="tipos-evento-lista" style="display:flex;flex-direction:column;gap:var(--sp-2);max-height:280px;overflow-y:auto;margin-top:var(--sp-3)"></div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-tipos-evento')">Cerrar</button>
+            <button type="button" class="btn btn-secondary modal-close" onclick="app.hideModal('modal-tipos-evento')" data-i18n="common.close"></button>
         </div>
     </div>
 </div>
@@ -1377,11 +1377,11 @@
             <div class="modal-header-inner">
                 <div class="modal-header-icon" style="background:linear-gradient(135deg,#16a34a,#15803d)"><i data-lucide="zap"></i></div>
                 <div>
-                    <h2 class="modal-title-pro">Venta Rápida</h2>
-                    <p class="modal-subtitle-pro">Cobro en mostrador · sin registro obligatorio</p>
+                    <h2 class="modal-title-pro" data-i18n="tpv.title"></h2>
+                    <p class="modal-subtitle-pro" data-i18n="tpv.counter_subtitle"></p>
                 </div>
             </div>
-            <button class="modal-close" onclick="app.hideModal('modal-tpv')" aria-label="Cerrar">&times;</button>
+            <button class="modal-close" onclick="app.hideModal('modal-tpv')" data-i18n-aria="common.close">&times;</button>
         </div>
         <div class="modal-body" style="padding:0;overflow:hidden">
             <div class="tpv-layout">
@@ -1389,37 +1389,37 @@
                 <div class="tpv-catalog">
                     <div class="tpv-search-bar">
                         <i data-lucide="search" style="width:16px;height:16px;color:var(--s-400);flex-shrink:0"></i>
-                        <input type="text" id="tpv-busqueda" class="tpv-search-input" placeholder="Buscar producto…" oninput="app.filtrarCatalogoTPV(this.value)">
+                        <input type="text" id="tpv-busqueda" class="tpv-search-input" data-i18n-placeholder="tpv.search" oninput="app.filtrarCatalogoTPV(this.value)">
                     </div>
                     <div id="tpv-catalogo" class="tpv-catalogo-grid"></div>
                 </div>
                 <!-- Panel derecho: ticket -->
                 <div class="tpv-ticket">
                     <div class="tpv-ticket-header">
-                        <span style="font-weight:700;font-size:0.95rem;color:var(--s-900)">Ticket</span>
-                        <button class="btn btn-sm btn-ghost" onclick="app.limpiarTPV()" style="font-size:0.75rem;color:var(--s-500)">Vaciar</button>
+                        <span style="font-weight:700;font-size:0.95rem;color:var(--s-900)" data-i18n="tpv.ticket"></span>
+                        <button class="btn btn-sm btn-ghost" onclick="app.limpiarTPV()" style="font-size:0.75rem;color:var(--s-500)" data-i18n="tpv.clear"></button>
                     </div>
                     <div id="tpv-ticket-lista" class="tpv-ticket-lista"></div>
                     <div class="tpv-totales">
-                        <div class="tpv-total-row"><span>Subtotal</span><span id="tpv-subtotal">0,00 €</span></div>
-                        <div class="tpv-total-row tpv-total-main"><span>TOTAL</span><span id="tpv-total">0,00 €</span></div>
+                        <div class="tpv-total-row"><span data-i18n="tpv.subtotal"></span><span id="tpv-subtotal">0,00 €</span></div>
+                        <div class="tpv-total-row tpv-total-main"><span data-i18n="tpv.total"></span><span id="tpv-total">0,00 €</span></div>
                     </div>
                     <div class="tpv-cliente-row">
-                        <label style="font-size:0.78rem;color:var(--s-500);display:block;margin-bottom:4px">Cliente <span style="color:var(--s-400)">(opcional)</span></label>
+                        <label style="font-size:0.78rem;color:var(--s-500);display:block;margin-bottom:4px" data-i18n="tpv.client_optional"></label>
                         <select id="tpv-cliente" class="form-select form-select-sm">
-                            <option value="">— Cliente ocasional —</option>
+                            <option value="" data-i18n="tpv.client_casual"></option>
                         </select>
                     </div>
                     <div class="tpv-pago-row">
-                        <label style="font-size:0.78rem;color:var(--s-500);display:block;margin-bottom:4px">Método de pago</label>
+                        <label style="font-size:0.78rem;color:var(--s-500);display:block;margin-bottom:4px" data-i18n="tpv.payment"></label>
                         <div class="tpv-pago-btns">
-                            <button class="tpv-pago-btn active" data-metodo="efectivo" onclick="app.seleccionarPagoTPV(this)"><i data-lucide="banknote" style="width:16px;height:16px"></i>Efectivo</button>
-                            <button class="tpv-pago-btn" data-metodo="tarjeta" onclick="app.seleccionarPagoTPV(this)"><i data-lucide="credit-card" style="width:16px;height:16px"></i>Tarjeta</button>
+                            <button class="tpv-pago-btn active" data-metodo="efectivo" onclick="app.seleccionarPagoTPV(this)"><i data-lucide="banknote" style="width:16px;height:16px"></i><span data-i18n="tpv.cash"></span></button>
+                            <button class="tpv-pago-btn" data-metodo="tarjeta" onclick="app.seleccionarPagoTPV(this)"><i data-lucide="credit-card" style="width:16px;height:16px"></i><span data-i18n="tpv.card"></span></button>
                         </div>
                     </div>
                     <div class="tpv-cobrar-row">
                         <button type="button" id="btn-cobrar-tpv" class="tpv-cobrar-btn" onclick="app.cobrarTPV()">
-                            <i data-lucide="check-circle" style="width:20px;height:20px"></i>Cobrar
+                            <i data-lucide="check-circle" style="width:20px;height:20px"></i><span data-i18n="tpv.charge"></span>
                         </button>
                     </div>
                 </div>
