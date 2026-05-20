@@ -239,7 +239,7 @@ class FlowerShopApp {
         container.innerHTML = lista.map(p => `
             <div class="dash-pedido-row" onclick="app.verPedido(${p.id})">
                 <div class="dash-pedido-info">
-                    <span class="dash-pedido-nombre">${p.cliente_nombre || 'Cliente'}</span>
+                    <span class="dash-pedido-nombre">${p.cliente_nombre || t('common.unnamed_client')}</span>
                     <span class="dash-pedido-fecha">${window.flowerShopAPI.formatDate(p.fecha_pedido)}</span>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px">
@@ -322,12 +322,12 @@ class FlowerShopApp {
             container.innerHTML = productos.map(producto => {
                 const agotado = producto.stock_actual === 0;
                 const badgeClass = agotado ? 'sin-stock' : 'low-stock';
-                const badgeLabel = agotado ? 'Agotado' : `${producto.stock_actual} / ${producto.stock_minimo}`;
+                const badgeLabel = agotado ? t('common.out_of_stock') : `${producto.stock_actual} / ${producto.stock_minimo}`;
                 return `
                 <div class="stock-item">
                     <div class="stock-item-info">
                         <span class="stock-item-nombre">${producto.nombre}</span>
-                        <span class="stock-item-sub">Mín: ${producto.stock_minimo} ud.</span>
+                        <span class="stock-item-sub">${t('common.min_label')} ${producto.stock_minimo} ud.</span>
                     </div>
                     <span class="stock-badge ${badgeClass}">${badgeLabel}</span>
                 </div>`;
@@ -400,7 +400,7 @@ class FlowerShopApp {
             // Poblar filtro de categorías
             const filterCat = document.getElementById('filter-categoria');
             if (filterCat) {
-                filterCat.innerHTML = '<option value="">Todas las categorías</option>' +
+                filterCat.innerHTML = `<option value="">${t('common.all_categories')}</option>` +
                     categorias.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
             }
         } catch (error) {
@@ -553,19 +553,19 @@ class FlowerShopApp {
                         </div>
                         <div class="evento-meta">
                             <div class="evento-meta-item">
-                                <span class="evento-meta-label">Tipo</span>
+                                <span class="evento-meta-label">${t('events.card_type_label')}</span>
                                 <span class="evento-meta-value">${evento.tipo_evento || '—'}</span>
                             </div>
                             <div class="evento-meta-item">
-                                <span class="evento-meta-label">Descuento</span>
+                                <span class="evento-meta-label">${t('events.card_discount_label')}</span>
                                 <span class="evento-meta-value">${evento.descuento_especial > 0 ? evento.descuento_especial + '%' : '—'}</span>
                             </div>
                             <div class="evento-meta-item">
-                                <span class="evento-meta-label">Inicio</span>
+                                <span class="evento-meta-label">${t('events.card_start_label')}</span>
                                 <span class="evento-meta-value">${window.flowerShopAPI.formatDate(evento.fecha_inicio)}</span>
                             </div>
                             <div class="evento-meta-item">
-                                <span class="evento-meta-label">Fin</span>
+                                <span class="evento-meta-label">${t('events.card_end_label')}</span>
                                 <span class="evento-meta-value">${window.flowerShopAPI.formatDate(evento.fecha_fin)}</span>
                             </div>
                         </div>
@@ -1165,8 +1165,8 @@ class FlowerShopApp {
             container.innerHTML = `
                 <div class="inv-empty-state">
                     <div class="inv-empty-icon"><i data-lucide="shield-check"></i></div>
-                    <h3>Inventario bajo control</h3>
-                    <p>Todos los productos se encuentran por encima de su stock mínimo. No se requieren acciones de reabastecimiento.</p>
+                    <h3>${t('inventory.alerts_empty_title')}</h3>
+                    <p>${t('inventory.alerts_empty_msg')}</p>
                 </div>`;
             if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
@@ -1179,17 +1179,17 @@ class FlowerShopApp {
                     <span class="alert-badge ${alerta.nivel_alerta}">${alerta.nivel_alerta.replace('_', ' ')}</span>
                 </div>
                 <div class="alert-details">
-                    <div><strong>Stock Actual:</strong> ${alerta.stock_actual}</div>
-                    <div><strong>Stock Mínimo:</strong> ${alerta.stock_minimo}</div>
-                    <div><strong>Categoría:</strong> ${alerta.categoria || 'N/A'}</div>
-                    <div><strong>Sugerido:</strong> ${Math.max(alerta.stock_sugerido, 0)}</div>
+                    <div><strong>${t('inventory.stock_current_label')}</strong> ${alerta.stock_actual}</div>
+                    <div><strong>${t('inventory.stock_min_label')}</strong> ${alerta.stock_minimo}</div>
+                    <div><strong>${t('inventory.alerts_detail_category')}</strong> ${alerta.categoria || 'N/A'}</div>
+                    <div><strong>${t('inventory.stock_suggested')}</strong> ${Math.max(alerta.stock_sugerido, 0)}</div>
                 </div>
                 <div class="alert-actions">
                     <button class="btn btn-sm btn-primary" onclick="app.ajustarStockMinimo(${alerta.id})">
-                        <i data-lucide="settings-2" style="width:13px;height:13px;margin-right:4px"></i>Ajustar
+                        <i data-lucide="settings-2" style="width:13px;height:13px;margin-right:4px"></i>${t('inventory.btn_adjust_label')}
                     </button>
                     <button class="btn btn-sm btn-secondary" onclick="app.crearOrdenCompraDesdeAlerta(${alerta.id}, ${Math.max(alerta.stock_sugerido, 1)})">
-                        <i data-lucide="shopping-cart" style="width:13px;height:13px;margin-right:4px"></i>Pedir
+                        <i data-lucide="shopping-cart" style="width:13px;height:13px;margin-right:4px"></i>${t('inventory.btn_order_label')}
                     </button>
                 </div>
             </div>
@@ -1297,16 +1297,16 @@ class FlowerShopApp {
                 <div class="provider-details-list">
                     ${proveedor.telefono ? `<div class="provider-detail-row"><span class="provider-detail-label">${t('common.phone')}</span><span class="provider-detail-val">${proveedor.telefono}</span></div>` : ''}
                     ${proveedor.email ? `<div class="provider-detail-row"><span class="provider-detail-label">${t('common.email')}</span><span class="provider-detail-val">${proveedor.email}</span></div>` : ''}
-                    ${(proveedor.ciudad || proveedor.direccion) ? `<div class="provider-detail-row"><span class="provider-detail-label">Ciudad</span><span class="provider-detail-val">${proveedor.ciudad || proveedor.direccion}</span></div>` : ''}
+                    ${(proveedor.ciudad || proveedor.direccion) ? `<div class="provider-detail-row"><span class="provider-detail-label">${t('inventory.supplier_card_city')}</span><span class="provider-detail-val">${proveedor.ciudad || proveedor.direccion}</span></div>` : ''}
                 </div>
                 <div class="provider-stats">
                     <div class="provider-stat">
                         <div class="provider-stat-value">${proveedor.productos_suministrados || 0}</div>
-                        <div class="provider-stat-label">Productos</div>
+                        <div class="provider-stat-label">${t('inventory.supplier_stat_products')}</div>
                     </div>
                     <div class="provider-stat">
                         <div class="provider-stat-value">${window.flowerShopAPI.formatCurrency(proveedor.promedio_pedidos || 0)}</div>
-                        <div class="provider-stat-label">Promedio orden</div>
+                        <div class="provider-stat-label">${t('inventory.supplier_stat_avg_order')}</div>
                     </div>
                 </div>
                 <div class="provider-actions">
@@ -1472,7 +1472,7 @@ class FlowerShopApp {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Ventas (€)',
+                    label: t('reports.sales_label'),
                     data: valores,
                     borderColor: '#8b5cf6',
                     backgroundColor: 'rgba(139, 92, 246, 0.1)',
@@ -1572,7 +1572,7 @@ class FlowerShopApp {
             data: {
                 labels: inventarioData.map(i => i.categoria),
                 datasets: [{
-                    label: 'Valor Vendido (€)',
+                    label: t('reports.value_sold'),
                     data: inventarioData.map(i => i.valor_vendido),
                     backgroundColor: colores,
                     borderRadius: 8,
@@ -1732,17 +1732,17 @@ class FlowerShopApp {
         // Datasets disponibles según contexto
         const datasets = {
             reportes: [
-                { id: 'ventas',    label: 'Ventas',    icon: 'trending-up', checked: true },
+                { id: 'ventas',    label: t('reports.export_sales'),    icon: 'trending-up', checked: true },
             ],
             todo: [
-                { id: 'productos', label: 'Productos', icon: 'box',         checked: true },
-                { id: 'clientes',  label: 'Clientes',  icon: 'users',       checked: true },
-                { id: 'encargos',  label: 'Encargos',  icon: 'clipboard-list', checked: true },
+                { id: 'productos', label: t('reports.export_products'), icon: 'box',         checked: true },
+                { id: 'clientes',  label: t('reports.export_clients'),  icon: 'users',       checked: true },
+                { id: 'encargos',  label: t('reports.export_orders'),   icon: 'clipboard-list', checked: true },
             ],
         };
 
         const sets = datasets[contexto] || datasets.todo;
-        const subtitles = { reportes: 'Exportar datos de ventas y reportes', todo: 'Exportar datos de la aplicación' };
+        const subtitles = { reportes: t('reports.export_subtitle_reports'), todo: t('reports.export_subtitle_all') };
 
         document.getElementById('export-modal-subtitle').textContent = subtitles[contexto] || '';
 
@@ -1794,12 +1794,12 @@ class FlowerShopApp {
             let sheets = {};
 
             if (contexto === 'reportes' || activosChips.includes('ventas')) {
-                const rows = [['Fecha', 'Cliente', 'Productos', 'Total (€)']];
+                const rows = [[t('reports.export_header_date'), t('reports.export_header_client'), t('reports.export_header_products'), t('reports.export_header_total')]];
                 document.querySelectorAll('#sales-detail-table tbody tr').forEach(tr => {
                     const cells = [...tr.querySelectorAll('td')].map(td => td.textContent.trim());
                     if (cells.length) rows.push(cells);
                 });
-                sheets['Ventas'] = rows;
+                sheets[t('reports.export_sheet_sales')] = rows;
             }
 
             if (contexto === 'todo') {
@@ -1811,19 +1811,19 @@ class FlowerShopApp {
 
                 if (activosChips.includes('productos')) {
                     sheets['Productos'] = [
-                        ['Código', 'Nombre', 'Categoría', 'Precio Venta', 'Precio Compra', 'Stock', 'Stock Mín.'],
+                        [t('inventory.export_col_code'), t('inventory.export_col_name'), t('inventory.export_col_category'), t('inventory.export_col_price_sell'), t('inventory.export_col_price_buy'), t('inventory.export_col_stock'), t('inventory.export_col_min_stock')],
                         ...productos.map(p => [p.codigo_producto||'', p.nombre, p.categoria_nombre||'', p.precio_venta, p.precio_compra||0, p.stock_actual, p.stock_minimo]),
                     ];
                 }
                 if (activosChips.includes('clientes')) {
                     sheets['Clientes'] = [
-                        ['Nombre', 'Email', 'Teléfono', 'Tipo'],
+                        [t('inventory.export_col_client_name'), t('inventory.export_col_email'), t('inventory.export_col_phone'), t('inventory.export_col_type')],
                         ...clientes.map(c => [`${c.nombre} ${c.apellidos||''}`.trim(), c.email||'', c.telefono||'', c.tipo_cliente||'']),
                     ];
                 }
                 if (activosChips.includes('encargos')) {
                     sheets['Encargos'] = [
-                        ['ID', 'Cliente', 'Fecha Entrega', 'Estado', 'Total (€)'],
+                        [t('inventory.export_col_id'), t('common.client'), t('inventory.export_col_delivery'), t('common.status'), t('inventory.export_col_total')],
                         ...pedidos.map(p => [p.id, p.cliente_nombre||'—', p.fecha_entrega||'', p.estado, p.total]),
                     ];
                 }
@@ -3121,7 +3121,7 @@ class FlowerShopApp {
                         <div class="modal-header-inner">
                             <div class="modal-header-icon"><i data-lucide="package-check"></i></div>
                             <div>
-                                <h2 class="modal-title-pro">Stock del Evento</h2>
+                                <h2 class="modal-title-pro">${t('inventory.stock_event_title')}</h2>
                                 <p class="modal-subtitle-pro">${evento.nombre}</p>
                             </div>
                         </div>
@@ -3150,7 +3150,7 @@ class FlowerShopApp {
                             </div>
                             <div class="form-group">
                                 <label>${t('common.notes')}</label>
-                                <input type="text" id="evento-stock-notas" class="form-input" placeholder="Opcional…">
+                                <input type="text" id="evento-stock-notas" class="form-input" placeholder="${t('common.optional_hint')}">
                             </div>
                         </div>
                         <div class="form-section-title"><span class="form-section-dot"></span>Inventario actual</div>
@@ -4689,7 +4689,7 @@ class FlowerShopApp {
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="movimiento-motivo">${t('inventory.col_reason')}</label>
-                            <input type="text" id="movimiento-motivo" name="motivo" class="form-input" placeholder="Ej: Compra, Venta, Daño…">
+                            <input type="text" id="movimiento-motivo" name="motivo" class="form-input" placeholder="${t('inventory.movement_reason_placeholder')}">
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="movimiento-fecha">${t('inventory.movement_date_label')}</label>
@@ -4935,7 +4935,7 @@ class FlowerShopApp {
                         </div>
                         <div class="form-group form-group-full">
                             <label class="form-label" for="orden-notas">${t('common.notes')}</label>
-                            <textarea id="orden-notas" name="notas" class="form-input" rows="2" placeholder="Instrucciones o notas adicionales…">${isEdit ? orden.notas || '' : ''}</textarea>
+                            <textarea id="orden-notas" name="notas" class="form-input" rows="2" placeholder="${t('orders.special_instructions')}">${isEdit ? orden.notas || '' : ''}</textarea>
                         </div>
                     </form>
                 </div>
@@ -5153,14 +5153,14 @@ class FlowerShopApp {
                                 <input type="number" id="cantidad-orden" name="cantidad" min="1" value="10" required>
                             </div>
                             <div class="form-group">
-                                <label for="proveedor-orden">Proveedor *</label>
+                                <label for="proveedor-orden">${t('common.supplier')} *</label>
                                 <select id="proveedor-orden" name="proveedor_id" required>
-                                    <option value="">Seleccionar proveedor...</option>
+                                    <option value="">${t('inventory.supplier_select_placeholder')}</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="notas-orden">Notas</label>
-                                <textarea id="notas-orden" name="notas" rows="3" placeholder="Notas adicionales para la orden..."></textarea>
+                                <label for="notas-orden">${t('inventory.notes_label')}</label>
+                                <textarea id="notas-orden" name="notas" rows="3" placeholder="${t('inventory.notes_placeholder')}"></textarea>
                             </div>
                             <div class="form-actions">
                                 <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">${t('common.cancel')}</button>
@@ -5478,7 +5478,7 @@ class FlowerShopApp {
                 modal.innerHTML = `
                     <div class="modal-content modal-sm">
                         <div class="modal-header">
-                            <h3 class="modal-title-pro">Ajustar stock mínimo</h3>
+                            <h3 class="modal-title-pro">${t('inventory.adjust_min_title')}</h3>
                             <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                         </div>
                         <div class="modal-body">
@@ -5570,7 +5570,7 @@ class FlowerShopApp {
                     <div class="modal-header-inner">
                         <div class="modal-header-icon"><i data-lucide="shopping-cart"></i></div>
                         <div>
-                            <h2 class="modal-title-pro">Crear orden de compra</h2>
+                            <h2 class="modal-title-pro">${t('inventory.create_order_title')}</h2>
                             <p class="modal-subtitle-pro">${producto?.nombre || 'Producto'} — ${cantidad} unidades</p>
                         </div>
                     </div>
@@ -6159,11 +6159,11 @@ class FlowerShopApp {
         let html = '';
 
         if (stockNotifs.length > 0) {
-            html += `<div class="notif-group-header"><i data-lucide="package-x"></i> Notificaciones de Stock</div>`;
+            html += `<div class="notif-group-header"><i data-lucide="package-x"></i> ${t('notifPanel.group_stock')}</div>`;
             html += stockNotifs.map(renderItem).join('');
         }
         if (gestionNotifs.length > 0) {
-            html += `<div class="notif-group-header"><i data-lucide="calendar-clock"></i> Eventos &amp; Encargos</div>`;
+            html += `<div class="notif-group-header"><i data-lucide="calendar-clock"></i> ${t('notifPanel.group_events')}</div>`;
             html += gestionNotifs.map(renderItem).join('');
         }
 
