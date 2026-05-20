@@ -196,7 +196,9 @@ class FlowerShopApp {
                 (p.fecha_entrega || '').slice(0, 10) === hoy
             );
             const n = pedidosHoy.length;
-            this.updateElement('dash-pedidos-hoy', `${n} encargo${n !== 1 ? 's' : ''} aprobado${n !== 1 ? 's' : ''} para hoy`);
+            const orderWord = n !== 1 ? t('common.orders') : t('common.order');
+            const approvedWord = t('statuses.approved');
+            this.updateElement('dash-pedidos-hoy', `${n} ${orderWord} ${approvedWord.toLowerCase()}${n !== 1 ? 's' : ''} ${t('dashboard.for_today')}`);
 
             // Lista pedidos hoy
             this.renderDashPedidosHoy(pedidosHoy, pedidos);
@@ -267,8 +269,14 @@ class FlowerShopApp {
         const manana = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
         const entregasHoy    = pedidos.filter(p => p.estado === 'pendiente' && (p.fecha_entrega || '').slice(0, 10) === hoy).length;
         const entregasManana = pedidos.filter(p => p.estado === 'pendiente' && (p.fecha_entrega || '').slice(0, 10) === manana).length;
-        if (entregasHoy > 0)    items.push({ color: '#f59e0b', icon: 'clock', text: `<b>${entregasHoy} encargo${entregasHoy > 1 ? 's' : ''} ${t('statuses.pending').toLowerCase()} hoy</b>`, action: `app._irPendientesHoy()` });
-        if (entregasManana > 0) items.push({ color: '#94a3b8', icon: 'clock', text: `<b>${entregasManana} entrega${entregasManana > 1 ? 's' : ''}</b> para mañana`, action: `app._irPendientesHoy()` });
+        if (entregasHoy > 0) {
+            const orderWord = entregasHoy > 1 ? t('common.orders') : t('common.order');
+            items.push({ color: '#f59e0b', icon: 'clock', text: `<b>${entregasHoy} ${orderWord} ${t('statuses.pending').toLowerCase()} hoy</b>`, action: `app._irPendientesHoy()` });
+        }
+        if (entregasManana > 0) {
+            const deliveryWord = entregasManana > 1 ? t('common.deliveries') : t('common.delivery');
+            items.push({ color: '#94a3b8', icon: 'clock', text: `<b>${entregasManana} ${deliveryWord}</b> ${t('dashboard.for_tomorrow')}`, action: `app._irPendientesHoy()` });
+        }
 
         // Stock bajo (no crítico)
         alertas.filter(a => a.stock_actual > 0).forEach(a => {
@@ -502,7 +510,7 @@ class FlowerShopApp {
                     ${cliente.telefono ? `<div class="cliente-dato"><i data-lucide="phone" style="width:12px;height:12px;flex-shrink:0"></i><span>${cliente.telefono}</span></div>` : ''}
                     ${cliente.email    ? `<div class="cliente-dato"><i data-lucide="mail"  style="width:12px;height:12px;flex-shrink:0"></i><span>${cliente.email}</span></div>`    : ''}
                     <div class="cliente-dato"><i data-lucide="shopping-bag"   style="width:12px;height:12px;flex-shrink:0"></i><span>${window.flowerShopAPI.formatCurrency(cliente.total_compras || 0)}</span></div>
-                    <div class="cliente-dato"><i data-lucide="clipboard-list" style="width:12px;height:12px;flex-shrink:0"></i><span>${cliente.num_encargos || 0} encargo${(cliente.num_encargos || 0) !== 1 ? 's' : ''}</span></div>
+                    <div class="cliente-dato"><i data-lucide="clipboard-list" style="width:12px;height:12px;flex-shrink:0"></i><span>${cliente.num_encargos || 0} ${(cliente.num_encargos || 0) !== 1 ? t('common.orders') : t('common.order')}</span></div>
                 </div>
                 <div class="cliente-card-actions">
                     <button class="btn btn-sm btn-primary" onclick="app.editarCliente(${cliente.id})">${t('common.edit')}</button>
@@ -950,12 +958,12 @@ class FlowerShopApp {
 
             // Trends — datos reales, sin porcentajes inventados
             const trendStock = document.getElementById('trend-stock');
-            if (trendStock) trendStock.textContent = `${stockCritico} sin stock`;
+            if (trendStock) trendStock.textContent = `${stockCritico} ${t('dashboard.trend_no_stock')}`;
 
             const trendProductos = document.getElementById('trend-productos');
             if (trendProductos) {
                 const activos = productos.filter(p => p.activo).length;
-                trendProductos.textContent = `${activos} activos`;
+                trendProductos.textContent = `${activos} ${t('dashboard.trend_active')}`;
                 trendProductos.className = 'kpi-trend positive';
             }
 
@@ -1037,7 +1045,7 @@ class FlowerShopApp {
             .slice(0, 5);
 
         if (productosOrdenados.length === 0) {
-            container.innerHTML = '<div class="ranking-loading">🎉 ¡Todos los productos tienen buen movimiento!</div>';
+            container.innerHTML = `<div class="ranking-loading">🎉 ${t('inventory.all_products_good_movement')}</div>`;
             return;
         }
 
@@ -1101,7 +1109,7 @@ class FlowerShopApp {
         if (!container) return;
 
         if (productos.length === 0) {
-            container.innerHTML = '<div class="ranking-loading" style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0">Todos los productos tienen ventas registradas.</div>';
+            container.innerHTML = `<div class="ranking-loading" style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0">${t('inventory.all_products_have_sales')}</div>`;
             return;
         }
 
@@ -1447,7 +1455,7 @@ class FlowerShopApp {
             });
             labels = Object.keys(semanas).map(k => {
                 const d = new Date(k);
-                return `Sem ${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`;
+                return `${t('inventory.chart_week_label')} ${d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`;
             });
             valores = Object.values(semanas);
         } else if (tipo === 'mensual') {
@@ -1810,19 +1818,19 @@ class FlowerShopApp {
                 ]);
 
                 if (activosChips.includes('productos')) {
-                    sheets['Productos'] = [
+                    sheets[t('inventory.sheet_products')] = [
                         [t('inventory.export_col_code'), t('inventory.export_col_name'), t('inventory.export_col_category'), t('inventory.export_col_price_sell'), t('inventory.export_col_price_buy'), t('inventory.export_col_stock'), t('inventory.export_col_min_stock')],
                         ...productos.map(p => [p.codigo_producto||'', p.nombre, p.categoria_nombre||'', p.precio_venta, p.precio_compra||0, p.stock_actual, p.stock_minimo]),
                     ];
                 }
                 if (activosChips.includes('clientes')) {
-                    sheets['Clientes'] = [
+                    sheets[t('inventory.sheet_clients')] = [
                         [t('inventory.export_col_client_name'), t('inventory.export_col_email'), t('inventory.export_col_phone'), t('inventory.export_col_type')],
                         ...clientes.map(c => [`${c.nombre} ${c.apellidos||''}`.trim(), c.email||'', c.telefono||'', c.tipo_cliente||'']),
                     ];
                 }
                 if (activosChips.includes('encargos')) {
-                    sheets['Encargos'] = [
+                    sheets[t('inventory.sheet_orders')] = [
                         [t('inventory.export_col_id'), t('common.client'), t('inventory.export_col_delivery'), t('common.status'), t('inventory.export_col_total')],
                         ...pedidos.map(p => [p.id, p.cliente_nombre||'—', p.fecha_entrega||'', p.estado, p.total]),
                     ];
@@ -3391,7 +3399,7 @@ class FlowerShopApp {
             estado: 'aprobado',
             tipo_pedido: 'venta_rapida',
             metodo_pago: this._tpvMetodoPago,
-            notas: `Venta rápida`,
+            notas: t('tpv.sale_note'),
             subtotal: total,
             total,
             detalles: this._tpvCarrito.map(i => ({
@@ -4274,10 +4282,10 @@ class FlowerShopApp {
                     <li><strong>${t('nav.clients')}</strong> — ${t('nav.help_clients')}</li>
                     <li><strong>${t('nav.orders')}</strong> — ${t('nav.help_orders')}</li>
                     <li><strong>${t('nav.events')}</strong> — ${t('nav.help_events')}</li>
-                    <li><strong>Inventario</strong> — alertas de stock, proveedores y órdenes de compra</li>
-                    <li><strong>Reportes</strong> — analiza ventas, productos top y rentabilidad</li>
+                    <li><strong>${t('nav.inventory')}</strong> — ${t('nav.help_inventory').replace(/^.*— /, '')}</li>
+                    <li><strong>${t('nav.reports')}</strong> — ${t('nav.help_reports').replace(/^.*— /, '')}</li>
                 </ul>
-                <p class="dialog-hint">Manual completo próximamente disponible.</p>
+                <p class="dialog-hint">${t('nav.help_manual')}</p>
             `,
             buttons: [{ label: t('common.btn_understood'), type: 'primary' }]
         });
@@ -5057,12 +5065,12 @@ class FlowerShopApp {
             const stockRow = hasStock
                 ? `<div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 32px 1fr;align-items:center;gap:var(--sp-2);padding:var(--sp-4);background:var(--s-50);border-radius:var(--r-lg);border:1px solid var(--s-100)">
                        <div style="text-align:center">
-                           <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px">Antes</div>
+                           <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px">${t('inventory.before_label')}</div>
                            <div style="font-size:1.3rem;font-weight:700;color:var(--text-primary)">${movimiento.stock_anterior}</div>
                        </div>
                        <div style="text-align:center;color:var(--text-muted);font-size:1.1rem;font-weight:300">→</div>
                        <div style="text-align:center">
-                           <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px">Después</div>
+                           <div style="font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;margin-bottom:4px">${t('inventory.after_label')}</div>
                            <div style="font-size:1.3rem;font-weight:700;color:${stockColor}">${movimiento.stock_nuevo}</div>
                        </div>
                    </div>` : '';
@@ -5093,8 +5101,8 @@ class FlowerShopApp {
                                 <span style="font-size:0.95rem;font-weight:600;color:var(--text-primary)">${cantLabel}</span>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Registrado por</span>
-                                <span style="font-size:0.9rem;color:var(--text-primary)">${movimiento.usuario || 'Sistema'}</span>
+                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('inventory.registered_by')}</span>
+                                <span style="font-size:0.9rem;color:var(--text-primary)">${movimiento.usuario || t('inventory.system_user')}</span>
                             </div>
                             ${movimiento.motivo ? `
                             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:var(--sp-1);padding-top:var(--sp-3);border-top:1px solid var(--s-100)">
@@ -5484,7 +5492,7 @@ class FlowerShopApp {
                         <div class="modal-body">
                             <div class="form-group form-group-full">
                                 <p class="modal-subtitle-pro">Producto: <strong>${producto.nombre}</strong></p>
-                                <label class="form-label">Nuevo stock mínimo</label>
+                                <label class="form-label">${t('inventory.stock_adjustment_new')}</label>
                                 <input id="_stock-min-input" type="number" min="0" value="${currentMin}" class="form-input">
                             </div>
                         </div>
@@ -5613,7 +5621,7 @@ class FlowerShopApp {
                     proveedor_id: proveedorId,
                     fecha_orden: new Date().toISOString().slice(0, 10),
                     estado: 'pendiente',
-                    notas: `Pedido desde alerta de stock`,
+                    notas: t('inventory.alert_order_note'),
                     items: [{ producto_id: productoId, cantidad: cant }]
                 });
                 this.showNotification(t('msgs.order_created'), 'success');
@@ -5703,8 +5711,8 @@ class FlowerShopApp {
         const ordenesTableHtml = ordenes.length === 0
             ? `<div class="inv-empty-state" style="padding:var(--sp-6)">
                    <div class="inv-empty-icon"><i data-lucide="package-x"></i></div>
-                   <h3>Sin órdenes registradas</h3>
-                   <p>Este proveedor no tiene órdenes de compra todavía.</p>
+                   <h3>${t('inventory.provider_no_orders')}</h3>
+                   <p>${t('inventory.provider_no_orders_sub')}</p>
                </div>`
             : `<table class="historial-table">
                    <thead><tr><th>Orden</th><th>Fecha</th><th>Items</th><th class="text-right">Total</th><th>Estado</th></tr></thead>
@@ -5736,11 +5744,11 @@ class FlowerShopApp {
                 <div class="modal-body">
                     <div class="pedido-detalle-grid" style="margin-bottom:var(--sp-4)">
                         <div class="pedido-detalle-field">
-                            <span class="pedido-detalle-label">Teléfono</span>
+                            <span class="pedido-detalle-label">${t('common.phone')}</span>
                             <span class="pedido-detalle-value">${proveedor.telefono || '—'}</span>
                         </div>
                         <div class="pedido-detalle-field">
-                            <span class="pedido-detalle-label">Email</span>
+                            <span class="pedido-detalle-label">${t('common.email')}</span>
                             <span class="pedido-detalle-value">${proveedor.email || '—'}</span>
                         </div>
                         <div class="pedido-detalle-field">
@@ -5828,10 +5836,10 @@ class FlowerShopApp {
                     <td style="padding:6px 8px;text-align:center;font-weight:600;color:var(--g-600)">${stockNuevo}</td>
                 </tr>`;
             }).join('')
-            : `<tr><td colspan="4" style="padding:10px;text-align:center;color:var(--text-muted)">Sin detalles disponibles</td></tr>`;
+            : `<tr><td colspan="4" style="padding:10px;text-align:center;color:var(--text-muted)">${t('inventory.no_order_details')}</td></tr>`;
 
         const bodyHTML = `
-            <p style="margin:0 0 12px;color:var(--text-secondary);font-size:0.9rem">El stock de los siguientes productos se actualizará automáticamente al confirmar:</p>
+            <p style="margin:0 0 12px;color:var(--text-secondary);font-size:0.9rem">${t('inventory.stock_update_msg')}</p>
             <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--s-200)">
                 <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
                     <thead>
@@ -6133,12 +6141,12 @@ class FlowerShopApp {
         const tiempoRelativo = (iso) => {
             const diff = Date.now() - new Date(iso).getTime();
             const m = Math.floor(diff / 60000);
-            if (m < 1)  return 'Ahora mismo';
-            if (m < 60) return `Hace ${m} min`;
+            if (m < 1)  return t('inventory.time_just_now');
+            if (m < 60) return `${t('inventory.time_ago_prefix')} ${m} min`;
             const h = Math.floor(m / 60);
-            if (h < 24) return `Hace ${h}h`;
+            if (h < 24) return `${t('inventory.time_ago_prefix')} ${h}h`;
             const d = Math.floor(h / 24);
-            return `Hace ${d} día${d > 1 ? 's' : ''}`;
+            return `${t('inventory.time_ago_prefix')} ${d} día${d > 1 ? 's' : ''}`;
         };
 
         const renderItem = n => `
