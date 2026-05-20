@@ -3412,7 +3412,7 @@ class FlowerShopApp {
         } catch (error) {
             console.error('Error registrando venta:', error);
             this.showNotification(t('msgs.sale_error'), 'error');
-            if (btnCobrar) { btnCobrar.disabled = false; btnCobrar.innerHTML = '<i data-lucide="check-circle" style="width:18px;height:18px;margin-right:6px"></i>Cobrar'; if (typeof lucide !== 'undefined') lucide.createIcons(); }
+            if (btnCobrar) { btnCobrar.disabled = false; btnCobrar.innerHTML = `<i data-lucide="check-circle" style="width:18px;height:18px;margin-right:6px"></i>${t('tpv.charge')}`; if (typeof lucide !== 'undefined') lucide.createIcons(); }
         } finally {
             this._tpvProcesando = false;
         }
