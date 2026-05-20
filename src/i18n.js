@@ -52,6 +52,7 @@
                 help_inventory: 'Inventario — alertas de stock, proveedores y órdenes de compra',
                 help_reports: 'Reportes — analiza ventas, productos top y rentabilidad',
                 help_manual: 'Manual completo próximamente disponible.',
+                notifications: 'Notificaciones', config: 'Configuración',
             },
             sidebar: {
                 sales_today: 'Ventas Hoy', low_stock: 'Stock Bajo',
@@ -712,6 +713,7 @@
                 help_inventory: 'Inventory — stock alerts, suppliers and purchase orders',
                 help_reports: 'Reports — analyze sales, top products and profitability',
                 help_manual: 'Complete manual coming soon.',
+                notifications: 'Notifications', config: 'Settings',
                 no_orders: 'No pending orders',
                 no_alerts: 'No active alerts',
                 stock_ok: 'All stock at optimal levels',
@@ -1509,6 +1511,48 @@
         ['#pstat-pedidos + .perfil-stat-lbl',     'profile.orders_managed'],
         ['#pstat-clientes + .perfil-stat-lbl',    'profile.clients_registered'],
         ['#pstat-productos + .perfil-stat-lbl',   'profile.products_catalog'],
+        // ── FAB buttons ───────────────────────────────────────────────────────
+        ['.fab-secondary[data-action="nuevo-producto"]', null, 'title', 'products.new'],
+        ['.fab-secondary[data-action="nuevo-cliente"]', null, 'title', 'clients.new'],
+        ['.fab-secondary[data-action="nuevo-evento"]', null, 'title', 'events.new'],
+        ['.fab-secondary[data-action="nuevo-pedido"]', null, 'title', 'orders.new'],
+        // ── Top nav buttons ───────────────────────────────────────────────────
+        ['.nav-action-btn:nth-child(1)', null, 'title', 'nav.notifications'],
+        ['.nav-action-btn:nth-child(2)', null, 'title', 'nav.config'],
+        // ── Brand subtitle ────────────────────────────────────────────────────
+        ['.brand-subtitle', 'nav.help_content'],
+        // ── Dashboard stat cards ──────────────────────────────────────────────
+        ['.stat-card.warning .stat-sub', 'dashboard.orders_today_sub'],
+        ['.stat-card.primary:nth-child(2) .stat-sub', 'dashboard.this_month'],
+        ['.stat-card.success .stat-sub', 'dashboard.registered'],
+        ['.stat-card.primary:nth-child(4) .stat-sub', 'dashboard.low_products'],
+        // ── Dashboard cards headers ──────────────────────────────────────────
+        ['#dash-pedidos-hoy-lista ~ .card-header h3', 'dashboard.orders_today'],
+        ['#dash-pedidos-hoy-lista ~ .card-header .card-subtitle', 'dashboard.orders_today_sub'],
+        ['.dashboard-main .card:nth-child(2) .card-title', 'dashboard.quick_actions'],
+        ['.dashboard-main .card:nth-child(2) .card-subtitle', 'dashboard.quick_actions_sub'],
+        ['.dashboard-sidebar .card:nth-child(1) .card-title', 'dashboard.alerts'],
+        ['.dashboard-sidebar .card:nth-child(1) .card-subtitle', 'dashboard.alerts_sub'],
+        ['.dashboard-sidebar .card:nth-child(2) .card-title', 'dashboard.upcoming_events'],
+        // ── Dashboard quick action buttons ────────────────────────────────────
+        ['.dash-quick-btn:nth-child(1) span', 'dashboard.quick_sale'],
+        ['.dash-quick-btn:nth-child(2) span', 'dashboard.new_order'],
+        ['.dash-quick-btn:nth-child(3) span', 'dashboard.new_client'],
+        ['.dash-quick-btn:nth-child(4) span', 'dashboard.see_inventory'],
+        ['.dash-quick-btn:nth-child(5) span', 'dashboard.new_event'],
+        ['.dash-quick-btn:nth-child(6) span', 'dashboard.see_reports'],
+        // ── Clientes search placeholder ───────────────────────────────────────
+        ['#search-clientes', null, 'placeholder', 'clients.search'],
+        // ── Inventario section titles ─────────────────────────────────────────
+        ['#inventario-section .page-header-title h2', 'nav.inventory'],
+        // ── Análisis de Rotación heading ──────────────────────────────────────
+        ['#tab-dashboard .page-header-title h2', 'inventory.rotation_analysis'],
+        // ── Reportes section config buttons ───────────────────────────────────
+        ['#configuracion-section .config-btn', 'config.save_changes'],
+        // ── Help button in productos section ──────────────────────────────────
+        ['#productos-section .btn-help', null, 'title', 'common.help'],
+        // ── Cargando text placeholders ────────────────────────────────────────
+        ['#productos-table tbody tr td', 'products.loading'],
     ];
 
     function _setElText(el, text) {
