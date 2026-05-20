@@ -2907,19 +2907,19 @@ class FlowerShopApp {
             // ── Tabla de pedidos ──────────────────────────────────────────
             const tableW = PW - 28;
             const cols   = [
-                { label: 'Pedido',   w: 28 },
-                { label: 'Fecha',    w: 32 },
-                { label: 'Entrega',  w: 32 },
-                { label: 'Tipo',     w: 28 },
-                { label: 'Estado',   w: 28 },
-                { label: 'Total',    w: 34, right: true },
+                { label: t('reports.pdf_col_order'),    w: 28 },
+                { label: t('common.date'),              w: 32 },
+                { label: t('reports.pdf_col_delivery'), w: 32 },
+                { label: t('reports.pdf_col_type'),     w: 28 },
+                { label: t('reports.pdf_col_status'),   w: 28 },
+                { label: t('reports.pdf_col_total'),    w: 34, right: true },
             ];
             const rowH = 6.5;
 
             const estadoLabel = (e) => t('statuses.' + e) || e || '—';
-            const tipoLabel = (t) => {
-                const m = { venta_rapida: 'TPV', regular: 'Encargo' };
-                return m[t] || t || '—';
+            const tipoLabel = (tipo) => {
+                const m = { venta_rapida: t('reports.order_type_tpv'), regular: t('reports.order_type_regular') };
+                return m[tipo] || tipo || '—';
             };
 
             const drawTableHead = (startY) => {
@@ -3014,12 +3014,12 @@ class FlowerShopApp {
             doc.text('RESUMEN', 22, y + 8);
 
             const sumCols = [
-                { label: 'Total de pedidos',    value: String(pedidos.length) },
-                { label: 'Pedidos aprobados',   value: String(aprobados.length) },
-                { label: 'Total facturado',     value: window.flowerShopAPI.formatCurrency(totalGastado) },
-                { label: 'Ticket medio',        value: window.flowerShopAPI.formatCurrency(ticketMedio) },
-                { label: 'Saldo pendiente',     value: window.flowerShopAPI.formatCurrency(saldoPendiente) },
-                { label: 'Último pedido',       value: ultimaFecha },
+                { label: t('reports.sum_total_orders'),        value: String(pedidos.length) },
+                { label: t('reports.sum_approved_orders'),     value: String(aprobados.length) },
+                { label: t('reports.sum_total_invoiced'),      value: window.flowerShopAPI.formatCurrency(totalGastado) },
+                { label: t('reports.sum_avg_ticket'),          value: window.flowerShopAPI.formatCurrency(ticketMedio) },
+                { label: t('reports.sum_pending_balance'),     value: window.flowerShopAPI.formatCurrency(saldoPendiente) },
+                { label: t('reports.sum_last_order'),          value: ultimaFecha },
             ];
             const half = Math.ceil(sumCols.length / 2);
             const colSumW = (PW - 28) / 2;
@@ -4279,21 +4279,21 @@ class FlowerShopApp {
                 </ul>
                 <p class="dialog-hint">Manual completo próximamente disponible.</p>
             `,
-            buttons: [{ label: 'Entendido', type: 'primary' }]
+            buttons: [{ label: t('common.btn_understood'), type: 'primary' }]
         });
     }
 
     mostrarAcercaDe() {
         this._showDialog({
-            title: 'Pétalo — Floristería Manager',
+            title: t('common.about_title'),
             content: `
                 <div class="about-content">
-                    <p class="about-version">Versión 1.0.0</p>
-                    <p class="dialog-lead">Sistema de gestión integral para floristerías</p>
-                    <p class="dialog-hint">© 2025 · Desarrollado para floristas</p>
+                    <p class="about-version">${t('common.about_version')}</p>
+                    <p class="dialog-lead">${t('common.about_subtitle')}</p>
+                    <p class="dialog-hint">${t('common.about_credit')}</p>
                 </div>
             `,
-            buttons: [{ label: 'Cerrar', type: 'secondary' }]
+            buttons: [{ label: t('common.close'), type: 'secondary' }]
         });
     }
 
@@ -5149,7 +5149,7 @@ class FlowerShopApp {
                         <form id="form-orden-producto" class="form">
                             <input type="hidden" name="producto_id" value="${producto.id}">
                             <div class="form-group">
-                                <label for="cantidad-orden">Cantidad a solicitar *</label>
+                                <label for="cantidad-orden">${t('orders.quantity_request')}</label>
                                 <input type="number" id="cantidad-orden" name="cantidad" min="1" value="10" required>
                             </div>
                             <div class="form-group">
