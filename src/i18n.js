@@ -26,6 +26,8 @@
                 register: 'Registrar', manage: '+ Gestionar', no_data: 'Sin datos',
                 error: 'Error', success: 'Éxito', warning: 'Atención',
                 in_development: 'En desarrollo',
+                client: 'Cliente', product: 'Producto', supplier: 'Proveedor',
+                optional_hint: 'Opcional…',
             },
             nav: {
                 principal: 'Principal', gestion: 'Gestión', analisis: 'Análisis',
@@ -576,6 +578,15 @@
                 unread: '{count} sin leer',
                 up_to_date: 'Todo al día',
             },
+            export: {
+                col_date: 'Fecha', col_client: 'Cliente', col_products: 'Productos', col_total: 'Total (€)',
+                col_code: 'Código', col_name: 'Nombre', col_category: 'Categoría',
+                col_price: 'Precio Venta', col_buy_price: 'Precio Compra', col_stock: 'Stock',
+                col_min_stock: 'Stock Mín.', col_email: 'Email', col_phone: 'Teléfono',
+                col_type: 'Tipo', col_id: 'ID', col_status: 'Estado',
+                footer: 'Documento generado con Pétalo — Software de Gestión para Floristería',
+                orders_title: 'HISTORIAL DE PEDIDOS', summary_title: 'RESUMEN',
+            },
         },
 
         /* ══════════════════════════════ ENGLISH ══════════════════════════════ */
@@ -594,6 +605,8 @@
                 register: 'Register', manage: '+ Manage', no_data: 'No data',
                 error: 'Error', success: 'Success', warning: 'Warning',
                 in_development: 'In development',
+                client: 'Client', product: 'Product', supplier: 'Supplier',
+                optional_hint: 'Optional…',
             },
             nav: {
                 principal: 'Main', gestion: 'Management', analisis: 'Analytics',
@@ -1143,6 +1156,15 @@
                 no_notifs: 'No notifications',
                 unread: '{count} unread',
                 up_to_date: 'All up to date',
+            },
+            export: {
+                col_date: 'Date', col_client: 'Client', col_products: 'Products', col_total: 'Total (€)',
+                col_code: 'Code', col_name: 'Name', col_category: 'Category',
+                col_price: 'Sale Price', col_buy_price: 'Purchase Price', col_stock: 'Stock',
+                col_min_stock: 'Min. Stock', col_email: 'Email', col_phone: 'Phone',
+                col_type: 'Type', col_id: 'ID', col_status: 'Status',
+                footer: 'Document generated with Pétalo — Florist Management Software',
+                orders_title: 'ORDER HISTORY', summary_title: 'SUMMARY',
             },
         },
     };
