@@ -4184,13 +4184,13 @@ class FlowerShopApp {
         const breadcrumbs = document.querySelector('.breadcrumbs');
         if (breadcrumbs) {
             const sectionNames = {
-                dashboard: 'Dashboard',
-                productos: 'Productos',
-                clientes: 'Clientes',
-                eventos: 'Eventos',
-                pedidos: 'Pedidos',
-                inventario: 'Inventario',
-                reportes: 'Reportes'
+                dashboard: t('nav.dashboard'),
+                productos: t('nav.products'),
+                clientes: t('nav.clients'),
+                eventos: t('nav.events'),
+                pedidos: t('nav.orders'),
+                inventario: t('nav.inventory'),
+                reportes: t('nav.reports')
             };
             
             breadcrumbs.innerHTML = `
@@ -4266,14 +4266,14 @@ class FlowerShopApp {
 
     mostrarAyuda() {
         this._showDialog({
-            title: 'Ayuda',
+            title: t('nav.help'),
             content: `
-                <p class="dialog-lead">Aquí encontrarás los atajos y funciones principales del sistema.</p>
+                <p class="dialog-lead">${t('nav.help_content')}</p>
                 <ul class="dialog-list">
-                    <li><strong>Productos</strong> — gestiona tu inventario y categorías</li>
-                    <li><strong>Clientes</strong> — registra y consulta clientes y su historial</li>
-                    <li><strong>Pedidos</strong> — crea y sigue el estado de los pedidos</li>
-                    <li><strong>Eventos</strong> — planifica bodas, cumpleaños y eventos especiales</li>
+                    <li><strong>${t('nav.products')}</strong> — ${t('nav.help_products')}</li>
+                    <li><strong>${t('nav.clients')}</strong> — ${t('nav.help_clients')}</li>
+                    <li><strong>${t('nav.orders')}</strong> — ${t('nav.help_orders')}</li>
+                    <li><strong>${t('nav.events')}</strong> — ${t('nav.help_events')}</li>
                     <li><strong>Inventario</strong> — alertas de stock, proveedores y órdenes de compra</li>
                     <li><strong>Reportes</strong> — analiza ventas, productos top y rentabilidad</li>
                 </ul>
@@ -6461,23 +6461,23 @@ class FlowerShopApp {
             const sep = (title) => [`--- ${title} ---`];
 
             const rows = [
-                sep('PRODUCTOS'),
-                ['Código', 'Nombre', 'Categoría', 'Precio Venta (€)', 'Precio Compra (€)', 'Stock', 'Stock Mínimo', 'Temporada'],
+                sep(t('export.csv_products')),
+                [t('common.select_category'), t('common.name'), t('export.col_category'), t('export.csv_product_price_sell'), t('export.csv_product_price_buy'), t('export.col_stock'), t('export.csv_product_min_stock'), t('export.csv_product_season')],
                 ...productos.map(p => [
                     p.codigo_producto || '', p.nombre, p.categoria_nombre || '',
                     p.precio_venta, p.precio_compra || 0, p.stock_actual, p.stock_minimo, p.temporada || ''
                 ]),
                 [],
-                sep('CLIENTES'),
-                ['Nombre', 'Email', 'Teléfono', 'Tipo'],
+                sep(t('export.csv_clients')),
+                [t('common.name'), t('common.email'), t('common.phone'), t('common.type')],
                 ...clientes.map(c => [
                     `${c.nombre} ${c.apellidos || ''}`.trim(), c.email || '', c.telefono || '', c.tipo_cliente || ''
                 ]),
                 [],
-                sep('ENCARGOS'),
-                ['ID', 'Cliente', 'Fecha Entrega', 'Estado', 'Total (€)'],
+                sep(t('export.csv_orders')),
+                [t('common.select_supplier'), t('common.client'), t('export.csv_order_delivery'), t('common.status'), t('common.total')],
                 ...pedidos.map(p => [
-                    p.id, p.cliente_nombre || 'Cliente ocasional',
+                    p.id, p.cliente_nombre || t('clients.occasional'),
                     p.fecha_entrega || '', p.estado, p.total
                 ]),
             ];
