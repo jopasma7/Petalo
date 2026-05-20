@@ -244,7 +244,7 @@ class FlowerShopApp {
                 </div>
                 <div style="display:flex;align-items:center;gap:8px">
                     <span style="font-weight:700;color:var(--g-600)">${window.flowerShopAPI.formatCurrency(p.total || 0)}</span>
-                    <span class="estado-badge ${p.estado}">${p.estado}</span>
+                    <span class="estado-badge ${p.estado}">${this.getTranslatedEstado(p.estado)}</span>
                 </div>
             </div>
         `).join('');
@@ -295,6 +295,23 @@ class FlowerShopApp {
         if (element) {
             element.textContent = content;
         }
+    }
+
+    getTranslatedEstado(estado) {
+        if (!estado) return '—';
+        const estadoMap = {
+            'pendiente': t('statuses.pending'),
+            'aprobado': t('statuses.approved'),
+            'cancelado': t('statuses.cancelled'),
+            'entregado': t('statuses.delivered'),
+            'enviada': t('statuses.sent'),
+            'recibida': t('statuses.received'),
+            'cancelada': t('statuses.cancelled'),
+            'activo': t('common.active'),
+            'inactivo': t('common.inactive'),
+            'confirmado': t('statuses.approved'),
+        };
+        return estadoMap[estado?.toLowerCase()] || estado;
     }
 
     updateStockBajo(productos) {
@@ -1278,8 +1295,8 @@ class FlowerShopApp {
                     </div>
                 </div>
                 <div class="provider-details-list">
-                    ${proveedor.telefono ? `<div class="provider-detail-row"><span class="provider-detail-label">Teléfono</span><span class="provider-detail-val">${proveedor.telefono}</span></div>` : ''}
-                    ${proveedor.email ? `<div class="provider-detail-row"><span class="provider-detail-label">Email</span><span class="provider-detail-val">${proveedor.email}</span></div>` : ''}
+                    ${proveedor.telefono ? `<div class="provider-detail-row"><span class="provider-detail-label">${t('common.phone')}</span><span class="provider-detail-val">${proveedor.telefono}</span></div>` : ''}
+                    ${proveedor.email ? `<div class="provider-detail-row"><span class="provider-detail-label">${t('common.email')}</span><span class="provider-detail-val">${proveedor.email}</span></div>` : ''}
                     ${(proveedor.ciudad || proveedor.direccion) ? `<div class="provider-detail-row"><span class="provider-detail-label">Ciudad</span><span class="provider-detail-val">${proveedor.ciudad || proveedor.direccion}</span></div>` : ''}
                 </div>
                 <div class="provider-stats">
@@ -1669,7 +1686,7 @@ class FlowerShopApp {
                 <td>${venta.cliente_nombre || 'N/A'}</td>
                 <td title="${venta.productos}">${venta.productos ? venta.productos.substring(0, 30) + '...' : 'N/A'}</td>
                 <td>${window.flowerShopAPI.formatCurrency(venta.total)}</td>
-                <td><span class="badge-estado badge-estado-${venta.estado.toLowerCase()}">${venta.estado}</span></td>
+                <td><span class="badge-estado badge-estado-${venta.estado.toLowerCase()}">${this.getTranslatedEstado(venta.estado)}</span></td>
                 <td>${window.flowerShopAPI.formatCurrency(venta.margen || 0)}</td>
             </tr>
         `).join('');
@@ -2709,7 +2726,7 @@ class FlowerShopApp {
                             <td class="historial-num">#${p.numero_pedido}</td>
                             <td class="historial-fecha">${window.flowerShopAPI.formatDate(p.created_at)}</td>
                             <td class="historial-fecha">${p.fecha_entrega ? window.flowerShopAPI.formatDate(p.fecha_entrega) : '—'}</td>
-                            <td><span class="estado-badge ${p.estado}">${p.estado}</span></td>
+                            <td><span class="estado-badge ${p.estado}">${this.getTranslatedEstado(p.estado)}</span></td>
                             <td class="historial-total text-right">${window.flowerShopAPI.formatCurrency(p.total || 0)}</td>
                             <td><button class="btn btn-sm btn-secondary" onclick="app.verPedido(${p.id})">${t('historial.view')}</button></td>
                         </tr>
@@ -3114,25 +3131,25 @@ class FlowerShopApp {
                         <div class="form-section-title"><span class="form-section-dot"></span>Registrar ajuste de stock</div>
                         <div class="pedido-form-grid" style="margin-bottom:var(--sp-4)">
                             <div class="form-group">
-                                <label>Producto</label>
+                                <label>${t('common.product')}</label>
                                 <select id="evento-stock-producto" class="form-select">
                                     <option value="">Seleccionar producto…</option>
                                     ${productos.map(p => `<option value="${p.id}" data-stock="${p.stock_actual}" data-unidad="${p.unidad_medida}">${p.nombre} (${p.stock_actual} ${p.unidad_medida})</option>`).join('')}
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Tipo de movimiento</label>
+                                <label>${t('inventory.movement_type_label')}</label>
                                 <select id="evento-stock-tipo" class="form-select">
                                     <option value="salida">Salida (reservar para evento)</option>
                                     <option value="entrada">Entrada (devolución)</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Cantidad</label>
+                                <label>${t('common.quantity')}</label>
                                 <input type="number" id="evento-stock-cantidad" class="form-input" min="1" value="1" placeholder="0">
                             </div>
                             <div class="form-group">
-                                <label>Notas</label>
+                                <label>${t('common.notes')}</label>
                                 <input type="text" id="evento-stock-notas" class="form-input" placeholder="Opcional…">
                             </div>
                         </div>
@@ -5081,7 +5098,7 @@ class FlowerShopApp {
                             </div>
                             ${movimiento.motivo ? `
                             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:var(--sp-1);padding-top:var(--sp-3);border-top:1px solid var(--s-100)">
-                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Motivo</span>
+                                <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('inventory.col_reason')}</span>
                                 <span style="font-size:0.9rem;color:var(--text-secondary)">${movimiento.motivo}</span>
                             </div>` : ''}
                             ${stockRow}
@@ -5561,7 +5578,7 @@ class FlowerShopApp {
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label class="form-label">Proveedor</label>
+                        <label class="form-label">${t('common.supplier')}</label>
                         <select id="_orden-proveedor-sel" class="form-select">
                             <option value="">Seleccionar proveedor…</option>
                             ${proveedores.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('')}
@@ -5698,7 +5715,7 @@ class FlowerShopApp {
                                <td class="historial-fecha">${window.flowerShopAPI.formatDate(o.created_at || o.fecha_orden)}</td>
                                <td>${o.total_items || '—'}</td>
                                <td class="historial-total text-right">${window.flowerShopAPI.formatCurrency(o.total_valor || o.total || 0)}</td>
-                               <td><span class="estado-badge ${o.estado}">${o.estado}</span></td>
+                               <td><span class="estado-badge ${o.estado}">${this.getTranslatedEstado(o.estado)}</span></td>
                            </tr>
                        `).join('')}
                    </tbody>
