@@ -170,7 +170,7 @@ class FlowerShopApp {
             // Greeting & date
             const now = new Date();
             const hour = now.getHours();
-            const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches';
+            const greeting = hour < 12 ? t('dashboard.good_morning') : hour < 20 ? t('dashboard.good_afternoon') : t('dashboard.good_evening');
             this.updateElement('dash-greeting-text', greeting);
             const fechaStr = now.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             this.updateElement('dash-fecha-hoy', fechaStr.charAt(0).toUpperCase() + fechaStr.slice(1));
@@ -732,14 +732,14 @@ class FlowerShopApp {
                             <div class="modal-header-icon"><i data-lucide="shopping-cart"></i></div>
                             <div>
                                 <h2 class="modal-title-pro">Pedido #<span id="detalle-numero-pedido"></span></h2>
-                                <p class="modal-subtitle-pro">Detalle completo del pedido</p>
+                                <p class="modal-subtitle-pro">${t('orders.details_subtitle')}</p>
                             </div>
                         </div>
-                        <button class="modal-close" aria-label="Cerrar">&times;</button>
+                        <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body" id="detalle-pedido-body"></div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
+                        <button type="button" class="btn btn-secondary modal-close">${t('common.close')}</button>
                     </div>
                 </div>
             `;
@@ -781,22 +781,22 @@ class FlowerShopApp {
                 ${lbl(label)}${content}
             </div>`;
 
-        const metodoPagoLabel = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia', bizum: 'Bizum' };
+        const metodoPagoLabel = { efectivo: t('tpv.cash'), tarjeta: t('tpv.card'), transferencia: t('tpv.transfer'), bizum: t('tpv.bizum') };
         const metodoPago = pedido.metodo_pago ? (metodoPagoLabel[pedido.metodo_pago] || pedido.metodo_pago) : null;
 
         body.innerHTML = `
             <div style="background:var(--s-50);border-radius:var(--r-lg);padding:var(--sp-4);margin-bottom:var(--sp-4);display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
-                ${field('Cliente', val(clienteNombre, true))}
-                ${field('Estado', `<span><span class="estado-badge ${estado}">${pedido.estado || '—'}</span></span>`)}
-                ${field('Fecha pedido', val(fmtDate(pedido.fecha_pedido || pedido.fecha)))}
-                ${field('Fecha entrega', val(fmtDate(pedido.fecha_entrega || pedido.entrega)))}
-                ${metodoPago ? field('Método de pago', val(metodoPago)) : ''}
-                ${pedido.evento_nombre ? field('Evento', val(pedido.evento_nombre)) : ''}
+                ${field(t('orders.client_label'), val(clienteNombre, true))}
+                ${field(t('orders.status_label'), `<span><span class="estado-badge ${estado}">${pedido.estado || '—'}</span></span>`)}
+                ${field(t('orders.order_date_label'), val(fmtDate(pedido.fecha_pedido || pedido.fecha)))}
+                ${field(t('orders.delivery_date_label'), val(fmtDate(pedido.fecha_entrega || pedido.entrega)))}
+                ${metodoPago ? field(t('orders.payment_method'), val(metodoPago)) : ''}
+                ${pedido.evento_nombre ? field(t('orders.event_label'), val(pedido.evento_nombre)) : ''}
             </div>
-            <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Productos</div>
+            <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">${t('orders.products_section')}</div>
             <div style="border:1px solid var(--s-100);border-radius:var(--r-lg);overflow:hidden;margin-bottom:var(--sp-4);max-height:240px;overflow-y:auto">
                 <table class="table" style="margin:0">
-                    <thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead>
+                    <thead><tr><th>${t('inventory.col_product')}</th><th style="text-align:center">${t('common.quantity')}</th><th style="text-align:right">${t('common.price')}</th><th style="text-align:right">${t('common.subtotal')}</th></tr></thead>
                     <tbody>${productosRows}</tbody>
                 </table>
             </div>
@@ -804,12 +804,12 @@ class FlowerShopApp {
             <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-4);display:flex;gap:var(--sp-3);align-items:flex-start">
                 <i data-lucide="sticky-note" style="width:16px;height:16px;color:#b45309;flex-shrink:0;margin-top:2px"></i>
                 <div>
-                    ${lbl('Notas')}
+                    ${lbl(t('orders.notes'))}
                     <p style="margin:var(--sp-1) 0 0;font-size:0.9rem;color:var(--text-secondary)">${pedido.notas}</p>
                 </div>
             </div>` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;background:var(--s-900);color:#fff;padding:var(--sp-3) var(--sp-4);border-radius:var(--r-lg)">
-                <span style="font-weight:600">Total</span>
+                <span style="font-weight:600">${t('common.total')}</span>
                 <span style="font-size:1.05rem;font-weight:700">${fmt(pedido.total)}</span>
             </div>
         `;
@@ -2074,7 +2074,7 @@ class FlowerShopApp {
             const categorias = await window.flowerShopAPI.getCategorias();
             const select = document.getElementById('producto-categoria');
             if (select) {
-                select.innerHTML = '<option value="">Seleccionar categoría</option>' +
+                select.innerHTML = '<option value="">${t('products.select_category')}</option>' +
                     categorias.map(cat => `<option value="${cat.id}">${cat.nombre}</option>`).join('');
             }
         } catch (error) {
@@ -2149,27 +2149,27 @@ class FlowerShopApp {
                                 <p class="modal-subtitle-pro">${p.codigo_producto || t('products.no_code')} · ${p.categoria_nombre || t('products.no_category')}</p>
                             </div>
                         </div>
-                        <button class="modal-close" aria-label="Cerrar">&times;</button>
+                        <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
                         ${p.tiene_imagen ? `<img id="ver-producto-img-${p.id}" src="" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--r-md)">` : ''}
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-4)">
-                            ${field('Precio de venta', val(window.flowerShopAPI.formatCurrency(p.precio_venta)))}
-                            ${field('Precio de compra', val(window.flowerShopAPI.formatCurrency(p.precio_compra || 0)))}
-                            ${field('Stock actual', val(`${p.stock_actual} ${p.unidad_medida}`, stockBajo))}
-                            ${field('Stock mínimo', val(`${p.stock_minimo} ${p.unidad_medida}`))}
-                            ${field('Estado', `<span><span class="estado-badge ${p.activo ? 'confirmado' : 'cancelado'}">${p.activo ? t('common.active') : t('common.inactive')}</span></span>`)}
-                            ${field('Categoría', val(p.categoria_nombre || t('products.no_category')))}
+                            ${field(t('products.sell_price'), val(window.flowerShopAPI.formatCurrency(p.precio_venta)))}
+                            ${field(t('products.buy_price'), val(window.flowerShopAPI.formatCurrency(p.precio_compra || 0)))}
+                            ${field(t('products.stock'), val(`${p.stock_actual} ${p.unidad_medida}`, stockBajo))}
+                            ${field(t('products.min_stock'), val(`${p.stock_minimo} ${p.unidad_medida}`))}
+                            ${field(t('common.status'), `<span><span class="estado-badge ${p.activo ? 'confirmado' : 'cancelado'}">${p.activo ? t('common.active') : t('common.inactive')}</span></span>`)}
+                            ${field(t('products.category'), val(p.categoria_nombre || t('products.no_category')))}
                         </div>
                         ${p.descripcion ? `
                         <div style="padding-top:var(--sp-3);border-top:1px solid var(--s-100)">
-                            ${lbl('Descripción')}
+                            ${lbl(t('products.description'))}
                             <p style="margin:var(--sp-1) 0 0;font-size:0.88rem;color:var(--text-secondary)">${p.descripcion}</p>
                         </div>` : ''}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
-                        <button type="button" class="btn btn-primary" onclick="app.closeModal(document.getElementById('modal-ver-producto-${p.id}')); app.editarProducto(${p.id})">Editar Producto</button>
+                        <button type="button" class="btn btn-secondary modal-close">${t('common.close')}</button>
+                        <button type="button" class="btn btn-primary" onclick="app.closeModal(document.getElementById('modal-ver-producto-${p.id}')); app.editarProducto(${p.id})">${t('products.modal_edit')}</button>
                     </div>
                 </div>
             `;
@@ -3415,60 +3415,60 @@ class FlowerShopApp {
                             <div class="modal-header-inner">
                                 <div class="modal-header-icon"><i data-lucide="clipboard-list"></i></div>
                                 <div>
-                                    <h2 class="modal-title-pro">Nuevo Encargo</h2>
-                                    <p class="modal-subtitle-pro">Selecciona productos y configura el encargo</p>
+                                    <h2 class="modal-title-pro">${t('orders.modal_new')}</h2>
+                                    <p class="modal-subtitle-pro">${t('orders.modal_sub')}</p>
                                 </div>
                             </div>
-                            <button class="modal-close" aria-label="Cerrar">&times;</button>
+                            <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                         </div>
                         <div class="modal-body" style="padding:0;display:grid;grid-template-columns:1fr 300px;min-height:420px">
                             <!-- Panel izquierdo: productos -->
                             <div style="padding:var(--sp-5);border-right:1px solid var(--s-100);display:flex;flex-direction:column;gap:var(--sp-3);min-height:520px">
-                                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Productos</div>
-                                <input type="text" id="pedido-buscar-producto" class="form-input" placeholder="Buscar producto…" autocomplete="off">
+                                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('orders.products_section')}</div>
+                                <input type="text" id="pedido-buscar-producto" class="form-input" placeholder="${t('orders.search_product')}" autocomplete="off">
                                 <div id="pedido-productos-catalogo" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-2);max-height:420px"></div>
                             </div>
                             <!-- Panel derecho: resumen + datos -->
                             <div style="padding:var(--sp-5);display:flex;flex-direction:column;gap:var(--sp-4)">
                                 <div>
-                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Cliente *</div>
+                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">${t('orders.client')}</div>
                                     <select id="pedido-cliente" name="cliente_id" required class="form-select"></select>
                                 </div>
                                 <div>
-                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Fecha de entrega *</div>
+                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">${t('orders.delivery')}</div>
                                     <input type="date" id="pedido-entrega" name="entrega" required class="form-input">
                                 </div>
                                 <div>
-                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Seleccionados</div>
+                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">${t('orders.selected')}</div>
                                     <div id="pedido-carrito" style="display:flex;flex-direction:column;gap:var(--sp-2);max-height:160px;overflow-y:auto">
-                                        <div id="pedido-carrito-vacio" style="font-size:0.82rem;color:var(--text-muted);text-align:center;padding:var(--sp-4) 0">Sin productos aún</div>
+                                        <div id="pedido-carrito-vacio" style="font-size:0.82rem;color:var(--text-muted);text-align:center;padding:var(--sp-4) 0">${t('orders.empty_cart')}</div>
                                     </div>
                                 </div>
                                 <div style="margin-top:auto;padding-top:var(--sp-3);border-top:1px solid var(--s-100)">
                                     <div style="display:flex;justify-content:space-between;font-size:0.88rem;font-weight:600;color:var(--text-primary)">
-                                        <span>Total estimado</span>
+                                        <span>${t('orders.total')}</span>
                                         <span id="pedido-total-estimado">0,00 €</span>
                                     </div>
                                 </div>
                                 <div>
-                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Método de pago</div>
+                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">${t('orders.payment_method')}</div>
                                     <select id="pedido-metodo-pago" class="form-select">
-                                        <option value="">Sin especificar</option>
-                                        <option value="efectivo">Efectivo</option>
-                                        <option value="tarjeta">Tarjeta</option>
-                                        <option value="transferencia">Transferencia</option>
-                                        <option value="bizum">Bizum</option>
+                                        <option value="">${t('orders.payment_unspecified')}</option>
+                                        <option value="efectivo">${t('tpv.cash')}</option>
+                                        <option value="tarjeta">${t('tpv.card')}</option>
+                                        <option value="transferencia">${t('tpv.transfer')}</option>
+                                        <option value="bizum">${t('tpv.bizum')}</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Notas</div>
-                                    <textarea id="pedido-notas" name="notas" rows="2" class="form-input" placeholder="Instrucciones especiales…"></textarea>
+                                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">${t('orders.notes')}</div>
+                                    <textarea id="pedido-notas" name="notas" rows="2" class="form-input" placeholder="${t('orders.special_instructions')}"></textarea>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary btn-cancel-pedido">${t('common.cancel')}</button>
-                            <button type="button" id="btn-guardar-pedido" class="btn btn-primary">Guardar Encargo</button>
+                            <button type="button" id="btn-guardar-pedido" class="btn btn-primary">${t('orders.save')}</button>
                         </div>
                     </div>
                 `;
@@ -4469,8 +4469,8 @@ class FlowerShopApp {
                     <div class="modal-header-inner">
                         <div class="modal-header-icon"><i data-lucide="building-2"></i></div>
                         <div>
-                            <h2 class="modal-title-pro">${isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
-                            <p class="modal-subtitle-pro">${isEdit ? 'Modifica los datos del proveedor' : 'Registra un nuevo proveedor en el sistema'}</p>
+                            <h2 class="modal-title-pro">${isEdit ? t('inventory.supplier_edit_title') : t('inventory.supplier_new_title')}</h2>
+                            <p class="modal-subtitle-pro">${isEdit ? t('inventory.supplier_edit_sub') : t('inventory.supplier_new_sub')}</p>
                         </div>
                     </div>
                     <button class="modal-close" aria-label="Cerrar">&times;</button>
@@ -4478,30 +4478,30 @@ class FlowerShopApp {
                 <div class="modal-body">
                     <form id="form-proveedor" class="form">
                         ${isEdit ? `<input type="hidden" name="id" value="${proveedor.id}">` : ''}
-                        <div class="form-section-title"><span class="form-section-dot"></span>Datos del proveedor</div>
+                        <div class="form-section-title"><span class="form-section-dot"></span>${t('inventory.supplier_form')}</div>
                         <div class="form-group form-group-full">
-                            <label class="form-label" for="proveedor-nombre">Nombre *</label>
-                            <input type="text" id="proveedor-nombre" name="nombre" class="form-input" value="${isEdit ? proveedor.nombre || '' : ''}" placeholder="Nombre del proveedor" required>
+                            <label class="form-label" for="proveedor-nombre">${t('inventory.supplier_name_label')}</label>
+                            <input type="text" id="proveedor-nombre" name="nombre" class="form-input" value="${isEdit ? proveedor.nombre || '' : ''}" placeholder="${t('inventory.supplier_name_label')}" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="proveedor-contacto">Persona de contacto</label>
-                            <input type="text" id="proveedor-contacto" name="contacto" class="form-input" value="${isEdit ? proveedor.contacto || '' : ''}" placeholder="Nombre del contacto">
+                            <label class="form-label" for="proveedor-contacto">${t('inventory.supplier_contact')}</label>
+                            <input type="text" id="proveedor-contacto" name="contacto" class="form-input" value="${isEdit ? proveedor.contacto || '' : ''}" placeholder="${t('inventory.supplier_contact')}">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="proveedor-telefono">Teléfono</label>
+                            <label class="form-label" for="proveedor-telefono">${t('common.phone')}</label>
                             <input type="tel" id="proveedor-telefono" name="telefono" class="form-input" value="${isEdit ? proveedor.telefono || '' : ''}" placeholder="+34 600 000 000">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="proveedor-email">Email</label>
+                            <label class="form-label" for="proveedor-email">${t('common.email')}</label>
                             <input type="email" id="proveedor-email" name="email" class="form-input" value="${isEdit ? proveedor.email || '' : ''}" placeholder="proveedor@email.com">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="proveedor-ciudad">Ciudad</label>
-                            <input type="text" id="proveedor-ciudad" name="ciudad" class="form-input" value="${isEdit ? proveedor.ciudad || '' : ''}" placeholder="Ciudad">
+                            <label class="form-label" for="proveedor-ciudad">${t('inventory.supplier_city')}</label>
+                            <input type="text" id="proveedor-ciudad" name="ciudad" class="form-input" value="${isEdit ? proveedor.ciudad || '' : ''}" placeholder="${t('inventory.supplier_city')}">
                         </div>
                         <div class="form-group form-group-full">
-                            <label class="form-label" for="proveedor-direccion">Dirección completa</label>
-                            <textarea id="proveedor-direccion" name="direccion" class="form-input" rows="2" placeholder="Dirección, CP, provincia…">${isEdit ? proveedor.direccion || '' : ''}</textarea>
+                            <label class="form-label" for="proveedor-direccion">${t('inventory.supplier_address')}</label>
+                            <textarea id="proveedor-direccion" name="direccion" class="form-input" rows="2" placeholder="${t('inventory.supplier_address')}">${isEdit ? proveedor.direccion || '' : ''}</textarea>
                         </div>
                     </form>
                 </div>
@@ -4641,41 +4641,41 @@ class FlowerShopApp {
                     <div class="modal-header-inner">
                         <div class="modal-header-icon"><i data-lucide="activity"></i></div>
                         <div>
-                            <h2 class="modal-title-pro">Registro de Movimiento</h2>
-                            <p class="modal-subtitle-pro">Registra una entrada, salida o ajuste de inventario</p>
+                            <h2 class="modal-title-pro">${t('inventory.movement_title')}</h2>
+                            <p class="modal-subtitle-pro">${t('inventory.movement_sub')}</p>
                         </div>
                     </div>
                     <button class="modal-close" aria-label="Cerrar">&times;</button>
                 </div>
                 <div class="modal-body">
                     <form id="form-movimiento" class="form">
-                        <div class="form-section-title"><span class="form-section-dot"></span>Datos del movimiento</div>
+                        <div class="form-section-title"><span class="form-section-dot"></span>${t('inventory.movement_form')}</div>
                         <div class="form-group form-group-full">
-                            <label class="form-label" for="movimiento-producto">Producto *</label>
+                            <label class="form-label" for="movimiento-producto">${t('inventory.col_product')} *</label>
                             <select id="movimiento-producto" name="producto_id" class="form-select" required>
-                                <option value="">Seleccionar producto…</option>
+                                <option value="">${t('inventory.movement_product_select')}</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="movimiento-tipo">Tipo *</label>
+                            <label class="form-label" for="movimiento-tipo">${t('common.type')} *</label>
                             <select id="movimiento-tipo" name="tipo_movimiento" class="form-select" required>
-                                <option value="">Seleccionar tipo…</option>
-                                <option value="entrada">Entrada</option>
-                                <option value="salida">Salida</option>
-                                <option value="ajuste">Ajuste</option>
-                                <option value="devolucion">Devolución</option>
+                                <option value="">${t('inventory.movement_type_select')}</option>
+                                <option value="entrada">${t('inventory.type_entry')}</option>
+                                <option value="salida">${t('inventory.type_exit')}</option>
+                                <option value="ajuste">${t('inventory.type_adjust')}</option>
+                                <option value="devolucion">${t('inventory.type_return')}</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="movimiento-cantidad">Cantidad *</label>
+                            <label class="form-label" for="movimiento-cantidad">${t('common.quantity')} *</label>
                             <input type="number" id="movimiento-cantidad" name="cantidad" class="form-input" min="1" placeholder="0" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="movimiento-motivo">Motivo</label>
+                            <label class="form-label" for="movimiento-motivo">${t('inventory.col_reason')}</label>
                             <input type="text" id="movimiento-motivo" name="motivo" class="form-input" placeholder="Ej: Compra, Venta, Daño…">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="movimiento-fecha">Fecha y hora</label>
+                            <label class="form-label" for="movimiento-fecha">${t('inventory.movement_date_label')}</label>
                             <input type="datetime-local" id="movimiento-fecha" name="fecha_movimiento" class="form-input" value="${new Date().toISOString().slice(0, 16)}">
                         </div>
                     </form>
@@ -4830,36 +4830,36 @@ class FlowerShopApp {
                                 <p class="modal-subtitle-pro">${orden.proveedor_nombre || '—'} · <span class="estado-badge ${orden.estado}" style="font-size:0.7rem">${estadoLabel(orden.estado)}</span></p>
                             </div>
                         </div>
-                        <button class="modal-close" aria-label="Cerrar">&times;</button>
+                        <button class="modal-close" aria-label="${t('common.close')}">&times;</button>
                     </div>
                     <div class="modal-body" style="display:flex;flex-direction:column;gap:var(--sp-4)">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);background:var(--s-50);border-radius:var(--r-lg);padding:var(--sp-4)">
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Fecha orden</span>
+                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('inventory.order_date_label')}</span>
                                 <span style="font-size:0.92rem;color:var(--text-primary)">${window.flowerShopAPI.formatDate(orden.fecha_orden)}</span>
                             </div>
                             <div style="display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Total</span>
+                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('common.total')}</span>
                                 <span style="font-size:0.95rem;font-weight:700;color:var(--text-primary)">${window.flowerShopAPI.formatCurrency(orden.total || 0)}</span>
                             </div>
                             ${orden.notas ? `
                             <div style="grid-column:1/-1;display:flex;flex-direction:column;gap:var(--sp-1)">
-                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">Notas</span>
+                                <span style="font-size:0.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em">${t('common.notes')}</span>
                                 <span style="font-size:0.88rem;color:var(--text-secondary)">${orden.notas}</span>
                             </div>` : ''}
                         </div>
                         <div>
-                            <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">Productos pedidos</div>
+                            <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:var(--sp-2)">${t('inventory.order_products_label')}</div>
                             <div style="border:1px solid var(--s-100);border-radius:var(--r-lg);overflow:hidden">
                                 <table class="table" style="margin:0">
-                                    <thead><tr><th>Producto</th><th style="text-align:center">Cant.</th><th style="text-align:right">Precio</th><th style="text-align:right">Subtotal</th></tr></thead>
+                                    <thead><tr><th>${t('inventory.col_product')}</th><th style="text-align:center">${t('common.quantity')}</th><th style="text-align:right">${t('common.price')}</th><th style="text-align:right">${t('common.subtotal')}</th></tr></thead>
                                     <tbody>${itemsHtml}</tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
+                        <button type="button" class="btn btn-secondary modal-close">${t('common.close')}</button>
                         ${accionBtn}
                         ${orden.estado !== 'recibida' && orden.estado !== 'cancelada' ? `<button type="button" class="btn btn-primary" onclick="app.editarOrden(${id})"><i data-lucide="edit-2" style="width:15px;height:15px;margin-right:6px"></i>${t('common.edit')}</button>` : ''}
                     </div>
@@ -4887,8 +4887,8 @@ class FlowerShopApp {
                     <div class="modal-header-inner">
                         <div class="modal-header-icon"><i data-lucide="file-text"></i></div>
                         <div>
-                            <h2 class="modal-title-pro">${isEdit ? 'Editar' : 'Nueva'} Orden de Compra</h2>
-                            <p class="modal-subtitle-pro">${isEdit ? 'Modifica los datos de la orden' : 'Crea una nueva orden de compra a proveedor'}</p>
+                            <h2 class="modal-title-pro">${isEdit ? t('inventory.order_edit_title') : t('inventory.order_new_title')}</h2>
+                            <p class="modal-subtitle-pro">${isEdit ? t('inventory.order_edit_sub') : t('inventory.order_new_sub')}</p>
                         </div>
                     </div>
                     <button class="modal-close" aria-label="Cerrar">&times;</button>
@@ -4896,28 +4896,28 @@ class FlowerShopApp {
                 <div class="modal-body">
                     <form id="form-orden" class="form">
                         ${isEdit ? `<input type="hidden" name="id" value="${orden.id}">` : ''}
-                        <div class="form-section-title"><span class="form-section-dot"></span>Datos de la orden</div>
+                        <div class="form-section-title"><span class="form-section-dot"></span>${t('inventory.order_form')}</div>
                         <div class="form-group form-group-full">
-                            <label class="form-label" for="orden-proveedor">Proveedor *</label>
+                            <label class="form-label" for="orden-proveedor">${t('inventory.col_supplier')} *</label>
                             <select id="orden-proveedor" name="proveedor_id" class="form-select" required>
-                                <option value="">Seleccionar proveedor…</option>
+                                <option value="">${t('inventory.order_supplier_select')}</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="orden-fecha">Fecha de orden</label>
+                            <label class="form-label" for="orden-fecha">${t('inventory.order_date_label')}</label>
                             <input type="date" id="orden-fecha" name="fecha_orden" class="form-input" value="${isEdit ? (orden.fecha_orden || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]}">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="orden-estado">Estado</label>
+                            <label class="form-label" for="orden-estado">${t('common.status')}</label>
                             <select id="orden-estado" name="estado" class="form-select">
-                                <option value="pendiente" ${isEdit && orden.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                                <option value="enviada" ${isEdit && orden.estado === 'enviada' ? 'selected' : ''}>Enviada</option>
-                                <option value="recibida" ${isEdit && orden.estado === 'recibida' ? 'selected' : ''}>Recibida</option>
-                                <option value="cancelada" ${isEdit && orden.estado === 'cancelada' ? 'selected' : ''}>Cancelada</option>
+                                <option value="pendiente" ${isEdit && orden.estado === 'pendiente' ? 'selected' : ''}>${t('inventory.order_status_pending')}</option>
+                                <option value="enviada" ${isEdit && orden.estado === 'enviada' ? 'selected' : ''}>${t('inventory.order_status_sent')}</option>
+                                <option value="recibida" ${isEdit && orden.estado === 'recibida' ? 'selected' : ''}>${t('inventory.order_status_received')}</option>
+                                <option value="cancelada" ${isEdit && orden.estado === 'cancelada' ? 'selected' : ''}>${t('inventory.order_status_cancelled')}</option>
                             </select>
                         </div>
                         <div class="form-group form-group-full">
-                            <label class="form-label" for="orden-notas">Notas</label>
+                            <label class="form-label" for="orden-notas">${t('common.notes')}</label>
                             <textarea id="orden-notas" name="notas" class="form-input" rows="2" placeholder="Instrucciones o notas adicionales…">${isEdit ? orden.notas || '' : ''}</textarea>
                         </div>
                     </form>
