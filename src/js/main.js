@@ -2787,7 +2787,7 @@ class FlowerShopApp {
         try {
             const { jsPDF } = window.jspdf;
             const empresa        = await window.flowerShopAPI.getConfiguracion();
-            const nombreEmpresa  = empresa?.empresa_nombre  || 'Mi Floristería';
+            const nombreEmpresa  = empresa?.empresa_nombre  || t('common_defaults.company_name');
             const dirEmpresa     = empresa?.empresa_direccion || '';
             const telEmpresa     = empresa?.empresa_telefono  || '';
 
