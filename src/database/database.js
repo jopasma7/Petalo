@@ -423,7 +423,7 @@ class FlowerShopDatabase {
             ];
 
             for (const [clave, valor, descripcion] of configuracion) {
-                this.runQuery(`INSERT INTO configuracion (clave, valor, descripcion) VALUES (?, ?, ?)`, [clave, valor, descripcion]);
+                this.runQuery(`INSERT OR IGNORE INTO configuracion (clave, valor, descripcion) VALUES (?, ?, ?)`, [clave, valor, descripcion]);
             }
 
             const tiposCliente = isEn ? [

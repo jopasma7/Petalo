@@ -423,7 +423,15 @@ class FlowerShopApp {
         if (!tbody) return;
 
         if (productos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center">${t('products.no_data')}</td></tr>`;
+            tbody.innerHTML = `
+                <tr><td colspan="7">
+                    <div class="pedidos-empty">
+                        <i data-lucide="package-x" class="pedidos-empty-icon"></i>
+                        <p class="pedidos-empty-title">${t('products.no_data')}</p>
+                        <p class="pedidos-empty-sub">${t('products.no_data_sub')}</p>
+                    </div>
+                </td></tr>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
 
@@ -483,7 +491,13 @@ class FlowerShopApp {
         if (!grid) return;
 
         if (clientes.length === 0) {
-            grid.innerHTML = `<p class="no-data">${t('clients.no_data')}</p>`;
+            grid.innerHTML = `
+                <div class="pedidos-empty" style="grid-column:1/-1">
+                    <i data-lucide="users" class="pedidos-empty-icon"></i>
+                    <p class="pedidos-empty-title">${t('clients.no_data')}</p>
+                    <p class="pedidos-empty-sub">${t('clients.no_data_sub')}</p>
+                </div>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
 
