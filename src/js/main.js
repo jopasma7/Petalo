@@ -558,7 +558,7 @@ class FlowerShopApp {
 
         if (eventos.length === 0) {
             container.innerHTML = `
-                <div class="pedidos-empty">
+                <div class="pedidos-empty" style="grid-column:1/-1">
                     <i data-lucide="calendar-x" class="pedidos-empty-icon"></i>
                     <p class="pedidos-empty-title">${t('events.no_data')}</p>
                     <p class="pedidos-empty-sub">${t('events.no_data_sub')}</p>
@@ -5927,6 +5927,15 @@ class FlowerShopApp {
             if (config.empresa_direccion) document.getElementById('empresa-direccion').value = config.empresa_direccion;
             if (config.empresa_telefono)  document.getElementById('empresa-telefono').value  = config.empresa_telefono;
         } catch (_) {}
+
+        // Cargar preferencias actuales en los selects
+        const prefs = JSON.parse(localStorage.getItem('perfil_prefs') || '{}');
+        const selIdioma = document.getElementById('pref-idioma');
+        const selMoneda = document.getElementById('pref-moneda');
+        const selFecha  = document.getElementById('pref-fecha');
+        if (selIdioma && prefs.idioma) selIdioma.value = prefs.idioma;
+        if (selMoneda && prefs.moneda) selMoneda.value = prefs.moneda;
+        if (selFecha  && prefs.fecha)  selFecha.value  = prefs.fecha;
 
         const form = document.getElementById('empresa-form');
         if (form && !form._handler) {
