@@ -1,15 +1,44 @@
-node_modules/
-dist/
-data/
-src/
+# Source code — managed in private repo (jopasma7/Trabajos)
 main.js
+src/
 package.json
 package-lock.json
-.vscode/
+CHANGELOG.md
+floristeria.code-workspace
+assets/icon.ico
+docs/MANUAL.md
+docs/MANUAL.pdf
+docs/MANUAL_EN.md
+docs/MANUAL_EN.pdf
+
+# Dependencies
+node_modules/
+
+# Database backups and temporary files
 *.db
+*.db-backup
 *.db-journal
 *.db-wal
 *.db-shm
-.env
+*.tmp
+*.temp
+
+# System files
+.DS_Store
+Thumbs.db
 *.log
-*.code-workspace
+
+# IDE files
+.vscode/
+.idea/
+
+# Build files
+dist/
+build/
+
+# Data directories
+data/
+
+# Environment files
+.env
+.env.local
