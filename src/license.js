@@ -86,12 +86,6 @@ function verifyWithLemonSqueezy(licenseKey) {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 async function activate(licenseKey) {
-    if (licenseKey.trim() === 'PETALO-DEV-2026') {
-        const expiresAt = Date.now() + 365 * 86400000;
-        saveLicense({ key: licenseKey.trim(), email: 'dev@petalo.app', expiresAt, activatedAt: Date.now(), lastCheck: Date.now() });
-        return { ok: true, email: 'dev@petalo.app', expiresAt };
-    }
-
     let res;
     try {
         res = await verifyWithLemonSqueezy(licenseKey.trim());
