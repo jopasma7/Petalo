@@ -6666,5 +6666,9 @@ FlowerShopApp.prototype.onboardingFinish = async function() {
         setTimeout(() => { overlay.style.display = 'none'; }, 370);
     }
 
-    try { await this.loadInitialData(); this.showSection('dashboard'); } catch (_) {}
+    try {
+        await this.loadInitialData();
+        await this.updateSidebarBadges();
+        this.showSection('dashboard');
+    } catch (_) {}
 };
