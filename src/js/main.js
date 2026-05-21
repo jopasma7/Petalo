@@ -1039,13 +1039,13 @@ class FlowerShopApp {
         const container = document.getElementById('productos-sin-movimiento');
         if (!container) return;
 
-        // Simular productos con bajo movimiento (los que tienen menos stock)
-        const productosOrdenados = productos
+        // Show products with lowest stock as candidates for low movement
+        const productosOrdenados = [...productos]
             .sort((a, b) => a.stock_actual - b.stock_actual)
             .slice(0, 5);
 
         if (productosOrdenados.length === 0) {
-            container.innerHTML = `<div class="ranking-loading">🎉 ${t('inventory.all_products_good_movement')}</div>`;
+            container.innerHTML = `<div class="ranking-loading">${t('inventory.all_products_good_movement')}</div>`;
             return;
         }
 
@@ -1056,7 +1056,7 @@ class FlowerShopApp {
                     <div class="ranking-title">${producto.nombre}</div>
                     <div class="ranking-subtitle">Stock: ${producto.stock_actual} ${t('common.units')}</div>
                 </div>
-                <div class="ranking-value">${Math.floor(Math.random() * 30) + 10} ${t('common.days')}</div>
+                <div class="ranking-value" style="font-size:0.78rem;color:var(--text-muted)">${t('inventory.no_sales')}</div>
             </div>
         `).join('');
     }
