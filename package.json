@@ -42,14 +42,11 @@
             "output": "dist"
         },
         "win": {
-            "target": [{ "target": "nsis", "arch": ["x64"] }],
-            "icon": "assets/icon.png"
+            "target": [{ "target": "nsis", "arch": ["x64"] }]
         },
         "nsis": {
             "oneClick": false,
             "allowToChangeInstallationDirectory": true,
-            "installerIcon": "assets/icon.png",
-            "uninstallerIcon": "assets/icon.png",
             "createDesktopShortcut": true,
             "createStartMenuShortcut": true,
             "shortcutName": "Pétalo"
