@@ -13,7 +13,7 @@
 
 **Pétalo** is a desktop application built for florists — manage your products, clients, events, orders, inventory, and suppliers from a single clean interface. Works completely offline. No subscriptions to external services, no cloud dependency, no complexity.
 
-[**Website**](https://jopasma7.github.io/Petalo/) &nbsp;·&nbsp; [**Buy Now — €39.99 / year**](https://jopasma7.github.io/Petalo/) &nbsp;·&nbsp; [Download](https://github.com/jopasma7/Petalo/releases/latest) &nbsp;·&nbsp; [Support](#support)
+[**Website**](https://jopasma7.github.io/Petalo/) &nbsp;·&nbsp; [**Buy Now — €39.99**](https://jopasma7.github.io/Petalo/) &nbsp;·&nbsp; [Download](https://github.com/jopasma7/Petalo/releases/latest) &nbsp;·&nbsp; [Support](#support)
 
 ---
 
@@ -144,10 +144,10 @@ Run the installer, open Pétalo, enter your license key when prompted, and follo
 
 ## Pricing
 
-| Plan | Price | Includes |
+| | Price | Includes |
 |---|---|---|
-| **Monthly** | €9.99 / month | All features, updates, email support |
-| **Annual** | €39.99 / year | All features, updates, email support — save 67% |
+| **One-time purchase** | €39.99 | Lifetime license activation, all features |
+| **Monthly subscription** | €9.99 / month | Keep the app active, all updates, email support |
 
 A **3-day free trial** is included — no payment required to evaluate the software.
 
