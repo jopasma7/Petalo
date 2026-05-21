@@ -267,46 +267,11 @@ class FlowerShopDatabase {
         }
 
         // Tipos de cliente por defecto — siempre garantizados
-        const tiposDefault = [
-            ['Nuevo',      '#6b7280'],
-            ['Regular',    '#3b82f6'],
-            ['Frecuente',  '#f59e0b'],
-            ['VIP',        '#8b5cf6'],
-            ['Empresa',    '#0ea5e9'],
-            ['Mayorista',  '#10b981'],
-        ];
-        for (const [nombre, color] of tiposDefault) {
-            this.db.prepare(`INSERT OR IGNORE INTO tipos_cliente (nombre, color) VALUES (?, ?)`).run(nombre, color);
-        }
-
-        // Tipos de evento por defecto
-        const tiposEventoDefault = [
-            ['Boda',         '#ec4899'],
-            ['Cumpleaños',   '#f59e0b'],
-            ['Comunión',     '#8b5cf6'],
-            ['Bautizo',      '#0ea5e9'],
-            ['Funeral',      '#6b7280'],
-            ['Corporativo',  '#3b82f6'],
-            ['Temporal',     '#10b981'],
-        ];
-        for (const [nombre, color] of tiposEventoDefault) {
-            this.db.prepare(`INSERT OR IGNORE INTO tipos_evento (nombre, color) VALUES (?, ?)`).run(nombre, color);
-        }
-
         // Migración: marcar ventas rápidas antiguas que no tienen tipo_pedido
         try {
             this.db.prepare(
                 `UPDATE pedidos SET tipo_pedido = 'venta_rapida'
                  WHERE (tipo_pedido IS NULL OR tipo_pedido = '') AND notas = 'Venta rápida'`
-            ).run();
-        } catch (_) {}
-
-        // Migración: corregir tipo_evento de eventos con valores obsoletos
-        try {
-            this.db.prepare(
-                `UPDATE eventos SET tipo_evento = 'Temporal'
-                 WHERE tipo_evento IS NOT NULL
-                   AND tipo_evento NOT IN (SELECT nombre FROM tipos_evento)`
             ).run();
         } catch (_) {}
 
@@ -459,6 +424,45 @@ class FlowerShopDatabase {
 
             for (const [clave, valor, descripcion] of configuracion) {
                 this.runQuery(`INSERT INTO configuracion (clave, valor, descripcion) VALUES (?, ?, ?)`, [clave, valor, descripcion]);
+            }
+
+            const tiposCliente = isEn ? [
+                ['New',        '#6b7280'],
+                ['Regular',    '#3b82f6'],
+                ['Frequent',   '#f59e0b'],
+                ['VIP',        '#8b5cf6'],
+                ['Corporate',  '#0ea5e9'],
+                ['Wholesale',  '#10b981'],
+            ] : [
+                ['Nuevo',      '#6b7280'],
+                ['Regular',    '#3b82f6'],
+                ['Frecuente',  '#f59e0b'],
+                ['VIP',        '#8b5cf6'],
+                ['Empresa',    '#0ea5e9'],
+                ['Mayorista',  '#10b981'],
+            ];
+            for (const [nombre, color] of tiposCliente) {
+                this.db.prepare(`INSERT OR IGNORE INTO tipos_cliente (nombre, color) VALUES (?, ?)`).run(nombre, color);
+            }
+
+            const tiposEvento = isEn ? [
+                ['Wedding',    '#ec4899'],
+                ['Birthday',   '#f59e0b'],
+                ['Baptism',    '#0ea5e9'],
+                ['Funeral',    '#6b7280'],
+                ['Corporate',  '#3b82f6'],
+                ['Seasonal',   '#10b981'],
+            ] : [
+                ['Boda',       '#ec4899'],
+                ['Cumpleaños', '#f59e0b'],
+                ['Comunión',   '#8b5cf6'],
+                ['Bautizo',    '#0ea5e9'],
+                ['Funeral',    '#6b7280'],
+                ['Corporativo','#3b82f6'],
+                ['Temporal',   '#10b981'],
+            ];
+            for (const [nombre, color] of tiposEvento) {
+                this.db.prepare(`INSERT OR IGNORE INTO tipos_evento (nombre, color) VALUES (?, ?)`).run(nombre, color);
             }
 
             this.insertSampleOrders();
