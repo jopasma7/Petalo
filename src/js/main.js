@@ -2576,7 +2576,7 @@ class FlowerShopApp {
     }
 
     async eliminarCategoria(id, nombre) {
-        const msg = t('inventory.delete_category_confirm', {name: nombre}) + `<br><small>${t('inventory.delete_category_hint')}</small>`;
+        const msg = t('confirms.delete_category_confirm', {name: nombre}) + `<br><small>${t('confirms.delete_category_hint')}</small>`;
         const ok = await this._confirm(t('confirms.delete_category_title'), msg, t('confirms.btn_delete'), 'btn-danger');
         if (!ok) return;
         try {
@@ -4800,7 +4800,7 @@ class FlowerShopApp {
             // Confirmar eliminación
             const ok = await this._confirm(
                 t('confirms.delete_supplier_title'),
-                `${t('inventory.delete_supplier_confirm', {name: proveedor.nombre})}<br><br>${t('confirms.delete_supplier')}`
+                `${t('confirms.delete_supplier_confirm', {name: proveedor.nombre})}<br><br>${t('confirms.delete_supplier')}`
             );
             if (ok) {
                 await window.flowerShopAPI.eliminarProveedor(id);
@@ -5843,10 +5843,10 @@ class FlowerShopApp {
                 <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
                     <thead>
                         <tr style="background:var(--s-50)">
-                            <th style="padding:7px 8px;text-align:left;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_product')}</th>
-                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_qty')}</th>
-                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_old')}</th>
-                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_new')}</th>
+                            <th style="padding:7px 8px;text-align:left;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('msgs.reception_col_product')}</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('msgs.reception_col_qty')}</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('msgs.reception_col_old')}</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('msgs.reception_col_new')}</th>
                         </tr>
                     </thead>
                     <tbody>${filasHTML}</tbody>
