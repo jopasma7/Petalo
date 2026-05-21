@@ -1054,7 +1054,7 @@ class FlowerShopApp {
                 <div class="ranking-position">${index + 1}</div>
                 <div class="ranking-content">
                     <div class="ranking-title">${producto.nombre}</div>
-                    <div class="ranking-subtitle">Stock: ${producto.stock_actual} unidades</div>
+                    <div class="ranking-subtitle">Stock: ${producto.stock_actual} ${t('common.units')}</div>
                 </div>
                 <div class="ranking-value">${Math.floor(Math.random() * 30) + 10} ${t('common.days')}</div>
             </div>
@@ -1118,7 +1118,7 @@ class FlowerShopApp {
                 <div class="ranking-position">${index + 1}</div>
                 <div class="ranking-content">
                     <div class="ranking-title">${producto.nombre}</div>
-                    <div class="ranking-subtitle">Stock: ${producto.stock_actual} unidades</div>
+                    <div class="ranking-subtitle">Stock: ${producto.stock_actual} ${t('common.units')}</div>
                 </div>
                 <div class="ranking-value" style="font-size:0.78rem;color:var(--text-muted)">${producto.dias_stock >= 999 ? t('inventory.no_sales') : producto.dias_stock + ' ' + t('inventory.days_label')}</div>
             </div>
@@ -5150,8 +5150,8 @@ class FlowerShopApp {
                     <div class="modal-body">
                         <div class="producto-info">
                             <h3>🌸 ${producto.nombre}</h3>
-                            <p><strong>Stock actual:</strong> ${producto.stock}</p>
-                            <p><strong>Precio:</strong> $${producto.precio}</p>
+                            <p><strong>${t('inventory.col_current_stock')}:</strong> ${producto.stock}</p>
+                            <p><strong>${t('common.price')}:</strong> $${producto.precio}</p>
                         </div>
                         <form id="form-orden-producto" class="form">
                             <input type="hidden" name="producto_id" value="${producto.id}">
@@ -5681,7 +5681,7 @@ class FlowerShopApp {
                 <div class="order-item-pro">
                     <div class="order-header-pro">
                         <div class="order-main-info">
-                            <span class="order-number">Orden #${orden.numero_orden || orden.id}</span>
+                            <span class="order-number">${t('inventory.col_number')} #${orden.numero_orden || orden.id}</span>
                             <span class="order-date">${window.flowerShopAPI.formatDate(orden.created_at)}</span>
                         </div>
                         <span class="order-status ${orden.estado}">${{ pendiente: t('inventory.order_status_pending'), enviada: t('inventory.order_status_sent'), recibida: t('inventory.order_status_received'), cancelada: t('inventory.order_status_cancelled') }[orden.estado] || orden.estado}</span>
@@ -5689,16 +5689,16 @@ class FlowerShopApp {
                     <div class="order-details-row">
                         <div class="order-detail-group">
                             <div class="order-detail">
-                                <span class="label">Items:</span>
+                                <span class="label">${t('inventory.col_items')}:</span>
                                 <span class="value">${orden.total_items}</span>
                             </div>
                             <div class="order-detail">
-                                <span class="label">Total:</span>
+                                <span class="label">${t('common.total')}:</span>
                                 <span class="value">${window.flowerShopAPI.formatCurrency(orden.total_valor || orden.total || 0)}</span>
                             </div>
                             ${orden.fecha_entrega ? `
                             <div class="order-detail">
-                                <span class="label">Entrega:</span>
+                                <span class="label">${t('common.delivery')}:</span>
                                 <span class="value">${window.flowerShopAPI.formatDate(orden.fecha_entrega)}</span>
                             </div>
                             ` : ''}
@@ -5843,10 +5843,10 @@ class FlowerShopApp {
                 <table style="width:100%;border-collapse:collapse;font-size:0.85rem">
                     <thead>
                         <tr style="background:var(--s-50)">
-                            <th style="padding:7px 8px;text-align:left;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Producto</th>
-                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Cantidad</th>
-                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Stock actual</th>
-                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">Stock nuevo</th>
+                            <th style="padding:7px 8px;text-align:left;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_product')}</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_qty')}</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_old')}</th>
+                            <th style="padding:7px 8px;text-align:center;color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--s-200)">${t('orders.reception_col_new')}</th>
                         </tr>
                     </thead>
                     <tbody>${filasHTML}</tbody>
