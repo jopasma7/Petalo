@@ -421,7 +421,6 @@ svg[data-lucide] { display: block; }
 .btn-primary:hover, .btn-success:hover, .btn-guardar:hover {
   background: linear-gradient(135deg, var(--g-700), var(--g-500));
   box-shadow: 0 4px 14px rgb(21 128 61/.35);
-  transform: translateY(-2px);
   color: #fff;
 }
 
@@ -434,7 +433,6 @@ svg[data-lucide] { display: block; }
 .btn-secondary:hover {
   background: var(--s-200);
   color: var(--s-800);
-  transform: translateY(-1px);
 }
 
 /* Danger */
@@ -447,7 +445,6 @@ svg[data-lucide] { display: block; }
 .btn-danger:hover, .btn-cancelar:hover {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   box-shadow: 0 4px 14px rgb(239 68 68/.35);
-  transform: translateY(-2px);
   color: #fff;
 }
 
@@ -460,7 +457,6 @@ svg[data-lucide] { display: block; }
 }
 .btn-warning:hover {
   background: linear-gradient(135deg, #d97706, #b45309);
-  transform: translateY(-2px);
   color: #fff;
 }
 
@@ -1329,7 +1325,7 @@ svg[data-lucide] { display: block; }
   transition: box-shadow .15s, transform .15s;
   box-shadow: var(--sh-sm);
 }
-.dash-quick-btn:hover { box-shadow: var(--sh-md); transform: translateY(-2px); }
+.dash-quick-btn:hover { box-shadow: var(--sh-md); }
 .dash-quick-icon {
   width: 40px;
   height: 40px;
@@ -1400,7 +1396,7 @@ svg[data-lucide] { display: block; }
   transition: opacity .15s, transform .1s, box-shadow .15s;
   letter-spacing: .01em;
 }
-.sidebar-tpv-btn:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(22,163,74,.45); }
+.sidebar-tpv-btn:hover { opacity: .92; box-shadow: 0 4px 14px rgba(22,163,74,.45); }
 
 .tpv-layout {
   display: grid;
@@ -1538,7 +1534,7 @@ svg[data-lucide] { display: block; }
   transition: opacity .15s, transform .1s;
   letter-spacing: .01em;
 }
-.tpv-cobrar-btn:hover { opacity: .92; transform: translateY(-1px); }
+.tpv-cobrar-btn:hover { opacity: .92; }
 .tpv-cobrar-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 
 /* ── Categorías emoji picker ── */

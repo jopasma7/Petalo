@@ -530,6 +530,7 @@ class FlowerShopApp {
     async loadEventosData() {
         try {
             const eventos = await window.flowerShopAPI.getEventos();
+            this._eventosCache = eventos;
             this.displayEventos(eventos);
         } catch (error) {
             console.error('❌ Error cargando eventos:', error);
@@ -2227,13 +2228,15 @@ class FlowerShopApp {
     }
 
     async eliminarCliente(id) {
+        const cliente = (this._clientesCache || []).find(c => c.id === id);
+        const nombre = cliente ? `${cliente.nombre} ${cliente.apellidos || ''}`.trim() : '';
         const ok = await this._confirm(t('confirms.delete_client_title'), t('confirms.delete_client'), t('confirms.btn_delete'));
         if (!ok) return;
         try {
             await window.flowerShopAPI.eliminarCliente(id);
             await this.loadClientesData();
             await this.updateSidebarBadges();
-            this.showNotification(t('msgs.client_deleted'), 'success');
+            this.showNotification(`${t('msgs.client_deleted')}${nombre ? `: ${nombre}` : ''}`, 'success');
         } catch (error) {
             console.error('Error eliminando cliente:', error);
             this.showNotification(t('msgs.error_delete'), 'error');
@@ -2241,13 +2244,15 @@ class FlowerShopApp {
     }
 
     async eliminarProducto(id) {
+        const producto = (this._productosCache || []).find(p => p.id === id);
+        const nombre = producto?.nombre || '';
         const ok = await this._confirm(t('confirms.delete_product_title'), t('confirms.delete_product'), t('confirms.btn_delete'));
         if (!ok) return;
         try {
             await window.flowerShopAPI.eliminarProducto(id);
             await this.loadProductosData();
             await this.updateSidebarBadges();
-            this.showNotification(t('msgs.product_deleted'), 'success');
+            this.showNotification(`${t('msgs.product_deleted')}${nombre ? `: ${nombre}` : ''}`, 'success');
             // Re-apply active filters
             const termino = document.getElementById('search-productos')?.value || '';
             const catId = document.getElementById('filter-categoria')?.value || '';
@@ -3124,11 +3129,13 @@ class FlowerShopApp {
     }
     // Eliminar evento
     async eliminarEvento(id) {
-        const ok = await this._confirm(t('confirms.delete_event_title'), t('confirms.delete_product'), t('confirms.btn_delete'));
+        const evento = (this._eventosCache || []).find(e => e.id === id);
+        const nombre = evento?.nombre || '';
+        const ok = await this._confirm(t('confirms.delete_event_title'), t('confirms.delete_event'), t('confirms.btn_delete'));
         if (!ok) return;
         try {
             await window.flowerShopAPI.eliminarEvento(id);
-            this.showNotification(t('msgs.event_deleted'), 'success');
+            this.showNotification(`${t('msgs.event_deleted')}${nombre ? `: ${nombre}` : ''}`, 'success');
             await this.loadEventosData();
         } catch (error) {
             this.showNotification(t('msgs.error_delete'), 'error');
@@ -3887,10 +3894,10 @@ class FlowerShopApp {
             if (editId) {
                 await window.flowerShopAPI.actualizarProducto(Number(editId), producto);
                 form.removeAttribute('data-edit-id');
-                this.showNotification(t('msgs.product_updated'), 'success');
+                this.showNotification(`${t('msgs.product_updated')}: ${producto.nombre}`, 'success');
             } else {
                 await window.flowerShopAPI.crearProducto(producto);
-                this.showNotification(t('msgs.product_saved'), 'success');
+                this.showNotification(`${t('msgs.product_saved')}: ${producto.nombre}`, 'success');
             }
             this.hideModal('modal-producto');
             await this.loadProductosData();
@@ -3936,10 +3943,10 @@ class FlowerShopApp {
 
             if (editId) {
                 await window.flowerShopAPI.actualizarCliente(editId, cliente);
-                this.showNotification(t('msgs.client_updated'), 'success');
+                this.showNotification(`${t('msgs.client_updated')}: ${cliente.nombre}`, 'success');
             } else {
                 await window.flowerShopAPI.crearCliente(cliente);
-                this.showNotification(t('msgs.client_saved'), 'success');
+                this.showNotification(`${t('msgs.client_saved')}: ${cliente.nombre}`, 'success');
             }
             
             this.hideModal('modal-cliente');
@@ -3974,14 +3981,12 @@ class FlowerShopApp {
 
             const editId = form.getAttribute('data-edit-id');
             if (editId) {
-                // Actualizar evento existente
                 await window.flowerShopAPI.actualizarEvento(Number(editId), evento);
                 form.removeAttribute('data-edit-id');
-                this.showNotification(t('msgs.event_updated'), 'success');
+                this.showNotification(`${t('msgs.event_updated')}: ${evento.nombre}`, 'success');
             } else {
-                // Crear nuevo evento
                 await window.flowerShopAPI.crearEvento(evento);
-                this.showNotification(t('msgs.event_saved'), 'success');
+                this.showNotification(`${t('msgs.event_saved')}: ${evento.nombre}`, 'success');
             }
             this.hideModal('modal-evento');
             await this.loadEventosData();
@@ -4828,7 +4833,7 @@ class FlowerShopApp {
             );
             if (ok) {
                 await window.flowerShopAPI.eliminarProveedor(id);
-                this.showNotification(t('msgs.supplier_deleted'), 'success');
+                this.showNotification(`${t('msgs.supplier_deleted')}: ${proveedor.nombre}`, 'success');
                 await this.loadProviders(); // Recargar lista
             }
             
