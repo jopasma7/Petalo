@@ -6,10 +6,6 @@ package-lock.json
 CHANGELOG.md
 floristeria.code-workspace
 assets/icon.ico
-docs/MANUAL.md
-docs/MANUAL.pdf
-docs/MANUAL_EN.md
-docs/MANUAL_EN.pdf
 
 # Dependencies
 node_modules/
