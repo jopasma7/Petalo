@@ -57,6 +57,7 @@ class FlowerShopApp {
         await this.updateSidebarBadges();
         await this.generarNotificaciones();
         this.showSection('dashboard');
+        this.checkOnboarding();
         const avatarImg = localStorage.getItem('perfil_avatar_img');
         this.updateAvatarEverywhere(avatarImg || null);
         this.setupProductoImageInput();
@@ -6590,3 +6591,79 @@ document.addEventListener('DOMContentLoaded', () => {
         pwdForm.reset();
     });
 });
+
+// ═══════════════════════════════ ONBOARDING ═══════════════════════════════════
+
+let _obStep = 1;
+
+function _obRender() {
+    const step = _obStep;
+    document.querySelectorAll('.ob-step').forEach(el => {
+        el.classList.toggle('active', +el.dataset.step === step);
+    });
+    document.querySelectorAll('.ob-dot').forEach(el => {
+        el.classList.toggle('active', +el.dataset.dot === step);
+    });
+    const btnBack   = document.getElementById('ob-btn-back');
+    const btnNext   = document.getElementById('ob-btn-next');
+    const btnFinish = document.getElementById('ob-btn-finish');
+    if (btnBack)   btnBack.style.display   = step > 1 ? 'block' : 'none';
+    if (btnNext)   btnNext.style.display   = step < 3 ? 'block' : 'none';
+    if (btnFinish) btnFinish.style.display = step === 3 ? 'block' : 'none';
+}
+
+// Called from initialize()
+FlowerShopApp.prototype.checkOnboarding = function() {
+    if (localStorage.getItem('petalo-onboarding-done')) return;
+    const overlay = document.getElementById('onboarding-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    window.i18n.setLocale('es');
+    overlay.querySelectorAll('input[name="ob-lang"]').forEach(radio => {
+        radio.addEventListener('change', () => window.i18n.setLocale(radio.value));
+    });
+    _obStep = 1;
+    _obRender();
+};
+
+// Called from HTML onclick="app.onboardingNext()"
+FlowerShopApp.prototype.onboardingNext = function() {
+    if (_obStep < 3) { _obStep++; _obRender(); }
+};
+
+FlowerShopApp.prototype.onboardingPrev = function() {
+    if (_obStep > 1) { _obStep--; _obRender(); }
+};
+
+FlowerShopApp.prototype.onboardingFinish = async function() {
+    const lang     = document.querySelector('input[name="ob-lang"]:checked')?.value || 'es';
+    const currency = document.querySelector('input[name="ob-currency"]:checked')?.value || 'EUR';
+    const name     = document.getElementById('ob-company-name')?.value.trim() || '';
+    const address  = document.getElementById('ob-address')?.value.trim() || '';
+    const phone    = document.getElementById('ob-phone')?.value.trim() || '';
+    const email    = document.getElementById('ob-email')?.value.trim() || '';
+
+    const prefs = JSON.parse(localStorage.getItem('perfil_prefs') || '{}');
+    prefs.idioma = lang;
+    prefs.moneda = currency;
+    localStorage.setItem('perfil_prefs', JSON.stringify(prefs));
+    window.i18n.setLocale(lang);
+
+    const configData = { moneda: currency };
+    if (name)    configData.empresa_nombre    = name;
+    if (address) configData.empresa_direccion = address;
+    if (phone)   configData.empresa_telefono  = phone;
+    if (email)   configData.empresa_email     = email;
+    try { await window.flowerShopAPI.setConfiguracion(configData); } catch (_) {}
+
+    try { await window.flowerShopAPI.seedSampleData(lang); } catch (_) {}
+
+    localStorage.setItem('petalo-onboarding-done', '1');
+    const overlay = document.getElementById('onboarding-overlay');
+    if (overlay) {
+        overlay.style.animation = 'ob-fade-out .35s ease forwards';
+        setTimeout(() => { overlay.style.display = 'none'; }, 370);
+    }
+
+    try { await this.loadInitialData(); this.showSection('dashboard'); } catch (_) {}
+};

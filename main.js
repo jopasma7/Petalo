@@ -876,12 +876,21 @@ ipcMain.handle('open-external', (_e, url) => {
     shell.openExternal(url);
 });
 
+ipcMain.handle('seed-sample-data', async (_e, lang) => {
+    try { await dbManager.insertSampleData(lang || 'es'); return { ok: true }; }
+    catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('clear-all-data', async () => {
+    try { dbManager.clearAllData(); return { ok: true }; }
+    catch (e) { return { ok: false, error: e.message }; }
+});
+
 // ── App launch ────────────────────────────────────────────────────────────────
 async function launchApp() {
     dbManager = new FlowerShopDatabase();
     try {
         await dbManager.connect();
-        await dbManager.insertSampleData();
     } catch (error) {
         console.error('Error inicializando base de datos:', error);
     }

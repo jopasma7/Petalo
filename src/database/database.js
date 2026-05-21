@@ -331,7 +331,22 @@ class FlowerShopDatabase {
 
     // ─── Sample data ──────────────────────────────────────────────────────────
 
-    async insertSampleData() {
+    clearAllData() {
+        const tables = [
+            'inventario_movimientos', 'orden_compra_detalles', 'ordenes_compra',
+            'productos_proveedores', 'pedido_detalles', 'pedidos',
+            'proveedores', 'clientes', 'eventos', 'productos', 'categorias', 'configuracion'
+        ];
+        this.db.pragma('foreign_keys = OFF');
+        for (const t of tables) {
+            try { this.db.prepare(`DELETE FROM ${t}`).run(); } catch (_) {}
+            try { this.db.prepare(`DELETE FROM sqlite_sequence WHERE name = '${t}'`).run(); } catch (_) {}
+        }
+        this.db.pragma('foreign_keys = ON');
+        console.log('Todos los datos eliminados correctamente');
+    }
+
+    async insertSampleData(lang = 'es') {
         const count = this.getQuery("SELECT COUNT(*) as count FROM productos");
         if (count.count > 0) {
             console.log('La base de datos ya contiene datos de ejemplo');
@@ -339,41 +354,50 @@ class FlowerShopDatabase {
         }
 
         try {
-            const categorias = [
-                ['Flores Naturales', 'Flores frescas cortadas', '🌹'],
-                ['Plantas de Interior', 'Plantas para decoración interior', '🪴'],
-                ['Plantas de Exterior', 'Plantas para jardín y balcón', '🌿'],
-                ['Jardineras', 'Contenedores para plantas y flores', '🏺'],
-                ['Accesorios', 'Macetas, tierra, fertilizantes', '🛠️'],
-                ['Arreglos Especiales', 'Bouquets y composiciones', '💐']
+            const isEn = lang === 'en';
+
+            const categorias = isEn ? [
+                ['Fresh Flowers',    'Cut fresh flowers',              '🌹'],
+                ['Indoor Plants',    'Plants for indoor decoration',   '🪴'],
+                ['Outdoor Plants',   'Plants for garden and balcony',  '🌿'],
+                ['Planters',         'Containers for plants',          '🏺'],
+                ['Accessories',      'Pots, soil, fertilisers',        '🛠️'],
+                ['Special Bouquets', 'Bouquets and compositions',      '💐'],
+            ] : [
+                ['Flores Naturales',  'Flores frescas cortadas',             '🌹'],
+                ['Plantas de Interior','Plantas para decoración interior',   '🪴'],
+                ['Plantas de Exterior','Plantas para jardín y balcón',       '🌿'],
+                ['Jardineras',         'Contenedores para plantas y flores', '🏺'],
+                ['Accesorios',         'Macetas, tierra, fertilizantes',     '🛠️'],
+                ['Arreglos Especiales','Bouquets y composiciones',           '💐'],
             ];
 
             for (const [nombre, descripcion, icono] of categorias) {
-                this.runQuery(
-                    `INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)`,
-                    [nombre, descripcion, icono]
-                );
+                this.runQuery(`INSERT INTO categorias (nombre, descripcion, icono) VALUES (?, ?, ?)`, [nombre, descripcion, icono]);
             }
 
-            const productos = [
-                ['Rosas Rojas',              1, 'Rosas rojas frescas',                  2.50, 4.00,  100, 20, 'unidad', 'todo_año',  1, 7,    'Flores del Campo',   'FL001'],
-                ['Rosas Blancas',            1, 'Rosas blancas elegantes',              2.50, 4.00,   80, 15, 'unidad', 'todo_año',  1, 7,    'Flores del Campo',   'FL002'],
-                ['Claveles',                 1, 'Claveles variados de colores',          1.50, 2.50,  150, 30, 'unidad', 'todo_año',  1, 10,   'Flores del Campo',   'FL003'],
-                ['Girasoles',                1, 'Girasoles grandes y brillantes',        3.00, 5.00,   60, 10, 'unidad', 'verano',    1, 5,    'Flores del Campo',   'FL004'],
-                ['Lirios',                   1, 'Lirios blancos aromáticos',             4.00, 6.50,   40,  8, 'unidad', 'primavera', 1, 8,    'Flores del Campo',   'FL005'],
-                ['Pothos',                   2, 'Planta colgante de fácil cuidado',      8.00, 15.00,  25,  5, 'unidad', 'todo_año',  0, null, 'Vivero Verde',       'PI001'],
-                ['Sansevieria',              2, 'Planta resistente y decorativa',       12.00, 22.00,  20,  3, 'unidad', 'todo_año',  0, null, 'Vivero Verde',       'PI002'],
-                ['Ficus',                    2, 'Árbol decorativo de interior',         25.00, 45.00,  15,  2, 'unidad', 'todo_año',  0, null, 'Vivero Verde',       'PI003'],
-                ['Geranios',                 3, 'Plantas florales para balcones',        6.00, 12.00,  50, 10, 'unidad', 'primavera', 0, null, 'Jardín Botánico',    'PE001'],
-                ['Petunias',                 3, 'Flores coloridas para jardín',          4.00, 8.00,   60, 12, 'unidad', 'primavera', 0, null, 'Jardín Botánico',    'PE002'],
-                ['Lavanda',                  3, 'Planta aromática perenne',              8.00, 16.00,  30,  5, 'unidad', 'todo_año',  0, null, 'Jardín Botánico',    'PE003'],
-                ['Jardinera Pequeña',        4, 'Jardinera de cerámica 20cm',            5.00, 12.00, 100, 20, 'unidad', 'todo_año',  0, null, 'Cerámica Española',  'JA001'],
-                ['Jardinera Mediana',        4, 'Jardinera de cerámica 30cm',            8.00, 18.00,  80, 15, 'unidad', 'todo_año',  0, null, 'Cerámica Española',  'JA002'],
-                ['Jardinera Grande',         4, 'Jardinera de cerámica 40cm',           12.00, 25.00,  50, 10, 'unidad', 'todo_año',  0, null, 'Cerámica Española',  'JA003'],
-                ['Jardinera Semana Santa',   4, 'Jardinera decorada especial SS',       15.00, 30.00,  40, 10, 'unidad', 'primavera', 0, null, 'Artesanía Local',    'JA004'],
-                ['Tierra Universal',         5, 'Sustrato universal para plantas',       3.00, 6.00,  100, 20, 'saco',   'todo_año',  0, null, 'AgriSupply',         'AC001'],
-                ['Fertilizante Líquido',     5, 'Fertilizante para plantas en flor',    4.50, 9.00,   50, 10, 'botella','todo_año',  0, null, 'AgriSupply',         'AC002'],
-                ['Maceta Barro 15cm',        5, 'Maceta de barro cocido',               2.00, 4.50,   80, 15, 'unidad', 'todo_año',  0, null, 'Cerámica Local',     'AC003']
+            const productos = isEn ? [
+                ['Red Roses',          1, 'Fresh red roses',              2.50, 4.00, 60, 15, 'unit',   'all_year',  1, 7,    'Field Flowers',    'FL001'],
+                ['White Roses',        1, 'Elegant white roses',          2.50, 4.00, 50, 10, 'unit',   'all_year',  1, 7,    'Field Flowers',    'FL002'],
+                ['Carnations',         1, 'Colourful mixed carnations',   1.50, 2.50, 80, 20, 'unit',   'all_year',  1, 10,   'Field Flowers',    'FL003'],
+                ['Sunflowers',         1, 'Large bright sunflowers',      3.00, 5.00, 40,  8, 'unit',   'summer',    1, 5,    'Field Flowers',    'FL004'],
+                ['Pothos',             2, 'Easy-care hanging plant',      8.00,15.00, 20,  4, 'unit',   'all_year',  0, null, 'Green Nursery',    'PI001'],
+                ['Sansevieria',        2, 'Resilient decorative plant',  12.00,22.00, 15,  3, 'unit',   'all_year',  0, null, 'Green Nursery',    'PI002'],
+                ['Geraniums',          3, 'Flowering plants for balconies',6.00,12.00,30,  8, 'unit',   'spring',    0, null, 'Botanical Garden', 'PE001'],
+                ['Lavender',           3, 'Perennial aromatic plant',     8.00,16.00, 20,  5, 'unit',   'all_year',  0, null, 'Botanical Garden', 'PE002'],
+                ['Small Planter',      4, 'Ceramic planter 20cm',         5.00,12.00, 60, 15, 'unit',   'all_year',  0, null, 'Spanish Ceramics', 'JA001'],
+                ['All-purpose Soil',   5, 'Universal plant substrate',    3.00, 6.00, 80, 20, 'bag',    'all_year',  0, null, 'AgriSupply',       'AC001'],
+            ] : [
+                ['Rosas Rojas',         1, 'Rosas rojas frescas',                 2.50, 4.00,  60, 15, 'unidad', 'todo_año',  1, 7,    'Flores del Campo',  'FL001'],
+                ['Rosas Blancas',       1, 'Rosas blancas elegantes',             2.50, 4.00,  50, 10, 'unidad', 'todo_año',  1, 7,    'Flores del Campo',  'FL002'],
+                ['Claveles',            1, 'Claveles variados de colores',         1.50, 2.50,  80, 20, 'unidad', 'todo_año',  1, 10,   'Flores del Campo',  'FL003'],
+                ['Girasoles',           1, 'Girasoles grandes y brillantes',       3.00, 5.00,  40,  8, 'unidad', 'verano',    1, 5,    'Flores del Campo',  'FL004'],
+                ['Pothos',              2, 'Planta colgante de fácil cuidado',     8.00,15.00,  20,  4, 'unidad', 'todo_año',  0, null, 'Vivero Verde',      'PI001'],
+                ['Sansevieria',         2, 'Planta resistente y decorativa',      12.00,22.00,  15,  3, 'unidad', 'todo_año',  0, null, 'Vivero Verde',      'PI002'],
+                ['Geranios',            3, 'Plantas florales para balcones',       6.00,12.00,  30,  8, 'unidad', 'primavera', 0, null, 'Jardín Botánico',   'PE001'],
+                ['Lavanda',             3, 'Planta aromática perenne',             8.00,16.00,  20,  5, 'unidad', 'todo_año',  0, null, 'Jardín Botánico',   'PE002'],
+                ['Jardinera Pequeña',   4, 'Jardinera de cerámica 20cm',           5.00,12.00,  60, 15, 'unidad', 'todo_año',  0, null, 'Cerámica Española', 'JA001'],
+                ['Tierra Universal',    5, 'Sustrato universal para plantas',      3.00, 6.00,  80, 20, 'saco',   'todo_año',  0, null, 'AgriSupply',        'AC001'],
             ];
 
             for (const producto of productos) {
@@ -385,11 +409,14 @@ class FlowerShopDatabase {
                 );
             }
 
-            const eventos = [
-                ['Semana Santa 2026',  'Evento religioso con alta demanda de flores', '2026-03-29', '2026-04-05', 'Corporativo', 'alta',  null, 10, 15, 'Preparar stock extra de rosas y lirios'],
-                ['Día de las Madres',  'Alta demanda de flores y arreglos florales',  '2026-05-03', '2026-05-03', 'Temporal',    'alta',  null, 15, 10, 'Promoción especial en rosas'],
-                ['San Valentín 2027',  'Día de los enamorados',                       '2027-02-14', '2027-02-14', 'Temporal',    'alta',  null, 20,  7, 'Stock extra de rosas rojas y blancas'],
-                ['Verano 2026',        'Temporada de flores de verano',               '2026-06-21', '2026-09-22', 'Temporal',    'media', null,  5, 14, 'Potenciar girasoles y geranios'],
+            const eventos = isEn ? [
+                ['Mother\'s Day',   'High demand for flowers',          '2026-05-10', '2026-05-10', 'Seasonal',    'high',   null, 15, 10, 'Special promotion on roses'],
+                ['Valentine\'s Day','Day of love',                      '2027-02-14', '2027-02-14', 'Seasonal',    'high',   null, 20,  7, 'Extra stock of red and white roses'],
+                ['Spring Opening',  'Summer flower season',             '2026-06-01', '2026-08-31', 'Seasonal',    'medium', null,  5, 14, 'Promote sunflowers and geraniums'],
+            ] : [
+                ['Día de las Madres', 'Alta demanda de flores',         '2026-05-03', '2026-05-03', 'Temporal',    'alta',   null, 15, 10, 'Promoción especial en rosas'],
+                ['San Valentín 2027', 'Día de los enamorados',          '2027-02-14', '2027-02-14', 'Temporal',    'alta',   null, 20,  7, 'Stock extra de rosas rojas y blancas'],
+                ['Verano 2026',       'Temporada de flores de verano',  '2026-06-21', '2026-09-22', 'Temporal',    'media',  null,  5, 14, 'Potenciar girasoles y geranios'],
             ];
 
             for (const evento of eventos) {
@@ -401,39 +428,37 @@ class FlowerShopDatabase {
                 );
             }
 
-            const clientes = [
-                ['María',   'González López',  '612 345 678', 'maria@email.com',   'Calle Principal 12, Madrid',    'frecuente', 5.00],
+            const clientes = isEn ? [
+                ['Emma',    'Johnson',    '555 123 4567', 'emma@email.com',    '12 Main Street, New York',  'Regular',  0.00],
+                ['James',   'Williams',   '555 234 5678', 'james@email.com',   '45 Central Ave, New York',  'VIP',     10.00],
+                ['Sophie',  'Brown',      '555 345 6789', 'sophie@email.com',  '7 Park Road, New York',     'Frequent', 5.00],
+                ['GreenCo', 'Events Ltd', '555 456 7890', 'orders@greenco.com','Industry Park 22, New York','Corporate',8.00],
+            ] : [
+                ['María',   'González López',  '612 345 678', 'maria@email.com',   'Calle Principal 12, Madrid',    'Regular',   0.00],
                 ['Juan',    'Pérez Martín',    '623 456 789', 'juan@email.com',    'Avenida Central 45, Madrid',    'VIP',       10.00],
-                ['Ana',     'Rodríguez Silva', '634 567 890', 'ana@email.com',     'Plaza Mayor 7, Madrid',         'Regular',   0.00],
-                ['Carlos',  'López García',    '645 678 901', 'carlos@email.com',  'Calle de las Flores 3, Madrid', 'Frecuente', 5.00],
-                ['Lucía',   'Martínez Ruiz',   '656 789 012', 'lucia@email.com',   'Paseo del Prado 8, Madrid',     'Nuevo',     0.00],
+                ['Ana',     'Rodríguez Silva', '634 567 890', 'ana@email.com',     'Plaza Mayor 7, Madrid',         'Frecuente', 5.00],
                 ['Empresa', 'Flores S.L.',     '910 123 456', 'compras@flores.es', 'Polígono Industrial 22, Madrid','Empresa',   8.00],
             ];
 
             for (const cliente of clientes) {
                 this.runQuery(
-                    `INSERT INTO clientes (nombre, apellidos, telefono, email, direccion,
-                     tipo_cliente, descuento_porcentaje)
+                    `INSERT INTO clientes (nombre, apellidos, telefono, email, direccion, tipo_cliente, descuento_porcentaje)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`,
                     cliente
                 );
             }
 
             const configuracion = [
-                ['moneda', 'EUR', 'Moneda utilizada'],
-                ['iva_porcentaje', '21', 'Porcentaje de IVA'],
-                ['empresa_nombre', 'Pétalo', 'Nombre de la empresa'],
-                ['empresa_direccion', 'Calle de las Flores, 123', 'Dirección'],
-                ['empresa_telefono', '123-456-789', 'Teléfono'],
-                ['dias_alerta_caducidad', '3', 'Días de anticipación para alertas'],
-                ['backup_automatico', 'true', 'Activar backup automático']
+                ['iva_porcentaje', isEn ? '0' : '21', 'Tax percentage'],
+                ['empresa_nombre', isEn ? 'My Flower Shop' : 'Mi Floristería', 'Business name'],
+                ['empresa_direccion', '', 'Address'],
+                ['empresa_telefono', '', 'Phone'],
+                ['dias_alerta_caducidad', '3', 'Days ahead for expiry alerts'],
+                ['backup_automatico', 'true', 'Enable automatic backup'],
             ];
 
             for (const [clave, valor, descripcion] of configuracion) {
-                this.runQuery(
-                    `INSERT INTO configuracion (clave, valor, descripcion) VALUES (?, ?, ?)`,
-                    [clave, valor, descripcion]
-                );
+                this.runQuery(`INSERT INTO configuracion (clave, valor, descripcion) VALUES (?, ?, ?)`, [clave, valor, descripcion]);
             }
 
             this.insertSampleOrders();

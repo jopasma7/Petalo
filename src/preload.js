@@ -91,6 +91,10 @@ contextBridge.exposeInMainWorld('flowerShopAPI', {
     registrarMovimientoInventario: (movimiento) => ipcRenderer.invoke('registrar-movimiento-inventario', movimiento),
     getMovimientosInventario: (filtros) => ipcRenderer.invoke('get-movimientos-inventario', filtros),
     
+    // Onboarding
+    seedSampleData: (lang) => ipcRenderer.invoke('seed-sample-data', lang),
+    clearAllData: () => ipcRenderer.invoke('clear-all-data'),
+
     // Eventos del menú
     onMenuAction: (callback) => {
         ipcRenderer.on('menu-action', (event, action) => {
