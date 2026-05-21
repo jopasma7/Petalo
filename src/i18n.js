@@ -167,6 +167,7 @@
             },
             orders: {
                 title: 'Encargos', subtitle: 'Encargos especiales y entregas programadas',
+                order_label: 'Encargo',
                 new: 'Nuevo Encargo', loading: 'Cargando encargos…',
                 tab_pending: 'Pendientes', tab_approved: 'Aprobados', tab_cancelled: 'Cancelados',
                 modal_new: 'Nuevo Encargo', modal_sub: 'Selecciona productos y configura el encargo',
@@ -890,6 +891,7 @@
             },
             orders: {
                 title: 'Orders', subtitle: 'Special orders and scheduled deliveries',
+                order_label: 'Order',
                 new: 'New Order', loading: 'Loading orders…',
                 tab_pending: 'Pending', tab_approved: 'Approved', tab_cancelled: 'Cancelled',
                 modal_new: 'New Order', modal_sub: 'Select products and configure the order',

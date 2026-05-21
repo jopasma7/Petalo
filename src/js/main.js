@@ -374,7 +374,7 @@ class FlowerShopApp {
                 const dias = Math.ceil((new Date(evento.fecha_inicio) - hoy) / 86400000);
                 const etiqueta = dias <= 0 ? `<span style="color:#16a34a;font-weight:700;font-size:0.7rem">${t('common.in_progress').toUpperCase()}</span>`
                     : dias === 1 ? `<span style="color:#d97706;font-weight:700;font-size:0.7rem">${t('common.tomorrow').toUpperCase()}</span>`
-                    : `<span style="color:var(--s-500);font-size:0.7rem">en ${dias}d</span>`;
+                    : `<span style="color:var(--s-500);font-size:0.7rem">${t('common.in_days', { n: dias })}</span>`;
                 const color = tipoColor[evento.tipo_evento] || '#6b7280';
                 const iconName = tipoIcon[evento.tipo_evento] || 'calendar';
                 return `
@@ -581,7 +581,7 @@ class FlowerShopApp {
                     </div>
                     <div class="evento-actions">
                         <button class="btn btn-sm btn-secondary" onclick="app.editarEvento(${evento.id})">${t('common.edit')}</button>
-                        <button class="btn btn-sm btn-success" onclick="app.gestionarEventoStock(${evento.id})">Stock</button>
+                        <button class="btn btn-sm btn-success" onclick="app.gestionarEventoStock(${evento.id})">${t('inventory.stock_event_title')}</button>
                         <button class="btn btn-sm btn-danger" onclick="app.eliminarEvento(${evento.id})">${t('common.delete')}</button>
                     </div>
                 </div>
@@ -756,7 +756,7 @@ class FlowerShopApp {
                         <div class="modal-header-inner">
                             <div class="modal-header-icon"><i data-lucide="shopping-cart"></i></div>
                             <div>
-                                <h2 class="modal-title-pro">Pedido #<span id="detalle-numero-pedido"></span></h2>
+                                <h2 class="modal-title-pro">${t('orders.order_label')} #<span id="detalle-numero-pedido"></span></h2>
                                 <p class="modal-subtitle-pro">${t('orders.details_subtitle')}</p>
                             </div>
                         </div>
@@ -5714,7 +5714,7 @@ class FlowerShopApp {
                    <p>${t('inventory.provider_no_orders_sub')}</p>
                </div>`
             : `<table class="historial-table">
-                   <thead><tr><th>${t('inventory.col_number')}</th><th>${t('common.date')}</th><th>${t('inventory.col_items')}</th><th class="text-right">Total</th><th>${t('common.status')}</th></tr></thead>
+                   <thead><tr><th>${t('inventory.col_number')}</th><th>${t('common.date')}</th><th>${t('inventory.col_items')}</th><th class="text-right">${t('common.total')}</th><th>${t('common.status')}</th></tr></thead>
                    <tbody>
                        ${ordenes.map(o => `
                            <tr>
