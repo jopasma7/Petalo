@@ -2846,6 +2846,7 @@ svg[data-lucide] { display: block; }
   border: 1px solid var(--s-100);
   border-radius: var(--r-xl);
   padding: var(--sp-4);
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
@@ -2910,6 +2911,20 @@ svg[data-lucide] { display: block; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .cliente-dato span { overflow: hidden; text-overflow: ellipsis; }
+
+.cliente-card-delete-btn {
+  position: absolute; top: 10px; right: 10px;
+  width: 28px; height: 28px;
+  border: none; border-radius: 8px; cursor: pointer;
+  background: transparent;
+  color: var(--s-400);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s;
+  opacity: 0;
+}
+.cliente-card-delete-btn i[data-lucide] { width: 14px; height: 14px; }
+.cliente-card:hover .cliente-card-delete-btn { opacity: 1; }
+.cliente-card-delete-btn:hover { background: #fee2e2; color: #ef4444; }
 
 .cliente-card-actions { display: flex; gap: var(--sp-2); margin-top: auto; padding-top: var(--sp-2); border-top: 1px solid var(--s-100); }
 .cliente-card-actions .btn {

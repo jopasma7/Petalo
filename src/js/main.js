@@ -500,6 +500,9 @@ class FlowerShopApp {
             const avatarBg = cliente.tiene_imagen ? 'transparent' : color;
             return `
             <div class="cliente-card">
+                <button class="cliente-card-delete-btn" onclick="app.eliminarCliente(${cliente.id})" title="${t('common.delete')}">
+                    <i data-lucide="trash-2"></i>
+                </button>
                 <div class="cliente-card-top">
                     <div class="cliente-avatar" style="background:${avatarBg}">${avatarContent}</div>
                     <div class="cliente-card-info">
@@ -539,7 +542,13 @@ class FlowerShopApp {
         if (!container) return;
 
         if (eventos.length === 0) {
-            container.innerHTML = `<p class="text-center">${t('events.no_data')}</p>`;
+            container.innerHTML = `
+                <div class="pedidos-empty">
+                    <i data-lucide="calendar-x" class="pedidos-empty-icon"></i>
+                    <p class="pedidos-empty-title">${t('events.no_data')}</p>
+                    <p class="pedidos-empty-sub">${t('events.no_data_sub')}</p>
+                </div>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             return;
         }
 
@@ -2214,6 +2223,20 @@ class FlowerShopApp {
             }
         } catch (e) {
             console.error(e);
+        }
+    }
+
+    async eliminarCliente(id) {
+        const ok = await this._confirm(t('confirms.delete_client_title'), t('confirms.delete_client'), t('confirms.btn_delete'));
+        if (!ok) return;
+        try {
+            await window.flowerShopAPI.eliminarCliente(id);
+            await this.loadClientesData();
+            await this.updateSidebarBadges();
+            this.showNotification(t('msgs.client_deleted'), 'success');
+        } catch (error) {
+            console.error('Error eliminando cliente:', error);
+            this.showNotification(t('msgs.error_delete'), 'error');
         }
     }
 
