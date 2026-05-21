@@ -358,14 +358,14 @@ class FlowerShopDatabase {
 
             const categorias = isEn ? [
                 ['Fresh Flowers',    'Cut fresh flowers',              '🌹'],
-                ['Indoor Plants',    'Plants for indoor decoration',   '🪴'],
+                ['Indoor Plants',    'Plants for indoor decoration',   '🌱'],
                 ['Outdoor Plants',   'Plants for garden and balcony',  '🌿'],
                 ['Planters',         'Containers for plants',          '🏺'],
                 ['Accessories',      'Pots, soil, fertilisers',        '🛠️'],
                 ['Special Bouquets', 'Bouquets and compositions',      '💐'],
             ] : [
                 ['Flores Naturales',  'Flores frescas cortadas',             '🌹'],
-                ['Plantas de Interior','Plantas para decoración interior',   '🪴'],
+                ['Plantas de Interior','Plantas para decoración interior',   '🌱'],
                 ['Plantas de Exterior','Plantas para jardín y balcón',       '🌿'],
                 ['Jardineras',         'Contenedores para plantas y flores', '🏺'],
                 ['Accesorios',         'Macetas, tierra, fertilizantes',     '🛠️'],
