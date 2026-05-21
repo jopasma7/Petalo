@@ -1433,7 +1433,7 @@
     <div class="ob-modal">
         <!-- Header -->
         <div class="ob-header">
-            <div class="ob-logo">🌸</div>
+            <div class="ob-logo"><i data-lucide="flower-2"></i></div>
             <h1 class="ob-title" data-i18n="ob.welcome"></h1>
             <p class="ob-subtitle" data-i18n="ob.welcome_sub"></p>
         </div>
@@ -1538,14 +1538,14 @@
             <p class="ob-step-desc" data-i18n="ob.step3_desc"></p>
 
             <div class="ob-features">
-                <div class="ob-feat"><span>🌸</span><span data-i18n="ob.feat1"></span></div>
-                <div class="ob-feat"><span>📦</span><span data-i18n="ob.feat2"></span></div>
-                <div class="ob-feat"><span>📊</span><span data-i18n="ob.feat3"></span></div>
-                <div class="ob-feat"><span>📄</span><span data-i18n="ob.feat4"></span></div>
+                <div class="ob-feat"><i data-lucide="package"></i><span data-i18n="ob.feat1"></span></div>
+                <div class="ob-feat"><i data-lucide="users"></i><span data-i18n="ob.feat2"></span></div>
+                <div class="ob-feat"><i data-lucide="warehouse"></i><span data-i18n="ob.feat3"></span></div>
+                <div class="ob-feat"><i data-lucide="bar-chart-2"></i><span data-i18n="ob.feat4"></span></div>
             </div>
 
             <div class="ob-sample-notice">
-                <div class="ob-sample-icon">💡</div>
+                <div class="ob-sample-icon"><i data-lucide="lightbulb"></i></div>
                 <div>
                     <strong data-i18n="ob.sample_title"></strong>
                     <p data-i18n="ob.sample_desc"></p>
@@ -1584,7 +1584,8 @@
 }
 
 .ob-header { text-align: center; }
-.ob-logo { font-size: 2.8rem; line-height: 1; margin-bottom: 8px; }
+.ob-logo { line-height: 1; margin-bottom: 8px; color: var(--accent-color, #c084fc); }
+.ob-logo i[data-lucide] { width: 52px; height: 52px; }
 .ob-title { font-size: 1.6rem; font-weight: 700; color: var(--text-primary, #f0f0f0); margin: 0 0 6px; }
 .ob-subtitle { font-size: .95rem; color: var(--text-secondary, #999); margin: 0; }
 
@@ -1639,7 +1640,7 @@
     background: var(--bg-input, rgba(255,255,255,.05));
     font-size: .9rem; color: var(--text-primary, #f0f0f0);
 }
-.ob-feat > span:first-child { font-size: 1.2rem; width: 24px; text-align: center; flex-shrink: 0; }
+.ob-feat > i[data-lucide] { width: 18px; height: 18px; flex-shrink: 0; color: var(--accent-color, #c084fc); }
 
 .ob-sample-notice {
     display: flex; gap: 14px; align-items: flex-start;
@@ -1647,7 +1648,8 @@
     background: rgba(192,132,252,.1);
     border: 1px solid rgba(192,132,252,.25);
 }
-.ob-sample-icon { font-size: 1.4rem; flex-shrink: 0; }
+.ob-sample-icon { flex-shrink: 0; color: var(--accent-color, #c084fc); }
+.ob-sample-icon i[data-lucide] { width: 20px; height: 20px; }
 .ob-sample-notice strong { font-size: .9rem; color: var(--text-primary, #f0f0f0); display: block; margin-bottom: 4px; }
 .ob-sample-notice p { font-size: .82rem; color: var(--text-secondary, #aaa); margin: 0; }
 

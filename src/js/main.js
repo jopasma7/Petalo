@@ -6618,6 +6618,7 @@ FlowerShopApp.prototype.checkOnboarding = function() {
     const overlay = document.getElementById('onboarding-overlay');
     if (!overlay) return;
     overlay.style.display = 'flex';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     window.i18n.setLocale('es');
     overlay.querySelectorAll('input[name="ob-lang"]').forEach(radio => {
         radio.addEventListener('change', () => window.i18n.setLocale(radio.value));
