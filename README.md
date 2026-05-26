@@ -7,13 +7,13 @@
 ### Professional Flower Shop Management Software
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?style=flat-square&logo=windows)](https://github.com/jopasma7/Petalo/releases)
-[![Version](https://img.shields.io/badge/Version-1.0.0-22c55e?style=flat-square)](https://github.com/jopasma7/Petalo/releases)
-[![License](https://img.shields.io/badge/License-Commercial-f59e0b?style=flat-square)](https://lottuscompany.lemonsqueezy.com/checkout/buy/1075259)
+[![Version](https://img.shields.io/badge/Version-1.0.3-22c55e?style=flat-square)](https://github.com/jopasma7/Petalo/releases)
+[![License](https://img.shields.io/badge/License-Commercial-f59e0b?style=flat-square)](https://lottuscompany.lemonsqueezy.com/checkout/buy/2149ac15-bf6f-48a1-805e-133b6ea19a43)
 [![Language](https://img.shields.io/badge/Language-EN%20%7C%20ES-6366f1?style=flat-square)](#)
 
 **Pétalo** is a desktop application built for florists — manage your products, clients, events, orders, inventory, and suppliers from a single clean interface. Works completely offline. No subscriptions to external services, no cloud dependency, no complexity.
 
-[**Website**](https://lottuscompany.com/petalo/) &nbsp;·&nbsp; [**Buy Now — €79.99 / year**](https://lottuscompany.lemonsqueezy.com/checkout/buy/1075259) &nbsp;·&nbsp; [Download](https://github.com/jopasma7/Petalo/releases/latest) &nbsp;·&nbsp; [Support](#support)
+[**Website**](https://lottuscompany.com/petalo/) &nbsp;·&nbsp; [**Buy Now — €59.99 / year**](https://lottuscompany.lemonsqueezy.com/checkout/buy/2149ac15-bf6f-48a1-805e-133b6ea19a43) &nbsp;·&nbsp; [Download](https://github.com/jopasma7/Petalo/releases/latest) &nbsp;·&nbsp; [Support](#support)
 
 ---
 
@@ -130,8 +130,8 @@ Visit the store and choose your plan:
 
 | Plan | Price | Link |
 |---|---|---|
-| **Annual** | €79.99 / year | [Buy Annual](https://lottuscompany.lemonsqueezy.com/checkout/buy/1075259) |
-| **Monthly** | €11.99 / month | [Buy Monthly](https://lottuscompany.lemonsqueezy.com/checkout/buy/1070158) |
+| **Annual** | €59.99 / year | [Buy Annual](https://lottuscompany.lemonsqueezy.com/checkout/buy/2149ac15-bf6f-48a1-805e-133b6ea19a43) |
+| **Monthly** | €4.99 / month | [Buy Monthly](https://lottuscompany.lemonsqueezy.com/checkout/buy/2bcc169c-6c3d-46e8-ad61-5aa810a0e9d1) |
 
 You will receive a license key by email immediately after payment.
 
@@ -149,8 +149,8 @@ Run the installer, open Pétalo, enter your license key when prompted, and follo
 
 | Plan | Price | Includes |
 |---|---|---|
-| **Annual License** | €79.99 / year | All features, all updates, email support |
-| **Monthly License** | €11.99 / month | All features, all updates, email support |
+| **Annual License** | €59.99 / year | All features, all updates, email support |
+| **Monthly License** | €4.99 / month | All features, all updates, email support |
 
 A **1-day free trial** is included — no payment required to evaluate the software.
 
