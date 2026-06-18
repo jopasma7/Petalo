@@ -7,7 +7,7 @@
 ### Professional Flower Shop Management Software
 
 [![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?style=flat-square&logo=windows)](https://github.com/jopasma7/Petalo/releases)
-[![Version](https://img.shields.io/badge/Version-1.0.4-22c55e?style=flat-square)](https://github.com/jopasma7/Petalo/releases)
+[![Version](https://img.shields.io/badge/Version-1.0.5-22c55e?style=flat-square)](https://github.com/jopasma7/Petalo/releases)
 [![License](https://img.shields.io/badge/License-Commercial-f59e0b?style=flat-square)](https://lottuscompany.lemonsqueezy.com/checkout/buy/2149ac15-bf6f-48a1-805e-133b6ea19a43)
 [![Language](https://img.shields.io/badge/Language-EN%20%7C%20ES-6366f1?style=flat-square)](#)
 
